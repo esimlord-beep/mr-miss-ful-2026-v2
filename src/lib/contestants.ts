@@ -1,14 +1,14 @@
 import { fallbackContestants } from "@/lib/sample-data";
-import { adminSupabase } from "@/lib/supabase";
+import { browserSupabase } from "@/lib/supabase";
 import type { Contestant } from "@/types";
 
 export async function getContestants(): Promise<Contestant[]> {
   try {
-    if (!adminSupabase) {
+    if (!browserSupabase) {
       return fallbackContestants;
     }
 
-    const { data, error } = await adminSupabase.from("contestants").select("*");
+    const { data, error } = await browserSupabase.from("contestants").select("*");
 
     if (error || !data || data.length === 0) {
       return fallbackContestants;
@@ -42,19 +42,17 @@ export async function getContestantById(id: string): Promise<Contestant | null> 
 
 export async function getSettings(): Promise<any> {
   const localFallback = {
-    title: "Mr & Miss FUL 2026",
     site_title: "Mr & Miss FUL 2026",
-    description: "Federal University Lokoja SUG Voting Portal",
-    site_description: "Federal University Lokoja SUG Voting Portal",
+    hero_description: "Federal University Lokoja SUG Voting Portal",
     footer_text: "Copyright ©️ 2026 Mr & Miss FUL 2026 — Federal University Lokoja SUG. All Rights Reserved."
   };
 
   try {
-    if (!adminSupabase) {
+    if (!browserSupabase) {
       return localFallback;
     }
 
-    const { data, error } = await adminSupabase.from("site_settings").select("*").maybeSingle();
+    const { data, error } = await browserSupabase.from("settings").select("*").maybeSingle();
 
     if (error || !data) {
       return localFallback;
@@ -62,10 +60,12 @@ export async function getSettings(): Promise<any> {
 
     return {
       id: data.id,
-      title: data.title || data.site_title || localFallback.title,
-      site_title: data.site_title || data.title || localFallback.site_title,
-      description: data.description || data.site_description || localFallback.description,
-      site_description: data.site_description || data.description || localFallback.site_description,
+      site_title: data.site_title || localFallback.site_title,
+      hero_description: data.hero_description || localFallback.hero_description,
+      primary_logo: data.primary_logo || null,
+      secondary_logo: data.secondary_logo || null,
+      voting_status: data.voting_status || "open",
+      vote_price: data.vote_price || 200,
       footer_text: data.footer_text || localFallback.footer_text
     };
   } catch {
