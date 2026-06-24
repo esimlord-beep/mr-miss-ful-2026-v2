@@ -48,7 +48,7 @@ export function VotingExperience({
 
   const topContestants = useMemo(() => {
     return [...initialContestants]
-      .sort((a, b) => (b.votes || 0) - (a.votes || 0))
+    .sort((a, b) => (b.votes || 0) - (a.votes || 0))
       .slice(0, 3);
   }, [initialContestants]);
 
@@ -176,7 +176,8 @@ export function VotingExperience({
                     <div className="flex flex-col space-y-3 border-t border-slate-100 pt-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Total Votes</p>
+                          <p className="text-[10px]
+                          uppercase tracking-wider font-bold text-slate-400">Total Votes</p>
                           <p className="text-lg font-black text-slate-800">{contestant.votes ?? 0}</p>
                         </div>
                       </div>
@@ -238,4 +239,35 @@ export function VotingExperience({
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-2">Number of Votes</label>
                 <div className="flex items-center space-x-4">
-                  <button type="button" onClick={() => setVoteQuantity(Math.max(1, voteQuantity - 1))} className
+                  <button type="button" onClick={() => setVoteQuantity(Math.max(1, voteQuantity - 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-slate-600 hover:bg-slate-200">-</button>
+                  <span className="text-base font-black text-slate-800 w-8 text-center">{voteQuantity}</span>
+                  <button type="button" onClick={() => setVoteQuantity(Math.min(1000, voteQuantity + 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-slate-600 hover:bg-slate-200">+</button>
+                </div>
+              </div>
+              <p className="text-xs text-slate-400 text-center">Protected by reCAPTCHA</p>
+              <button type="submit" disabled={loading} className="w-full rounded-xl bg-amber-500 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/10 transition-colors hover:bg-amber-600 disabled:bg-slate-300">
+                {loading ? "Processing Payment..." : "Proceed to Pay"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {viewingProfileOf && (
+      <ProfileOverlay 
+          contestant={viewingProfileOf} 
+          onClose={() => setViewingProfileOf(null)} 
+          onVote={() => {
+            const person = viewingProfileOf;
+            setViewingProfileOf(null);
+            openVoteModal(person);
+          }}
+        />
+      )}
+
+      <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs font-semibold text-slate-400 mt-12">
+        {siteSettings?.footer_text || "Copyright ©️ 2026 Mr & Miss FUL 2026 — Federal University Lokoja SUG. All Rights Reserved."}
+      </footer>
+    </div>
+  );
+}
