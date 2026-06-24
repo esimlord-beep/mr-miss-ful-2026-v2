@@ -29,10 +29,11 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center space-y-2">
-          <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-sm font-medium text-slate-500">Loading voting portal...</p>
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-black text-white">Mr & Miss FUL 2026</h1>
+          <p className="text-amber-400 font-semibold text-sm uppercase tracking-widest">Loading voting portal...</p>
+          <div className="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mt-4"></div>
         </div>
       </div>
     );
