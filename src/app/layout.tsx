@@ -25,9 +25,6 @@ export default function RootLayout({
           <div className="flex-grow">
             {children}
           </div>
-          <footer className="bg-white border-t border-slate-100 py-6 text-center text-xs font-medium text-slate-400 px-4">
-            <p>Copyright ©️ 2026 Mr & Miss FUL 2026 — Federal University Lokoja SUG. All Rights Reserved.</p>
-          </footer>
         </div>
       </body>
     </html>
