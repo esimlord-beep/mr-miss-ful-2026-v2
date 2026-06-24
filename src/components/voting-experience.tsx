@@ -3,7 +3,6 @@
 import { useState, useRef, useMemo } from "react";
 import { Hero } from "@/components/hero";
 import { Podium } from "@/components/podium";
-// IMPORTING YOUR ORIGINAL PROFILE OVERLAY COMPONENT
 import { ProfileOverlay } from "@/components/profile-overlay";
 
 export function VotingExperience({ 
@@ -15,20 +14,19 @@ export function VotingExperience({
 }) {
   const contestantsRef = useRef<HTMLDivElement>(null);
   
-  // State for control popups
   const [votingFor, setVotingFor] = useState<any | null>(null);
   const [viewingProfileOf, setViewingProfileOf] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Form input fields tracking
   const [payerName, setPayerName] = useState("");
   const [payerEmail, setPayerEmail] = useState("");
   const [payerPhone, setPayerPhone] = useState("");
   const [voteQuantity, setVoteQuantity] = useState(1);
 
+  const votingClosed = siteSettings?.voting_status === "closed";
+
   const filteredContestants = initialContestants;
 
-  // Calculates the real-time leaderboard data
   const topContestants = useMemo(() => {
     return [...initialContestants]
       .sort((a, b) => (b.votes || 0) - (a.votes || 0))
@@ -36,6 +34,7 @@ export function VotingExperience({
   }, [initialContestants]);
 
   const openVoteModal = (contestant: any) => {
+    if (votingClosed) return;
     setVotingFor(contestant);
     setVoteQuantity(1);
   };
@@ -85,10 +84,15 @@ export function VotingExperience({
         onExplore={() => contestantsRef.current?.scrollIntoView({ behavior: "smooth" })} 
         siteSettings={siteSettings} 
       />
+
+      {votingClosed && (
+        <div className="bg-red-50 border-b border-red-200 py-3 text-center">
+          <p className="text-sm font-bold text-red-600">🔒 Voting is currently closed.</p>
+        </div>
+      )}
       
       <main ref={contestantsRef} className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-16">
         
-        {/* Live Leaderboard Frame */}
         {topContestants.length > 0 && (
           <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
             <div className="text-center mb-6">
@@ -99,7 +103,6 @@ export function VotingExperience({
           </div>
         )}
 
-        {/* Contestants List Container */}
         <div>
           <div className="mb-6">
             <h2 className="text-xl font-bold text-slate-800">All Contestants</h2>
@@ -152,7 +155,6 @@ export function VotingExperience({
                         </div>
                       </div>
                       
-                      {/* TWO SIDE-BY-SIDE BUTTONS: PROFILE AND VOTE NOW */}
                       <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => setViewingProfileOf(contestant)}
@@ -162,13 +164,17 @@ export function VotingExperience({
                         </button>
                         <button 
                           onClick={() => openVoteModal(contestant)}
-                          className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-white shadow-md shadow-amber-500/10 transition-colors hover:bg-amber-600 cursor-pointer text-center"
+                          disabled={votingClosed}
+                          className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-md transition-colors text-center ${
+                            votingClosed 
+                              ? "bg-slate-300 cursor-not-allowed" 
+                              : "bg-amber-500 shadow-amber-500/10 hover:bg-amber-600 cursor-pointer"
+                          }`}
                         >
-                          Vote Now
+                          {votingClosed ? "Voting Closed" : "Vote Now"}
                         </button>
                       </div>
                     </div>
-
                   </div>
                 </div>
               ))}
@@ -177,7 +183,6 @@ export function VotingExperience({
         </div>
       </main>
 
-      {/* POPUP MODAL FOR INPUT DETAILS */}
       {votingFor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
           <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl animate-in fade-in zoom-in-95 duration-150">
@@ -213,14 +218,13 @@ export function VotingExperience({
                 </div>
               </div>
               <button type="submit" disabled={loading} className="w-full rounded-xl bg-amber-500 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/10 transition-colors hover:bg-amber-600 disabled:bg-slate-300">
-                {loading ? "Processing Payment..." : `Proceed to Pay`}
+                {loading ? "Processing Payment..." : "Proceed to Pay"}
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* RENDER DYNAMIC PROFILE POPUP OVERLAY */}
       {viewingProfileOf && (
         <ProfileOverlay 
           contestant={viewingProfileOf} 
