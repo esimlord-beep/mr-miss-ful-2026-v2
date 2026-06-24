@@ -1,9 +1,16 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { Hero } from "@/components/hero";
 import { Podium } from "@/components/podium";
 import { ProfileOverlay } from "@/components/profile-overlay";
+
+declare global {
+  interface Window {
+    grecaptcha: any;
+    onRecaptchaLoad: () => void;
+  }
+}
 
 export function VotingExperience({ 
   initialContestants = [], 
@@ -24,6 +31,18 @@ export function VotingExperience({
   const [voteQuantity, setVoteQuantity] = useState(1);
 
   const votingClosed = siteSettings?.voting_status === "closed";
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+  useEffect(() => {
+    if (!siteKey) return;
+    const script = document.createElement("script");
+    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
+    script.async = true;
+    document.head.appendChild(script);
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, [siteKey]);
 
   const filteredContestants = initialContestants;
 
@@ -52,6 +71,12 @@ export function VotingExperience({
 
     try {
       setLoading(true);
+
+      let recaptchaToken = "";
+      if (siteKey && window.grecaptcha) {
+        recaptchaToken = await window.grecaptcha.execute(siteKey, { action: "vote" });
+      }
+
       const res = await fetch("/api/payments/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,7 +85,8 @@ export function VotingExperience({
           payerName,
           payerEmail,
           payerPhone,
-          voteQuantity
+          voteQuantity,
+          recaptchaToken
         }),
       });
       
@@ -185,7 +211,7 @@ export function VotingExperience({
 
       {votingFor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
             <div className="bg-amber-500 px-6 py-4 text-white flex justify-between items-center">
               <h3 className="font-bold text-lg">Cast Your Vote</h3>
               <button onClick={closeVoteModal} className="text-white hover:text-amber-100 font-bold text-sm bg-amber-600/50 w-7 h-7 rounded-full flex items-center justify-center">✕</button>
@@ -212,34 +238,4 @@ export function VotingExperience({
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-2">Number of Votes</label>
                 <div className="flex items-center space-x-4">
-                  <button type="button" onClick={() => setVoteQuantity(Math.max(1, voteQuantity - 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-slate-600 hover:bg-slate-200">-</button>
-                  <span className="text-base font-black text-slate-800 w-8 text-center">{voteQuantity}</span>
-                  <button type="button" onClick={() => setVoteQuantity(Math.min(1000, voteQuantity + 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-slate-600 hover:bg-slate-200">+</button>
-                </div>
-              </div>
-              <button type="submit" disabled={loading} className="w-full rounded-xl bg-amber-500 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/10 transition-colors hover:bg-amber-600 disabled:bg-slate-300">
-                {loading ? "Processing Payment..." : "Proceed to Pay"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {viewingProfileOf && (
-        <ProfileOverlay 
-          contestant={viewingProfileOf} 
-          onClose={() => setViewingProfileOf(null)} 
-          onVote={() => {
-            const person = viewingProfileOf;
-            setViewingProfileOf(null);
-            openVoteModal(person);
-          }}
-        />
-      )}
-
-      <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs font-semibold text-slate-400 mt-12">
-        {siteSettings?.footer_text || "Copyright ©️ 2026 Mr & Miss FUL 2026 — Federal University Lokoja SUG. All Rights Reserved."}
-      </footer>
-    </div>
-  );
-}
+                  <button type="button" onClick={() => setVoteQuantity(Math.max(1, voteQuantity - 1))} className
