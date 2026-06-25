@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       email: parsed.data.payerEmail,
       amount,
       reference,
+      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/awards/complete`,
       metadata: {
         type: "award",
         nomineeId: parsed.data.nomineeId,
