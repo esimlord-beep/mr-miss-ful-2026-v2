@@ -25,3 +25,6 @@ a,
 input {
   -webkit-tap-highlight-color: transparent;
 }
+.grecaptcha-badge {
+  visibility: hidden !important;
+}
