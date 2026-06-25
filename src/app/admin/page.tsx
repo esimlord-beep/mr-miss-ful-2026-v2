@@ -5,9 +5,9 @@ import { addContestant, editContestant, deleteContestant, saveSettings, changePa
 
 async function getSettings() {
   if (!adminSupabase) return {};
-  const { data } = await adminSupabase.from("settings").select("key, value");
+  const { data } = await adminSupabase.from("settings").select("*").maybeSingle();
   if (!data) return {};
-  return Object.fromEntries(data.map((r: { key: string; value: string }) => [r.key, r.value]));
+  return data;
 }
 
 async function getRevenue() {
@@ -44,6 +44,9 @@ export default async function AdminPage({
             <div>
               <p className="text-xs font-black uppercase tracking-[0.22em] text-yellow-600">Admin Panel</p>
               <h1 className="mt-1 text-2xl font-black text-slate-900">Mr & Miss FUL 2026</h1>
+              <a href="/admin/awards" className="inline-flex items-center gap-2 mt-2 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-black text-white hover:bg-amber-600">
+                🏆 Manage Awards
+              </a>
             </div>
             <form action="/api/admin/logout" method="POST">
               <button className="rounded-full border border-slate-200 px-4 py-2 text-sm font-black text-slate-600 hover:bg-slate-50">
@@ -170,7 +173,7 @@ export default async function AdminPage({
                   <p className="text-lg font-black tabular-nums text-blue-700">{c.votes.toLocaleString()}</p>
                   <a href={`/admin?edit=${c.id}`} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-100">
                     Edit
-                  </a>
+                    </a>
                   <form action={deleteContestant}>
                     <input type="hidden" name="id" value={c.id} />
                     <button type="submit" className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-black text-rose-600 hover:bg-rose-50">
@@ -211,7 +214,6 @@ export default async function AdminPage({
               </div>
             </div>
             
-            {/* HERO BANNER IMAGE */}
             <div>
               <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Hero Banner Image</label>
               <input type="file" name="logo" accept="image/*" className="w-full text-sm font-semibold" />
@@ -221,11 +223,10 @@ export default async function AdminPage({
                   <p className="text-xs text-green-600 font-bold">✅ Hero banner set. Upload a new file to replace it.</p>
                 </div>
               ) : (
-                <p className="mt-1 text-xs text-slate-400 font-semibold">No hero banner uploaded yet. A default placeholder will be used.</p>
+                <p className="mt-1 text-xs text-slate-400 font-semibold">No hero banner uploaded yet.</p>
               )}
             </div>
 
-            {/* LOGOS SIDE-BY-SIDE */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Secondary Logo (optional)</label>
