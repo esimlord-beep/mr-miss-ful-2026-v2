@@ -117,6 +117,8 @@ export async function saveSettings(formData: FormData) {
   const votingEnd = String(formData.get("voting_end") ?? "").trim();
   const heroDescription = String(formData.get("hero_description") ?? "").trim();
   const footerText = String(formData.get("footer_text") ?? "").trim();
+  const awardsTitle = String(formData.get("awards_title") ?? "").trim();
+  const awardsDescription = String(formData.get("awards_description") ?? "").trim();
 
   if (siteTitle) updates.site_title = siteTitle;
   if (votePrice) updates.vote_price = Number(votePrice);
@@ -124,8 +126,9 @@ export async function saveSettings(formData: FormData) {
   if (votingEnd) updates.voting_end_date = votingEnd;
   if (heroDescription) updates.hero_description = heroDescription;
   if (footerText) updates.footer_text = footerText;
+  if (awardsTitle) updates.awards_title = awardsTitle;
+  if (awardsDescription) updates.awards_description = awardsDescription;
 
-  // "logo" input is now the hero banner image
   const logo = formData.get("logo") as File | null;
   if (logo && logo.size > 0) {
     updates.primary_logo = await uploadPhoto(logo, "hero-banner");
@@ -148,6 +151,7 @@ export async function saveSettings(formData: FormData) {
 
   revalidatePath("/admin");
   revalidatePath("/");
+  revalidatePath("/awards");
   redirect("/admin?saved=1");
 }
 
