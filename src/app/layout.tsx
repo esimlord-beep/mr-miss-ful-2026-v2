@@ -20,14 +20,26 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full scroll-smooth">
       <body className={`${inter.className} antialiased h-full text-slate-600 bg-slate-50/30`}>
-        <nav className="bg-slate-900 border-b border-slate-700 px-4 py-3">
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
-            <a href="/" className="px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest text-white border border-white/20 hover:bg-white/10 transition-colors">
-              🎭 Mr & Miss FUL
-            </a>
-            <a href="/awards" className="px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest text-amber-400 border border-amber-400/40 hover:bg-amber-400/10 transition-colors">
-              🏆 FUL Awards
-            </a>
+        <nav className="bg-slate-900 px-4 py-3 relative" x-data="{ open: false }">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <p className="text-white font-black text-sm">Mr & Miss FUL 2026</p>
+            <div className="relative">
+              <details className="group">
+                <summary className="list-none cursor-pointer flex flex-col gap-1.5 p-2">
+                  <span className="block w-6 h-0.5 bg-white"></span>
+                  <span className="block w-6 h-0.5 bg-white"></span>
+                  <span className="block w-6 h-0.5 bg-white"></span>
+                </summary>
+                <div className="absolute right-0 top-10 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 w-52 z-50">
+                  <a href="/" className="flex items-center gap-3 px-4 py-3 text-sm font-black text-slate-900 hover:bg-slate-50">
+                    🎭 Mr & Miss FUL Voting
+                  </a>
+                  <a href="/awards" className="flex items-center gap-3 px-4 py-3 text-sm font-black text-amber-600 hover:bg-amber-50">
+                    🏆 FUL Awards 2026
+                  </a>
+                </div>
+              </details>
+            </div>
           </div>
         </nav>
         <div className="min-h-screen flex flex-col">
