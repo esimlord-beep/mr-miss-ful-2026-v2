@@ -6,7 +6,7 @@ import { browserSupabase } from "@/lib/supabase";
 export default function AwardsPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [nominees, setNominees] = useState<Record<string, any[]>>({});
-  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<any>({});
   const [votingFor, setVotingFor] = useState<any | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
   const [payerName, setPayerName] = useState("");
@@ -18,6 +18,13 @@ export default function AwardsPage() {
   useEffect(() => {
     async function loadData() {
       if (!browserSupabase) return;
+
+      const { data: settingsData } = await browserSupabase
+        .from("settings")
+        .select("awards_title, awards_description")
+        .maybeSingle();
+      if (settingsData) setSettings(settingsData);
+
       const { data: cats } = await browserSupabase
         .from("award_categories")
         .select("*")
@@ -37,7 +44,6 @@ export default function AwardsPage() {
         }
         setNominees(nomineeMap);
       }
-      setLoading(false);
     }
     loadData();
   }, []);
@@ -86,24 +92,12 @@ export default function AwardsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <h1 className="text-3xl font-black text-white">FUL Awards 2026</h1>
-          <p className="text-amber-400 font-semibold text-sm uppercase tracking-widest">Loading categories...</p>
-          <div className="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="bg-slate-900 text-white py-12 px-4 text-center">
         <p className="text-amber-400 text-xs font-black uppercase tracking-widest mb-2">Federal University Lokoja SUG</p>
-        <h1 className="text-4xl font-black">FUL Awards 2026</h1>
-        <p className="text-slate-300 mt-3 text-sm max-w-md mx-auto">Vote for your favorites across all categories. Minimum 250 votes required for each award to be presented.</p>
+        <h1 className="text-4xl font-black">{settings.awards_title || "FUL Awards 2026"}</h1>
+        <p className="text-slate-300 mt-3 text-sm max-w-md mx-auto">{settings.awards_description || "Vote for your favorites across all categories. Minimum 250 votes required for each award to be presented."}</p>
       </div>
 
       <main className="max-w-5xl mx-auto px-4 py-12 space-y-16">
@@ -122,15 +116,20 @@ export default function AwardsPage() {
                 <div className="bg-slate-900 px-6 py-5">
                   <h2 className="text-xl font-black text-white">{category.name}</h2>
                   {category.description && <p className="text-slate-400 text-sm mt-1">{category.description}</p>}
-                  <div className="mt-3 flex items-center gap-4">
+                  <div className="mt-3 flex items-center gap-3 flex-wrap">
                     <span className="text-xs font-bold text-amber-400">₦{category.vote_price} per vote</span>
                     <span className={`text-xs font-bold px-2 py-1 rounded-full ${minReached ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
                       {minReached ? "✅ Minimum reached!" : `${totalVotes}/${category.minimum_votes} votes`}
                     </span>
+                    {minReached && (
+                      <span className="text-xs font-bold px-2 py-1 rounded-full bg-amber-500/20 text-amber-400">
+                        🗳️ {totalVotes} votes
+                      </span>
+                    )}
                   </div>
                   {!minReached && (
                     <div className="mt-2 w-full bg-slate-700 rounded-full h-1.5">
-                      <div 
+                      <div
                         className="bg-amber-400 h-1.5 rounded-full transition-all"
                         style={{ width: `${Math.min((totalVotes / category.minimum_votes) * 100, 100)}%` }}
                       />
@@ -151,6 +150,7 @@ export default function AwardsPage() {
                         )}
                         <div className="p-4">
                           <p className="font-bold text-slate-900">{nominee.name}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">🗳️ {nominee.votes || 0} votes</p>
                           <button
                             onClick={() => openVoteModal(nominee, category)}
                             className="mt-3 w-full rounded-xl bg-amber-500 py-2 text-xs font-bold text-white hover:bg-amber-600 transition-colors"
