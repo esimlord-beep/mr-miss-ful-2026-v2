@@ -245,6 +245,14 @@ export default async function AdminPage({
               <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Footer Text</label>
               <input name="footer_text" defaultValue={settings.footer_text ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. Copyright ©️ 2026 Mr & Miss FUL 2026. All Rights Reserved." />
             </div>
+            <div>
+  <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Page Title</label>
+  <input name="awards_title" defaultValue={settings.awards_title ?? "FUL Awards 2026"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. FUL Awards 2026" />
+</div>
+<div>
+  <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Page Description</label>
+  <textarea name="awards_description" rows={2} defaultValue={settings.awards_description ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="Text shown under the awards page title" />
+</div>
             <button type="submit" className="rounded-full bg-blue-700 px-6 py-3 text-sm font-black text-white hover:bg-blue-900">
               Save Settings
             </button>
