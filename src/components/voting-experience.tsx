@@ -48,7 +48,7 @@ export function VotingExperience({
 
   const topContestants = useMemo(() => {
     return [...initialContestants]
-    .sort((a, b) => (b.votes || 0) - (a.votes || 0))
+      .sort((a, b) => (b.votes || 0) - (a.votes || 0))
       .slice(0, 3);
   }, [initialContestants]);
 
@@ -110,6 +110,17 @@ export function VotingExperience({
         onExplore={() => contestantsRef.current?.scrollIntoView({ behavior: "smooth" })} 
         siteSettings={siteSettings} 
       />
+
+      {/* Awards Navigation Banner */}
+      <div className="bg-amber-500 py-3 px-4 text-center">
+        <p className="text-sm font-black text-white">
+          🏆 Also vote in the{" "}
+          <a href="/awards" className="underline hover:text-amber-100">
+            FUL Awards 2026
+          </a>{" "}
+          — Best Dressed, Most Popular & more!
+        </p>
+      </div>
 
       {votingClosed && (
         <div className="bg-red-50 border-b border-red-200 py-3 text-center">
@@ -176,8 +187,7 @@ export function VotingExperience({
                     <div className="flex flex-col space-y-3 border-t border-slate-100 pt-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-[10px]
-                          uppercase tracking-wider font-bold text-slate-400">Total Votes</p>
+                          <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Total Votes</p>
                           <p className="text-lg font-black text-slate-800">{contestant.votes ?? 0}</p>
                         </div>
                       </div>
@@ -212,7 +222,7 @@ export function VotingExperience({
 
       {votingFor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl animate-in fade-in zoom-in-95 duration-150">
             <div className="bg-amber-500 px-6 py-4 text-white flex justify-between items-center">
               <h3 className="font-bold text-lg">Cast Your Vote</h3>
               <button onClick={closeVoteModal} className="text-white hover:text-amber-100 font-bold text-sm bg-amber-600/50 w-7 h-7 rounded-full flex items-center justify-center">✕</button>
@@ -254,7 +264,7 @@ export function VotingExperience({
       )}
 
       {viewingProfileOf && (
-      <ProfileOverlay 
+        <ProfileOverlay 
           contestant={viewingProfileOf} 
           onClose={() => setViewingProfileOf(null)} 
           onVote={() => {
