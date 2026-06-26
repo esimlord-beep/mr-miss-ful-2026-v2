@@ -212,7 +212,7 @@ export default function AwardsPage() {
       )}
 
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs font-semibold text-slate-400">
-        Copyright ©️ 2026 Mr & Miss FUL 2026 — Federal University Lokoja SUG. All Rights Reserved.
+        Copyright ©️ 2026 Mr & Miss FUL 2026
       </footer>
     </div>
   );
