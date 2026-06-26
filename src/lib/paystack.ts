@@ -16,9 +16,13 @@ export async function initializePaystackPayment(payload: {
   amount: number;
   reference: string;
   metadata: Record<string, unknown>;
+  callback_url?: string;
 }) {
   const secret = process.env.PAYSTACK_SECRET_KEY;
   if (!secret) throw new Error("PAYSTACK_SECRET_KEY is not configured");
+
+  const callbackUrl = payload.callback_url ?? 
+    `${process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/payment/complete`;
 
   const response = await fetch("https://api.paystack.co/transaction/initialize", {
     method: "POST",
@@ -30,7 +34,7 @@ export async function initializePaystackPayment(payload: {
       email: payload.email,
       amount: payload.amount * 100,
       reference: payload.reference,
-      callback_url: `${process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/payment/complete`,
+      callback_url: callbackUrl,
       metadata: payload.metadata
     })
   });
