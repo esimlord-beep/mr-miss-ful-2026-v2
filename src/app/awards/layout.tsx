@@ -11,7 +11,6 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
   const title = settings.awards_title ?? "FUL Awards 2026";
   const description = settings.awards_description ?? "Vote for your favorites across all categories.";
-  const image = settings.primary_logo || "/apple-icon.png";
 
   return {
     title,
@@ -19,13 +18,13 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      images: [image],
+      images: ["/apple-icon.png"],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [image],
+      images: ["/apple-icon.png"],
     },
   };
 }
