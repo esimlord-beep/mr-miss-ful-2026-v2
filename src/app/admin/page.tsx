@@ -16,6 +16,8 @@ export default function AwardsPage() {
  const [voteQuantity, setVoteQuantity] = useState(1);
  const [processing, setProcessing] = useState(false);
  const [searchTerm, setSearchTerm] = useState("");
+ const [shareOpenFor, setShareOpenFor] = useState<string | null>(null);
+ const [copiedId, setCopiedId] = useState<string | null>(null);
 
  useEffect(() => {
    async function loadData() {
@@ -70,6 +72,31 @@ export default function AwardsPage() {
    setPayerName("");
    setPayerEmail("");
    setPayerPhone("");
+ };
+
+ const getShareUrl = () => {
+   if (typeof window === "undefined") return "";
+   return window.location.href;
+ };
+
+ const getShareText = (nominee: any, category: any) => {
+   return `Vote for ${nominee.name} in ${category.name} — FUL Awards 2026!`;
+ };
+
+ const handleShare = (platform: "whatsapp" | "twitter" | "copy", nominee: any, category: any) => {
+   const url = getShareUrl();
+   const text = getShareText(nominee, category);
+
+   if (platform === "whatsapp") {
+     window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`, "_blank");
+   } else if (platform === "twitter") {
+     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank");
+   } else if (platform === "copy") {
+     navigator.clipboard.writeText(url);
+     setCopiedId(nominee.id);
+     setTimeout(() => setCopiedId(null), 2000);
+   }
+   setShareOpenFor(null);
  };
 
  const handleSubmit = async (e: React.FormEvent) => {
@@ -187,15 +214,50 @@ export default function AwardsPage() {
                ) : (
                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 p-6">
                    {noms.map((nominee) => (
-                     <div key={nominee.id} className="rounded-2xl border border-slate-100 overflow-hidden hover:-translate-y-1 transition-all">
+                     <div key={nominee.id} className="rounded-2xl border border-slate-100 overflow-hidden hover:-translate-y-1 transition-all relative">
                        {nominee.photo_url ? (
                          <img src={nominee.photo_url} alt={nominee.name} className="w-full h-40 object-cover" />
                        ) : (
                          <div className="w-full h-40 bg-slate-100 flex items-center justify-center text-slate-400 font-medium">No Photo</div>
                        )}
                        <div className="p-4">
-                         <p className="font-bold text-slate-900">{nominee.name}</p>
-                         <p className="text-xs text-slate-400 mt-0.5">🗳️ {nominee.votes || 0} votes</p>
+                         <div className="flex items-start justify-between gap-2">
+                           <div>
+                             <p className="font-bold text-slate-900">{nominee.name}</p>
+                             <p className="text-xs text-slate-400 mt-0.5">🗳️ {nominee.votes || 0} votes</p>
+                           </div>
+                           <div className="relative">
+                             <button
+                               onClick={() => setShareOpenFor(shareOpenFor === nominee.id ? null : nominee.id)}
+                               className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-sm shrink-0"
+                               aria-label="Share"
+                             >
+                               🔗
+                             </button>
+                             {shareOpenFor === nominee.id && (
+                               <div className="absolute right-0 top-9 z-10 w-44 rounded-xl bg-white border border-slate-200 shadow-lg py-1.5 overflow-hidden">
+                                 <button
+                                   onClick={() => handleShare("whatsapp", nominee, category)}
+                                   className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                 >
+                                   💬 WhatsApp
+                                 </button>
+                                 <button
+                                   onClick={() => handleShare("twitter", nominee, category)}
+                                   className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                 >
+                                   𝕏 Twitter
+                                 </button>
+                                 <button
+                                   onClick={() => handleShare("copy", nominee, category)}
+                                   className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                 >
+                                   {copiedId === nominee.id ? "✅ Copied!" : "📋 Copy Link"}
+                                 </button>
+                               </div>
+                             )}
+                           </div>
+                         </div>
                          <button
                            onClick={() => openVoteModal(nominee, category)}
                            disabled={votingClosed}
