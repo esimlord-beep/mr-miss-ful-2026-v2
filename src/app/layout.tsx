@@ -62,6 +62,12 @@ export default function RootLayout({
                   <a href="/awards" className="flex items-center gap-3 px-4 py-3 text-sm font-black text-amber-600 hover:bg-amber-50">
                     🏆 FUL Awards 2026
                   </a>
+                  <a href="/contact" className="flex items-center gap-3 px-4 py-3 text-sm font-black text-slate-900 hover:bg-slate-50">
+                    💬 Contact & Support
+                  </a>
+                  <a href="/terms" className="flex items-center gap-3 px-4 py-3 text-sm font-black text-slate-900 hover:bg-slate-50">
+                    📄 Terms & Privacy
+                  </a>
                 </div>
               </details>
             </div>
@@ -71,6 +77,14 @@ export default function RootLayout({
           <div className="flex-grow">
             {children}
           </div>
+          <footer className="border-t border-slate-200 bg-white py-6 px-4 text-center">
+            <div className="flex flex-wrap justify-center gap-4 text-xs font-bold text-slate-500">
+              <a href="/" className="hover:text-amber-600">Home</a>
+              <a href="/awards" className="hover:text-amber-600">Awards</a>
+              <a href="/contact" className="hover:text-amber-600">Contact & Support</a>
+              <a href="/terms" className="hover:text-amber-600">Terms & Privacy</a>
+            </div>
+          </footer>
         </div>
         <SpeedInsights />
         <Analytics />
