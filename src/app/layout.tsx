@@ -4,14 +4,38 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
+import { adminSupabase } from "@/lib/supabase";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Mr & Miss FUL 2026",
-  description: "Federal University Lokoja SUG Voting Portal",
-};
+async function getSettings() {
+  if (!adminSupabase) return {};
+  const { data } = await adminSupabase.from("settings").select("*").maybeSingle();
+  return data ?? {};
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+  const title = settings.site_title ?? "Mr & Miss FUL 2026";
+  const description = settings.hero_description ?? "Federal University Lokoja SUG Voting Portal";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: ["/apple-icon.png"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["/apple-icon.png"],
+    },
+  };
+}
 
 export default function RootLayout({
   children,
