@@ -196,6 +196,13 @@ export default async function AdminPage({
               <div>
                 <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Site Title</label>
                 <input name="site_title" defaultValue={settings.site_title ?? "Mr & Miss FUL 2026"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
+                <div>
+  <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Voting Status</label>
+  <select name="awards_voting_status" defaultValue={settings.awards_voting_status ?? "open"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
+    <option value="open">Open — awards voting is live</option>
+    <option value="closed">Closed — awards voting is ended</option>
+  </select>
+</div>
               </div>
               <div>
                 <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Vote Price (₦)</label>
