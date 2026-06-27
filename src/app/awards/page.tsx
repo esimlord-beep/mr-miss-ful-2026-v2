@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { browserSupabase } from "@/lib/supabase";
+import { Search } from "lucide-react";
 
 export default function AwardsPage() {
  const [categories, setCategories] = useState<any[]>([]);
  const [nominees, setNominees] = useState<Record<string, any[]>>({});
  const [settings, setSettings] = useState<any>({});
  const [loading, setLoading] = useState(true);
+ const [search, setSearch] = useState("");
  const [votingFor, setVotingFor] = useState<any | null>(null);
  const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
  const [payerName, setPayerName] = useState("");
@@ -51,6 +53,10 @@ export default function AwardsPage() {
  }, []);
 
  const votingClosed = settings?.voting_status === "closed";
+
+ const filteredCategories = categories.filter(cat =>
+   cat.name.toLowerCase().includes(search.toLowerCase())
+ );
 
  const openVoteModal = (nominee: any, category: any) => {
    if (votingClosed) return;
@@ -115,6 +121,17 @@ export default function AwardsPage() {
        <p className="text-amber-400 text-xs font-black uppercase tracking-widest mb-2">Federal University Lokoja SUG</p>
        <h1 className="text-4xl font-black">{settings.awards_title || "FUL Awards 2026"}</h1>
        <p className="text-slate-300 mt-3 text-sm max-w-md mx-auto">{settings.awards_description || "Vote for your favorites across all categories. Minimum 250 votes required for each award to be presented."}</p>
+
+       <div className="mt-6 max-w-md mx-auto relative">
+         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+         <input
+           type="text"
+           placeholder="Search award categories..."
+           value={search}
+           onChange={(e) => setSearch(e.target.value)}
+           className="w-full bg-white/10 border border-white/20 rounded-full pl-11 pr-5 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-400"
+         />
+       </div>
      </div>
 
      {votingClosed && (
@@ -124,12 +141,19 @@ export default function AwardsPage() {
      )}
 
      <main className="max-w-5xl mx-auto px-4 py-12 space-y-16">
-       {categories.length === 0 ? (
+       {filteredCategories.length === 0 ? (
          <div className="text-center py-20">
-           <p className="text-slate-500 font-medium text-lg">Award categories coming soon! 👑</p>
+           <p className="text-slate-500 font-medium text-lg">
+             {search ? `No categories found for "${search}"` : "Award categories coming soon! 👑"}
+           </p>
+           {search && (
+             <button onClick={() => setSearch("")} className="mt-4 text-amber-600 font-bold text-sm underline">
+               Clear search
+             </button>
+           )}
          </div>
        ) : (
-         categories.map((category) => {
+         filteredCategories.map((category) => {
            const noms = nominees[category.id] || [];
            const totalVotes = noms.reduce((sum, n) => sum + (n.votes || 0), 0);
            const minReached = totalVotes >= category.minimum_votes;
