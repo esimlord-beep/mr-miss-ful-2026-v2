@@ -173,7 +173,7 @@ export default async function AdminPage({
                   <p className="text-lg font-black tabular-nums text-blue-700">{c.votes.toLocaleString()}</p>
                   <a href={`/admin?edit=${c.id}`} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-100">
                     Edit
-                    </a>
+                  </a>
                   <form action={deleteContestant}>
                     <input type="hidden" name="id" value={c.id} />
                     <button type="submit" className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-black text-rose-600 hover:bg-rose-50">
@@ -196,23 +196,23 @@ export default async function AdminPage({
               <div>
                 <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Site Title</label>
                 <input name="site_title" defaultValue={settings.site_title ?? "Mr & Miss FUL 2026"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
-                <div>
-  <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Voting Status</label>
-  <select name="awards_voting_status" defaultValue={settings.awards_voting_status ?? "open"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
-    <option value="open">Open — awards voting is live</option>
-    <option value="closed">Closed — awards voting is ended</option>
-  </select>
-</div>
               </div>
               <div>
                 <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Vote Price (₦)</label>
                 <input name="vote_price" type="number" defaultValue={settings.vote_price ?? "200"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
               </div>
               <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Voting Status</label>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Main Voting Status</label>
                 <select name="voting_status" defaultValue={settings.voting_status ?? "open"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
                   <option value="open">Open — voting is live</option>
                   <option value="closed">Closed — voting is ended</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Voting Status</label>
+                <select name="awards_voting_status" defaultValue={settings.awards_voting_status ?? "open"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
+                  <option value="open">Open — awards voting is live</option>
+                  <option value="closed">Closed — awards voting is ended</option>
                 </select>
               </div>
               <div>
@@ -220,7 +220,7 @@ export default async function AdminPage({
                 <input name="voting_end" type="datetime-local" defaultValue={settings.voting_end ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Hero Banner Image</label>
               <input type="file" name="logo" accept="image/*" className="w-full text-sm font-semibold" />
@@ -253,13 +253,13 @@ export default async function AdminPage({
               <input name="footer_text" defaultValue={settings.footer_text ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. Copyright ©️ 2026 Mr & Miss FUL 2026. All Rights Reserved." />
             </div>
             <div>
-  <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Page Title</label>
-  <input name="awards_title" defaultValue={settings.awards_title ?? "FUL Awards 2026"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. FUL Awards 2026" />
-</div>
-<div>
-  <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Page Description</label>
-  <textarea name="awards_description" rows={2} defaultValue={settings.awards_description ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="Text shown under the awards page title" />
-</div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Page Title</label>
+              <input name="awards_title" defaultValue={settings.awards_title ?? "FUL Awards 2026"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Page Description</label>
+              <textarea name="awards_description" rows={2} defaultValue={settings.awards_description ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="Text shown under the awards page title" />
+            </div>
             <button type="submit" className="rounded-full bg-blue-700 px-6 py-3 text-sm font-black text-white hover:bg-blue-900">
               Save Settings
             </button>
