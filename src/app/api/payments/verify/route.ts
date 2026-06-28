@@ -2,11 +2,18 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { votePrice } from "@/lib/config";
 import { verifyPaystackReference } from "@/lib/paystack";
+import { verifyFlutterwaveReference } from "@/lib/flutterwave";
 import { adminSupabase } from "@/lib/supabase";
 
 const schema = z.object({
   reference: z.string().min(6)
 });
+
+async function getActiveProvider(): Promise<"paystack" | "flutterwave"> {
+  if (!adminSupabase) return "paystack";
+  const { data } = await adminSupabase.from("settings").select("payment_provider").maybeSingle();
+  return data?.payment_provider === "flutterwave" ? "flutterwave" : "paystack";
+}
 
 export async function POST(request: Request) {
   if (!adminSupabase) return NextResponse.json({ error: "Supabase service role is not configured." }, { status: 500 });
@@ -26,14 +33,17 @@ export async function POST(request: Request) {
   }
 
   try {
-    const verification = await verifyPaystackReference(reference);
+    const provider = await getActiveProvider();
+    const verifyFn = provider === "flutterwave" ? verifyFlutterwaveReference : verifyPaystackReference;
+    const verification = await verifyFn(reference);
+
     if (verification.data.status !== "success") {
       return NextResponse.json({ error: "Payment was not successful." }, { status: 400 });
     }
 
     const metadata = verification.data.metadata;
     const voteQuantity = Number(metadata.voteQuantity);
-    const amountPaid = Number(verification.data.amount) / 100;
+    const amountPaid = Number(verification.data.amount) / (provider === "flutterwave" ? 1 : 100);
     const expectedAmount = voteQuantity * votePrice;
 
     if (amountPaid < expectedAmount) {
