@@ -2,14 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { browserSupabase } from "@/lib/supabase";
-import { Search } from "lucide-react";
 
 export default function AwardsPage() {
  const [categories, setCategories] = useState<any[]>([]);
  const [nominees, setNominees] = useState<Record<string, any[]>>({});
  const [settings, setSettings] = useState<any>({});
  const [loading, setLoading] = useState(true);
- const [search, setSearch] = useState("");
  const [votingFor, setVotingFor] = useState<any | null>(null);
  const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
  const [payerName, setPayerName] = useState("");
@@ -17,6 +15,9 @@ export default function AwardsPage() {
  const [payerPhone, setPayerPhone] = useState("");
  const [voteQuantity, setVoteQuantity] = useState(1);
  const [processing, setProcessing] = useState(false);
+ const [searchTerm, setSearchTerm] = useState("");
+ const [shareOpenFor, setShareOpenFor] = useState<string | null>(null);
+ const [copiedId, setCopiedId] = useState<string | null>(null);
 
  useEffect(() => {
    async function loadData() {
@@ -54,8 +55,8 @@ export default function AwardsPage() {
 
  const votingClosed = settings?.voting_status === "closed";
 
- const filteredCategories = categories.filter(cat =>
-   cat.name.toLowerCase().includes(search.toLowerCase())
+ const filteredCategories = categories.filter((category) =>
+   category.name.toLowerCase().includes(searchTerm.toLowerCase())
  );
 
  const openVoteModal = (nominee: any, category: any) => {
@@ -71,6 +72,31 @@ export default function AwardsPage() {
    setPayerName("");
    setPayerEmail("");
    setPayerPhone("");
+ };
+
+ const getShareUrl = () => {
+   if (typeof window === "undefined") return "";
+   return window.location.href;
+ };
+
+ const getShareText = (nominee: any, category: any) => {
+   return `Vote for ${nominee.name} in ${category.name} — FUL Awards 2026!`;
+ };
+
+ const handleShare = (platform: "whatsapp" | "twitter" | "copy", nominee: any, category: any) => {
+   const url = getShareUrl();
+   const text = getShareText(nominee, category);
+
+   if (platform === "whatsapp") {
+     window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`, "_blank");
+   } else if (platform === "twitter") {
+     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank");
+   } else if (platform === "copy") {
+     navigator.clipboard.writeText(url);
+     setCopiedId(nominee.id);
+     setTimeout(() => setCopiedId(null), 2000);
+   }
+   setShareOpenFor(null);
  };
 
  const handleSubmit = async (e: React.FormEvent) => {
@@ -121,17 +147,6 @@ export default function AwardsPage() {
        <p className="text-amber-400 text-xs font-black uppercase tracking-widest mb-2">Federal University Lokoja SUG</p>
        <h1 className="text-4xl font-black">{settings.awards_title || "FUL Awards 2026"}</h1>
        <p className="text-slate-300 mt-3 text-sm max-w-md mx-auto">{settings.awards_description || "Vote for your favorites across all categories. Minimum 250 votes required for each award to be presented."}</p>
-
-       <div className="mt-6 max-w-md mx-auto relative">
-         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-         <input
-           type="text"
-           placeholder="Search award categories..."
-           value={search}
-           onChange={(e) => setSearch(e.target.value)}
-           className="w-full bg-white/10 border border-white/20 rounded-full pl-11 pr-5 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-400"
-         />
-       </div>
      </div>
 
      {votingClosed && (
@@ -140,17 +155,27 @@ export default function AwardsPage() {
        </div>
      )}
 
+     <div className="max-w-5xl mx-auto px-4 pt-8">
+       <div className="relative">
+         <input
+           type="text"
+           value={searchTerm}
+           onChange={(e) => setSearchTerm(e.target.value)}
+           placeholder="Search award categories..."
+           className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:border-amber-500 shadow-sm"
+         />
+         <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+       </div>
+     </div>
+
      <main className="max-w-5xl mx-auto px-4 py-12 space-y-16">
-       {filteredCategories.length === 0 ? (
+       {categories.length === 0 ? (
          <div className="text-center py-20">
-           <p className="text-slate-500 font-medium text-lg">
-             {search ? `No categories found for "${search}"` : "Award categories coming soon! 👑"}
-           </p>
-           {search && (
-             <button onClick={() => setSearch("")} className="mt-4 text-amber-600 font-bold text-sm underline">
-               Clear search
-             </button>
-           )}
+           <p className="text-slate-500 font-medium text-lg">Award categories coming soon! 👑</p>
+         </div>
+       ) : filteredCategories.length === 0 ? (
+         <div className="text-center py-20">
+           <p className="text-slate-500 font-medium text-lg">No categories match "{searchTerm}"</p>
          </div>
        ) : (
          filteredCategories.map((category) => {
@@ -189,15 +214,50 @@ export default function AwardsPage() {
                ) : (
                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 p-6">
                    {noms.map((nominee) => (
-                     <div key={nominee.id} className="rounded-2xl border border-slate-100 overflow-hidden hover:-translate-y-1 transition-all">
+                     <div key={nominee.id} className="rounded-2xl border border-slate-100 overflow-hidden hover:-translate-y-1 transition-all relative">
                        {nominee.photo_url ? (
                          <img src={nominee.photo_url} alt={nominee.name} className="w-full h-40 object-cover" />
                        ) : (
                          <div className="w-full h-40 bg-slate-100 flex items-center justify-center text-slate-400 font-medium">No Photo</div>
                        )}
                        <div className="p-4">
-                         <p className="font-bold text-slate-900">{nominee.name}</p>
-                         <p className="text-xs text-slate-400 mt-0.5">🗳️ {nominee.votes || 0} votes</p>
+                         <div className="flex items-start justify-between gap-2">
+                           <div>
+                             <p className="font-bold text-slate-900">{nominee.name}</p>
+                             <p className="text-xs text-slate-400 mt-0.5">🗳️ {nominee.votes || 0} votes</p>
+                           </div>
+                           <div className="relative">
+                             <button
+                               onClick={() => setShareOpenFor(shareOpenFor === nominee.id ? null : nominee.id)}
+                               className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-sm shrink-0"
+                               aria-label="Share"
+                             >
+                               🔗
+                             </button>
+                             {shareOpenFor === nominee.id && (
+                               <div className="absolute right-0 top-9 z-10 w-44 rounded-xl bg-white border border-slate-200 shadow-lg py-1.5 overflow-hidden">
+                                 <button
+                                   onClick={() => handleShare("whatsapp", nominee, category)}
+                                   className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                 >
+                                   💬 WhatsApp
+                                 </button>
+                                 <button
+                                   onClick={() => handleShare("twitter", nominee, category)}
+                                   className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                 >
+                                   𝕏 Twitter
+                                 </button>
+                                 <button
+                                   onClick={() => handleShare("copy", nominee, category)}
+                                   className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                 >
+                                   {copiedId === nominee.id ? "✅ Copied!" : "📋 Copy Link"}
+                                 </button>
+                               </div>
+                             )}
+                           </div>
+                         </div>
                          <button
                            onClick={() => openVoteModal(nominee, category)}
                            disabled={votingClosed}
@@ -262,24 +322,6 @@ export default function AwardsPage() {
          </div>
        </div>
      )}
-
-     <footer className="border-t border-slate-200 bg-white py-8 px-4">
-  <div className="max-w-7xl mx-auto flex flex-col items-center gap-3">
-    <div className="flex items-center gap-1 text-xs font-bold text-slate-500">
-      <a href="/" className="px-3 py-1 hover:text-amber-600 transition-colors">Home</a>
-      <span className="text-slate-300">•</span>
-      <a href="/awards" className="px-3 py-1 hover:text-amber-600 transition-colors">Awards</a>
-      <span className="text-slate-300">•</span>
-      <a href="/contact" className="px-3 py-1 hover:text-amber-600 transition-colors">Contact</a>
-      <span className="text-slate-300">•</span>
-      <a href="/terms" className="px-3 py-1 hover:text-amber-600 transition-colors">Terms & Privacy</a>
-    </div>
-    <p className="text-[11px] text-slate-400 font-medium">
-      © 2026 Mr & Miss FUL · Federal University Lokoja SUG
-    </p>
-  </div>
-</footer>
-
    </div>
  );
 }
