@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { browserSupabase } from "@/lib/supabase";
 
 export default function AwardsPage() {
@@ -215,11 +216,19 @@ export default function AwardsPage() {
                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 p-6">
                    {noms.map((nominee) => (
                      <div key={nominee.id} className="rounded-2xl border border-slate-100 overflow-hidden hover:-translate-y-1 transition-all relative">
-                       {nominee.photo_url ? (
-                         <img src={nominee.photo_url} alt={nominee.name} className="w-full h-40 object-cover" />
-                       ) : (
-                         <div className="w-full h-40 bg-slate-100 flex items-center justify-center text-slate-400 font-medium">No Photo</div>
-                       )}
+                       <div className="relative w-full h-40 bg-slate-100">
+                         {nominee.photo_url ? (
+                           <Image
+                             src={nominee.photo_url}
+                             alt={nominee.name}
+                             fill
+                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                             className="object-cover"
+                           />
+                         ) : (
+                           <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">No Photo</div>
+                         )}
+                       </div>
                        <div className="p-4">
                          <div className="flex items-start justify-between gap-2">
                            <div>
