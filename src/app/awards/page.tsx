@@ -55,18 +55,23 @@ export default function AwardsPage() {
        .eq("is_active", true)
        .order("created_at");
 
-     if (cats) {
+     if (cats && cats.length > 0) {
        setCategories(cats);
+
+       const categoryIds = cats.map((cat) => cat.id);
+       const { data: allNominees } = await browserSupabase
+         .from("award_nominees")
+         .select("*")
+         .in("category_id", categoryIds)
+         .order("votes", { ascending: false });
+
        const nomineeMap: Record<string, any[]> = {};
        for (const cat of cats) {
-         const { data: noms } = await browserSupabase
-           .from("award_nominees")
-           .select("*")
-           .eq("category_id", cat.id)
-           .order("votes", { ascending: false });
-         nomineeMap[cat.id] = noms || [];
+         nomineeMap[cat.id] = (allNominees || []).filter((n) => n.category_id === cat.id);
        }
        setNominees(nomineeMap);
+     } else if (cats) {
+       setCategories(cats);
      }
      setLoading(false);
    }
