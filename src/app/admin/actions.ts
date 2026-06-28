@@ -126,6 +126,7 @@ export async function saveSettings(formData: FormData) {
  const footerText = String(formData.get("footer_text") ?? "").trim();
  const awardsTitle = String(formData.get("awards_title") ?? "").trim();
  const awardsDescription = String(formData.get("awards_description") ?? "").trim();
+ const paymentProvider = String(formData.get("payment_provider") ?? "").trim();
 
  if (siteTitle) updates.site_title = siteTitle;
  if (votePrice) updates.vote_price = Number(votePrice);
@@ -136,6 +137,7 @@ export async function saveSettings(formData: FormData) {
  if (footerText) updates.footer_text = footerText;
  if (awardsTitle) updates.awards_title = awardsTitle;
  if (awardsDescription) updates.awards_description = awardsDescription;
+ if (paymentProvider) updates.payment_provider = paymentProvider;
 
  const logo = formData.get("logo") as File | null;
  if (logo && logo.size > 0) {
