@@ -1,269 +1,293 @@
-"use client";
+import { BarChart3, Settings, Trophy, Users, Wallet, Crown } from "lucide-react";
+import { getContestants } from "@/lib/contestants";
+import { adminSupabase } from "@/lib/supabase";
+import { addContestant, editContestant, deleteContestant, saveSettings, changePassword } from "@/app/admin/actions";
 
-import { useEffect, useState } from "react";
-import { browserSupabase } from "@/lib/supabase";
+async function getSettings() {
+  if (!adminSupabase) return {};
+  const { data } = await adminSupabase.from("settings").select("*").maybeSingle();
+  if (!data) return {};
+  return data;
+}
 
-export default function AwardsPage() {
- const [categories, setCategories] = useState<any[]>([]);
- const [nominees, setNominees] = useState<Record<string, any[]>>({});
- const [settings, setSettings] = useState<any>({});
- const [loading, setLoading] = useState(true);
- const [votingFor, setVotingFor] = useState<any | null>(null);
- const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
- const [payerName, setPayerName] = useState("");
- const [payerEmail, setPayerEmail] = useState("");
- const [payerPhone, setPayerPhone] = useState("");
- const [voteQuantity, setVoteQuantity] = useState(1);
- const [processing, setProcessing] = useState(false);
- const [searchTerm, setSearchTerm] = useState("");
+async function getRevenue() {
+  if (!adminSupabase) return 0;
+  const { data } = await adminSupabase.from("payments").select("amount_paid").eq("processed", true);
+  if (!data) return 0;
+  return data.reduce((sum: number, p: { amount_paid: number }) => sum + p.amount_paid, 0);
+}
 
- useEffect(() => {
-   async function loadData() {
-     if (!browserSupabase) return;
+export default async function AdminPage({
+  searchParams
+}: {
+  searchParams: Promise<{ saved?: string; pwinfo?: string; edit?: string }>;
+}) {
+  const params = await searchParams;
+  const [contestants, settings, revenue] = await Promise.all([
+    getContestants(),
+    getSettings(),
+    getRevenue()
+  ]);
 
-     const { data: settingsData } = await browserSupabase
-       .from("settings")
-       .select("awards_title, awards_description, voting_status")
-       .maybeSingle();
-     if (settingsData) setSettings(settingsData);
+  const totalVotes = contestants.reduce((sum, c) => sum + c.votes, 0);
+  const ranked = [...contestants].sort((a, b) => b.votes - a.votes);
+  const votePrice = Number(settings.vote_price ?? 200);
+  const editId = params.edit ?? null;
+  const editContestantData = editId ? contestants.find(c => c.id === editId) : null;
 
-     const { data: cats } = await browserSupabase
-       .from("award_categories")
-       .select("*")
-       .eq("is_active", true)
-       .order("created_at");
+  return (
+    <main className="min-h-screen bg-slate-50">
 
-     if (cats) {
-       setCategories(cats);
-       const nomineeMap: Record<string, any[]> = {};
-       for (const cat of cats) {
-         const { data: noms } = await browserSupabase
-           .from("award_nominees")
-           .select("*")
-           .eq("category_id", cat.id)
-           .order("votes", { ascending: false });
-         nomineeMap[cat.id] = noms || [];
-       }
-       setNominees(nomineeMap);
-     }
-     setLoading(false);
-   }
-   loadData();
- }, []);
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-yellow-600">Admin Panel</p>
+              <h1 className="mt-1 text-2xl font-black text-slate-900">Mr & Miss FUL 2026</h1>
+              <a href="/admin/awards" className="inline-flex items-center gap-2 mt-2 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-black text-white hover:bg-amber-600">
+                🏆 Manage Awards
+              </a>
+            </div>
+            <form action="/api/admin/logout" method="POST">
+              <button className="rounded-full border border-slate-200 px-4 py-2 text-sm font-black text-slate-600 hover:bg-slate-50">
+                Log out
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
 
- const votingClosed = settings?.voting_status === "closed";
+      {params.saved && (
+        <div className="bg-green-50 border-b border-green-200 px-4 py-3 text-center text-sm font-bold text-green-700">
+          ✅ Settings saved successfully!
+        </div>
+      )}
 
- const filteredCategories = categories.filter((category) =>
-   category.name.toLowerCase().includes(searchTerm.toLowerCase())
- );
+      {params.pwinfo && (
+        <div className="bg-blue-50 border-b border-blue-200 px-4 py-3 text-center text-sm font-bold text-blue-700">
+          To change your password, update ADMIN_PASSWORD in Vercel → Settings → Environment Variables, then redeploy.
+        </div>
+      )}
 
- const openVoteModal = (nominee: any, category: any) => {
-   if (votingClosed) return;
-   setVotingFor(nominee);
-   setSelectedCategory(category);
-   setVoteQuantity(1);
- };
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
 
- const closeModal = () => {
-   setVotingFor(null);
-   setSelectedCategory(null);
-   setPayerName("");
-   setPayerEmail("");
-   setPayerPhone("");
- };
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          {[
+            { label: "Total Votes", value: totalVotes.toLocaleString(), Icon: Trophy },
+            { label: "Revenue", value: `₦${revenue.toLocaleString()}`, Icon: Wallet },
+            { label: "Contestants", value: contestants.length.toString(), Icon: Users },
+            { label: "Vote Price", value: `₦${votePrice}`, Icon: BarChart3 }
+          ].map(({ label, value, Icon }) => (
+            <article key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <Icon className="text-blue-700" size={20} />
+              <p className="mt-3 text-xs font-bold text-slate-500">{label}</p>
+              <p className="mt-1 text-2xl font-black text-slate-900">{value}</p>
+            </article>
+          ))}
+        </div>
 
- const handleSubmit = async (e: React.FormEvent) => {
-   e.preventDefault();
-   if (!votingFor || !selectedCategory) return;
-   setProcessing(true);
-   try {
-     const res = await fetch("/api/awards/initialize", {
-       method: "POST",
-       headers: { "Content-Type": "application/json" },
-       body: JSON.stringify({
-         nomineeId: votingFor.id,
-         categoryId: selectedCategory.id,
-         payerName,
-         payerEmail,
-         payerPhone,
-         voteQuantity
-       })
-     });
-     const data = await res.json();
-     if (data?.authorization_url) {
-       window.location.href = data.authorization_url;
-     } else {
-       alert(data?.error || "Failed to initialize payment.");
-     }
-   } catch {
-     alert("Something went wrong.");
-   } finally {
-     setProcessing(false);
-   }
- };
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Crown className="text-yellow-500" size={20} />
+            <h2 className="text-lg font-black text-slate-900">Live Leaderboard</h2>
+          </div>
+          <div className="space-y-2">
+            {ranked.slice(0, 5).map((c, i) => (
+              <div key={c.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <span className={`text-lg font-black ${i === 0 ? "text-yellow-500" : i === 1 ? "text-slate-400" : i === 2 ? "text-amber-600" : "text-slate-400"}`}>#{i + 1}</span>
+                  <div>
+                    <p className="font-black text-slate-900">{c.name}</p>
+                    <p className="text-xs font-semibold text-slate-500">{c.category} · {c.department}</p>
+                  </div>
+                </div>
+                <p className="text-lg font-black text-blue-700">{c.votes.toLocaleString()}</p>
+              </div>
+            ))}
+            {ranked.length === 0 && <p className="text-sm text-slate-400 font-semibold">No contestants yet.</p>}
+          </div>
+        </section>
 
- if (loading) {
-   return (
-     <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-       <div className="text-center space-y-4">
-         <h1 className="text-3xl font-black text-white">FUL Awards 2026</h1>
-         <p className="text-amber-400 font-semibold text-sm uppercase tracking-widest">Loading categories...</p>
-         <div className="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-       </div>
-     </div>
-   );
- }
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-black text-slate-900 mb-5">
+            {editContestantData ? `Edit — ${editContestantData.name}` : "Add Contestant"}
+          </h2>
+          <form action={editContestantData ? editContestant : addContestant} encType="multipart/form-data" className="space-y-4">
+            {editContestantData && <input type="hidden" name="id" value={editContestantData.id} />}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Full Name</label>
+                <input name="name" required defaultValue={editContestantData?.name ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. Amaka Nwosu" />
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Category</label>
+                <select name="category" required defaultValue={editContestantData?.category ?? "Miss FUL"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
+                  <option value="Mr FUL">Mr FUL</option>
+                  <option value="Miss FUL">Miss FUL</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Department</label>
+                <input name="department" required defaultValue={editContestantData?.department ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. Mass Communication" />
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Faculty</label>
+                <input name="faculty" required defaultValue={editContestantData?.faculty ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. Social Sciences" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Short Bio (optional)</label>
+              <textarea name="bio" rows={2} defaultValue={editContestantData?.bio ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="A sentence or two about them" />
+            </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">
+                Photo {editContestantData ? "(leave empty to keep current)" : "(required)"}
+              </label>
+              <input type="file" name="photo" accept="image/*" className="w-full text-sm font-semibold" />
+            </div>
+            <div className="flex gap-3">
+              <button type="submit" className="rounded-full bg-blue-700 px-6 py-3 text-sm font-black text-white hover:bg-blue-900">
+                {editContestantData ? "Save Changes" : "Add Contestant"}
+              </button>
+              {editContestantData && (
+                <a href="/admin" className="rounded-full border border-slate-200 px-6 py-3 text-sm font-black text-slate-600 hover:bg-slate-50">
+                  Cancel
+                </a>
+              )}
+            </div>
+          </form>
+        </section>
 
- return (
-   <div className="min-h-screen bg-slate-50">
-     <div className="bg-slate-900 text-white py-12 px-4 text-center">
-       <p className="text-amber-400 text-xs font-black uppercase tracking-widest mb-2">Federal University Lokoja SUG</p>
-       <h1 className="text-4xl font-black">{settings.awards_title || "FUL Awards 2026"}</h1>
-       <p className="text-slate-300 mt-3 text-sm max-w-md mx-auto">{settings.awards_description || "Vote for your favorites across all categories. Minimum 250 votes required for each award to be presented."}</p>
-     </div>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-black text-slate-900 mb-5">All Contestants</h2>
+          <div className="space-y-3">
+            {ranked.length === 0 && <p className="text-sm text-slate-400 font-semibold">No contestants added yet.</p>}
+            {ranked.map((c, i) => (
+              <div key={c.id} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-4">
+                <div>
+                  <p className="text-xs font-black text-blue-700">#{i + 1} · {c.contestant_number} · {c.category}</p>
+                  <p className="font-black text-slate-900">{c.name}</p>
+                  <p className="text-sm font-semibold text-slate-500">{c.department}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <p className="text-lg font-black tabular-nums text-blue-700">{c.votes.toLocaleString()}</p>
+                  <a href={`/admin?edit=${c.id}`} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-100">
+                    Edit
+                  </a>
+                  <form action={deleteContestant}>
+                    <input type="hidden" name="id" value={c.id} />
+                    <button type="submit" className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-black text-rose-600 hover:bg-rose-50">
+                      Delete
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
-     {votingClosed && (
-       <div className="bg-red-50 border-b border-red-200 py-3 text-center">
-         <p className="text-sm font-bold text-red-600">🔒 Voting is currently closed.</p>
-       </div>
-     )}
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-5">
+            <Settings className="text-slate-500" size={20} />
+            <h2 className="text-lg font-black text-slate-900">Site Settings</h2>
+          </div>
+          <form action={saveSettings} encType="multipart/form-data" className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Site Title</label>
+                <input name="site_title" defaultValue={settings.site_title ?? "Mr & Miss FUL 2026"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Vote Price (₦)</label>
+                <input name="vote_price" type="number" defaultValue={settings.vote_price ?? "200"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Main Voting Status</label>
+                <select name="voting_status" defaultValue={settings.voting_status ?? "open"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
+                  <option value="open">Open — voting is live</option>
+                  <option value="closed">Closed — voting is ended</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Voting Status</label>
+                <select name="awards_voting_status" defaultValue={settings.awards_voting_status ?? "open"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
+                  <option value="open">Open — awards voting is live</option>
+                  <option value="closed">Closed — awards voting is ended</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Voting End Date</label>
+                <input name="voting_end" type="datetime-local" defaultValue={settings.voting_end_date ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
+              </div>
+            </div>
 
-     <div className="max-w-5xl mx-auto px-4 pt-8">
-       <div className="relative">
-         <input
-           type="text"
-           value={searchTerm}
-           onChange={(e) => setSearchTerm(e.target.value)}
-           placeholder="Search award categories..."
-           className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:border-amber-500 shadow-sm"
-         />
-         <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-       </div>
-     </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Hero Banner Image</label>
+              <input type="file" name="logo" accept="image/*" className="w-full text-sm font-semibold" />
+              {settings.primary_logo ? (
+                <div className="mt-2 flex items-center gap-3">
+                  <img src={settings.primary_logo} alt="Current hero banner" className="h-16 w-28 rounded-lg object-cover border border-slate-200" />
+                  <p className="text-xs text-green-600 font-bold">✅ Hero banner set. Upload a new file to replace it.</p>
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-slate-400 font-semibold">No hero banner uploaded yet.</p>
+              )}
+            </div>
 
-     <main className="max-w-5xl mx-auto px-4 py-12 space-y-16">
-       {categories.length === 0 ? (
-         <div className="text-center py-20">
-           <p className="text-slate-500 font-medium text-lg">Award categories coming soon! 👑</p>
-         </div>
-       ) : filteredCategories.length === 0 ? (
-         <div className="text-center py-20">
-           <p className="text-slate-500 font-medium text-lg">No categories match "{searchTerm}"</p>
-         </div>
-       ) : (
-         filteredCategories.map((category) => {
-           const noms = nominees[category.id] || [];
-           const totalVotes = noms.reduce((sum, n) => sum + (n.votes || 0), 0);
-           const minReached = totalVotes >= category.minimum_votes;
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Secondary Logo (optional)</label>
+                <input type="file" name="logo_secondary" accept="image/*" className="w-full text-sm font-semibold" />
+                {settings.secondary_logo && (
+                  <p className="mt-1 text-xs text-green-600 font-bold">✅ Secondary logo configured.</p>
+                )}
+              </div>
+            </div>
 
-           return (
-             <div key={category.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-               <div className="bg-slate-900 px-6 py-5">
-                 <h2 className="text-xl font-black text-white">{category.name}</h2>
-                 {category.description && <p className="text-slate-400 text-sm mt-1">{category.description}</p>}
-                 <div className="mt-3 flex items-center gap-3 flex-wrap">
-                   <span className="text-xs font-bold text-amber-400">₦{category.vote_price} per vote</span>
-                   <span className={`text-xs font-bold px-2 py-1 rounded-full ${minReached ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
-                     {minReached ? "✅ Minimum reached!" : `${totalVotes}/${category.minimum_votes} votes`}
-                   </span>
-                   {minReached && (
-                     <span className="text-xs font-bold px-2 py-1 rounded-full bg-amber-500/20 text-amber-400">
-                       🗳️ {totalVotes} votes
-                     </span>
-                   )}
-                 </div>
-                 {!minReached && (
-                   <div className="mt-2 w-full bg-slate-700 rounded-full h-1.5">
-                     <div
-                       className="bg-amber-400 h-1.5 rounded-full transition-all"
-                       style={{ width: `${Math.min((totalVotes / category.minimum_votes) * 100, 100)}%` }}
-                     />
-                   </div>
-                 )}
-               </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Hero Description</label>
+              <textarea name="hero_description" rows={2} defaultValue={settings.hero_description ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="Text shown under the title on the homepage" />
+            </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Footer Text</label>
+              <input name="footer_text" defaultValue={settings.footer_text ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. Copyright ©️ 2026 Mr & Miss FUL 2026. All Rights Reserved." />
+            </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Page Title</label>
+              <input name="awards_title" defaultValue={settings.awards_title ?? "FUL Awards 2026"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Page Description</label>
+              <textarea name="awards_description" rows={2} defaultValue={settings.awards_description ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="Text shown under the awards page title" />
+            </div>
+            <button type="submit" className="rounded-full bg-blue-700 px-6 py-3 text-sm font-black text-white hover:bg-blue-900">
+              Save Settings
+            </button>
+          </form>
+        </section>
 
-               {noms.length === 0 ? (
-                 <div className="p-8 text-center text-slate-400 font-medium">Nominees coming soon!</div>
-               ) : (
-                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 p-6">
-                   {noms.map((nominee) => (
-                     <div key={nominee.id} className="rounded-2xl border border-slate-100 overflow-hidden hover:-translate-y-1 transition-all">
-                       {nominee.photo_url ? (
-                         <img src={nominee.photo_url} alt={nominee.name} className="w-full h-40 object-cover" />
-                       ) : (
-                         <div className="w-full h-40 bg-slate-100 flex items-center justify-center text-slate-400 font-medium">No Photo</div>
-                       )}
-                       <div className="p-4">
-                         <p className="font-bold text-slate-900">{nominee.name}</p>
-                         <p className="text-xs text-slate-400 mt-0.5">🗳️ {nominee.votes || 0} votes</p>
-                         <button
-                           onClick={() => openVoteModal(nominee, category)}
-                           disabled={votingClosed}
-                           className={`mt-3 w-full rounded-xl py-2 text-xs font-bold text-white transition-colors ${
-                             votingClosed
-                               ? "bg-slate-300 cursor-not-allowed"
-                               : "bg-amber-500 hover:bg-amber-600 cursor-pointer"
-                           }`}
-                         >
-                           {votingClosed ? "Voting Closed" : `Vote — ₦${category.vote_price}`}
-                         </button>
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-               )}
-             </div>
-           );
-         })
-       )}
-     </main>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-black text-slate-900 mb-5">Change Admin Password</h2>
+          <form action={changePassword} className="space-y-4 max-w-sm">
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Current Password</label>
+              <input type="password" name="current_password" required className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">New Password</label>
+              <input type="password" name="new_password" required className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Confirm New Password</label>
+              <input type="password" name="confirm_password" required className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
+            </div>
+            <button type="submit" className="rounded-full bg-slate-800 px-6 py-3 text-sm font-black text-white hover:bg-slate-900">
+              Change Password
+            </button>
+          </form>
+        </section>
 
-     {votingFor && selectedCategory && (
-       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-         <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
-           <div className="bg-amber-500 px-6 py-4 text-white flex justify-between items-center">
-             <h3 className="font-bold text-lg">Cast Your Vote</h3>
-             <button onClick={closeModal} className="text-white bg-amber-600/50 w-7 h-7 rounded-full flex items-center justify-center font-bold">✕</button>
-           </div>
-           <form onSubmit={handleSubmit} className="p-6 space-y-4">
-             <div>
-               <p className="text-xs text-slate-400 uppercase tracking-wider">Voting For</p>
-               <p className="font-bold text-slate-800">{votingFor.name}</p>
-               <p className="text-xs text-amber-600 font-semibold">{selectedCategory.name}</p>
-             </div>
-             <hr className="border-slate-100" />
-             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-1">Your Full Name</label>
-               <input type="text" required placeholder="John Doe" value={payerName} onChange={(e) => setPayerName(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
-             </div>
-             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-               <input type="email" required placeholder="johndoe@gmail.com" value={payerEmail} onChange={(e) => setPayerEmail(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
-             </div>
-             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
-               <input type="tel" required placeholder="08012345678" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
-             </div>
-             <div>
-               <label className="block text-xs font-bold text-slate-700 mb-2">Number of Votes</label>
-               <div className="flex items-center space-x-4">
-                 <button type="button" onClick={() => setVoteQuantity(Math.max(1, voteQuantity - 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold">-</button>
-                 <span className="text-base font-black text-slate-800 w-8 text-center">{voteQuantity}</span>
-                 <button type="button" onClick={() => setVoteQuantity(Math.min(1000, voteQuantity + 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold">+</button>
-               </div>
-               <p className="text-xs text-slate-400 mt-1">Total: ₦{voteQuantity * selectedCategory.vote_price}</p>
-             </div>
-             <button type="submit" disabled={processing} className="w-full rounded-xl bg-amber-500 py-3 text-sm font-bold text-white hover:bg-amber-600 disabled:bg-slate-300">
-               {processing ? "Processing..." : "Proceed to Pay"}
-             </button>
-           </form>
-         </div>
-       </div>
-     )}
-
-     <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs font-semibold text-slate-400">
-       Copyright ©️ 2026 Mr & Miss FUL 2026
-     </footer>
-   </div>
- );
+      </div>
+    </main>
+  );
 }
