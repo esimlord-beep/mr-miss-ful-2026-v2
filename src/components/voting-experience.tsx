@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useMemo, useEffect } from "react";
+import Image from "next/image";
 import { Hero } from "@/components/hero";
 import { Podium } from "@/components/podium";
 import { ProfileOverlay } from "@/components/profile-overlay";
@@ -158,10 +159,12 @@ export function VotingExperience({
                 >
                   <div className="aspect-[4/5] w-full bg-slate-100 relative">
                     {contestant.photo_url ? (
-                      <img
+                      <Image
                         src={contestant.photo_url}
                         alt={contestant.full_name || contestant.name || "Contestant Image"}
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-slate-400 font-medium">
