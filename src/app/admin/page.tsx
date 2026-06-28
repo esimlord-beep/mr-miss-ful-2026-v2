@@ -222,6 +222,13 @@ export default async function AdminPage({
                 </select>
               </div>
               <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Payment Gateway</label>
+                <select name="payment_provider" defaultValue={settings.payment_provider ?? "paystack"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
+                  <option value="paystack">Paystack</option>
+                  <option value="flutterwave">Flutterwave</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Voting End Date</label>
                 <input name="voting_end" type="datetime-local" defaultValue={settings.voting_end_date ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
               </div>
