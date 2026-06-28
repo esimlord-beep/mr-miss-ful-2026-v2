@@ -263,9 +263,23 @@ export default function AwardsPage() {
        </div>
      )}
 
-     <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs font-semibold text-slate-400">
-       Copyright ©️ 2026 Mr & Miss FUL 2026
-     </footer>
+     <footer className="border-t border-slate-200 bg-white py-8 px-4">
+  <div className="max-w-7xl mx-auto flex flex-col items-center gap-3">
+    <div className="flex items-center gap-1 text-xs font-bold text-slate-500">
+      <a href="/" className="px-3 py-1 hover:text-amber-600 transition-colors">Home</a>
+      <span className="text-slate-300">•</span>
+      <a href="/awards" className="px-3 py-1 hover:text-amber-600 transition-colors">Awards</a>
+      <span className="text-slate-300">•</span>
+      <a href="/contact" className="px-3 py-1 hover:text-amber-600 transition-colors">Contact</a>
+      <span className="text-slate-300">•</span>
+      <a href="/terms" className="px-3 py-1 hover:text-amber-600 transition-colors">Terms & Privacy</a>
+    </div>
+    <p className="text-[11px] text-slate-400 font-medium">
+      © 2026 Mr & Miss FUL · Federal University Lokoja SUG
+    </p>
+  </div>
+</footer>
+
    </div>
  );
 }
