@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { votePrice } from "@/lib/config";
 import { initializePaystackPayment } from "@/lib/paystack";
+import { initializeFlutterwavePayment } from "@/lib/flutterwave";
+import { browserSupabase } from "@/lib/supabase";
 
 const schema = z.object({
   candidateId: z.string().min(1),
@@ -44,14 +46,20 @@ async function verifyRecaptcha(token: string): Promise<boolean> {
   }
 }
 
+async function getActiveProvider(): Promise<"paystack" | "flutterwave"> {
+  if (!browserSupabase) return "paystack";
+  const { data } = await browserSupabase.from("settings").select("payment_provider").maybeSingle();
+  return data?.payment_provider === "flutterwave" ? "flutterwave" : "paystack";
+}
+
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || 
-              request.headers.get("x-real-ip") || 
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ||
+              request.headers.get("x-real-ip") ||
               "unknown";
 
   if (isRateLimited(ip)) {
-    return NextResponse.json({ 
-      error: "Too many requests. Please wait 10 minutes before trying again." 
+    return NextResponse.json({
+      error: "Too many requests. Please wait 10 minutes before trying again."
     }, { status: 429 });
   }
 
@@ -68,9 +76,12 @@ export async function POST(request: Request) {
 
   const reference = `FUL2026-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   const amount = parsed.data.voteQuantity * votePrice;
+  const provider = await getActiveProvider();
 
   try {
-    const result = await initializePaystackPayment({
+    const initializeFn = provider === "flutterwave" ? initializeFlutterwavePayment : initializePaystackPayment;
+
+    const result = await initializeFn({
       email: parsed.data.payerEmail,
       amount,
       reference,
