@@ -1,0 +1,323 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Image from "next/image";
+
+declare global {
+  interface Window {
+    grecaptcha: any;
+  }
+}
+
+export function AwardsExperience({
+  initialCategories = [],
+  initialNominees = {},
+  siteSettings
+}: {
+  initialCategories: any[];
+  initialNominees: Record<string, any[]>;
+  siteSettings: any;
+}) {
+  const categories = initialCategories;
+  const nominees = initialNominees;
+  const settings = siteSettings;
+
+  const [votingFor, setVotingFor] = useState<any | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
+  const [payerName, setPayerName] = useState("");
+  const [payerEmail, setPayerEmail] = useState("");
+  const [payerPhone, setPayerPhone] = useState("");
+  const [voteQuantity, setVoteQuantity] = useState(1);
+  const [processing, setProcessing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [shareOpenFor, setShareOpenFor] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+  useEffect(() => {
+    if (!siteKey) return;
+    const script = document.createElement("script");
+    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
+    script.async = true;
+    document.head.appendChild(script);
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, [siteKey]);
+
+  const votingClosed = settings?.voting_status === "closed";
+
+  const filteredCategories = categories.filter((category) =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const openVoteModal = (nominee: any, category: any) => {
+    if (votingClosed) return;
+    setVotingFor(nominee);
+    setSelectedCategory(category);
+    setVoteQuantity(1);
+  };
+
+  const closeModal = () => {
+    setVotingFor(null);
+    setSelectedCategory(null);
+    setPayerName("");
+    setPayerEmail("");
+    setPayerPhone("");
+  };
+
+  const getShareUrl = () => {
+    if (typeof window === "undefined") return "";
+    return window.location.href;
+  };
+
+  const getShareText = (nominee: any, category: any) => {
+    return `Vote for ${nominee.name} in ${category.name} — FUL Awards 2026!`;
+  };
+
+  const handleShare = (platform: "whatsapp" | "twitter" | "copy", nominee: any, category: any) => {
+    const url = getShareUrl();
+    const text = getShareText(nominee, category);
+
+    if (platform === "whatsapp") {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`, "_blank");
+    } else if (platform === "twitter") {
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank");
+    } else if (platform === "copy") {
+      navigator.clipboard.writeText(url);
+      setCopiedId(nominee.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+    setShareOpenFor(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!votingFor || !selectedCategory) return;
+    setProcessing(true);
+    try {
+      let recaptchaToken = "";
+      if (siteKey && window.grecaptcha) {
+        recaptchaToken = await window.grecaptcha.execute(siteKey, { action: "vote" });
+      }
+
+      const res = await fetch("/api/awards/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nomineeId: votingFor.id,
+          categoryId: selectedCategory.id,
+          payerName,
+          payerEmail,
+          payerPhone,
+          voteQuantity,
+          recaptchaToken
+        })
+      });
+      const data = await res.json();
+      if (data?.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        alert(data?.error || "Failed to initialize payment.");
+      }
+    } catch {
+      alert("Something went wrong.");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <div className="bg-slate-900 text-white py-12 px-4 text-center">
+        <p className="text-amber-400 text-xs font-black uppercase tracking-widest mb-2">Federal University Lokoja SUG</p>
+        <h1 className="text-4xl font-black">{settings.awards_title || "FUL Awards 2026"}</h1>
+        <p className="text-slate-300 mt-3 text-sm max-w-md mx-auto">{settings.awards_description || "Vote for your favorites across all categories. Minimum 250 votes required for each award to be presented."}</p>
+      </div>
+
+      {votingClosed && (
+        <div className="bg-red-50 border-b border-red-200 py-3 text-center">
+          <p className="text-sm font-bold text-red-600">🔒 Voting is currently closed.</p>
+        </div>
+      )}
+
+      <div className="max-w-5xl mx-auto px-4 pt-8">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search award categories..."
+            className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:border-amber-500 shadow-sm"
+          />
+          <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+        </div>
+      </div>
+
+      <main className="max-w-5xl mx-auto px-4 py-12 space-y-16">
+        {categories.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-slate-500 font-medium text-lg">Award categories coming soon! 👑</p>
+          </div>
+        ) : filteredCategories.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-slate-500 font-medium text-lg">No categories match "{searchTerm}"</p>
+          </div>
+        ) : (
+          filteredCategories.map((category) => {
+            const noms = nominees[category.id] || [];
+            const totalVotes = noms.reduce((sum, n) => sum + (n.votes || 0), 0);
+            const minReached = totalVotes >= category.minimum_votes;
+
+            return (
+              <div key={category.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="bg-slate-900 px-6 py-5">
+                  <h2 className="text-xl font-black text-white">{category.name}</h2>
+                  {category.description && <p className="text-slate-400 text-sm mt-1">{category.description}</p>}
+                  <div className="mt-3 flex items-center gap-3 flex-wrap">
+                    <span className="text-xs font-bold text-amber-400">₦{category.vote_price} per vote</span>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${minReached ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+                      {minReached ? "✅ Minimum reached!" : `${totalVotes}/${category.minimum_votes} votes`}
+                    </span>
+                    {minReached && (
+                      <span className="text-xs font-bold px-2 py-1 rounded-full bg-amber-500/20 text-amber-400">
+                        🗳️ {totalVotes} votes
+                      </span>
+                    )}
+                  </div>
+                  {!minReached && (
+                    <div className="mt-2 w-full bg-slate-700 rounded-full h-1.5">
+                      <div
+                        className="bg-amber-400 h-1.5 rounded-full transition-all"
+                        style={{ width: `${Math.min((totalVotes / category.minimum_votes) * 100, 100)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {noms.length === 0 ? (
+                  <div className="p-8 text-center text-slate-400 font-medium">Nominees coming soon!</div>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 p-6">
+                    {noms.map((nominee) => (
+                      <div key={nominee.id} className="rounded-2xl border border-slate-100 overflow-hidden hover:-translate-y-1 transition-all relative">
+                        <div className="relative w-full h-40 bg-slate-100">
+                          {nominee.photo_url ? (
+                            <Image
+                              src={nominee.photo_url}
+                              alt={nominee.name}
+                              fill
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">No Photo</div>
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="font-bold text-slate-900">{nominee.name}</p>
+                              <p className="text-xs text-slate-400 mt-0.5">🗳️ {nominee.votes || 0} votes</p>
+                            </div>
+                            <div className="relative">
+                              <button
+                                onClick={() => setShareOpenFor(shareOpenFor === nominee.id ? null : nominee.id)}
+                                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-sm shrink-0"
+                                aria-label="Share"
+                              >
+                                🔗
+                              </button>
+                              {shareOpenFor === nominee.id && (
+                                <div className="absolute right-0 top-9 z-10 w-44 rounded-xl bg-white border border-slate-200 shadow-lg py-1.5 overflow-hidden">
+                                  <button
+                                    onClick={() => handleShare("whatsapp", nominee, category)}
+                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                  >
+                                    💬 WhatsApp
+                                  </button>
+                                  <button
+                                    onClick={() => handleShare("twitter", nominee, category)}
+                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                  >
+                                    𝕏 Twitter
+                                  </button>
+                                  <button
+                                    onClick={() => handleShare("copy", nominee, category)}
+                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                  >
+                                    {copiedId === nominee.id ? "✅ Copied!" : "📋 Copy Link"}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => openVoteModal(nominee, category)}
+                            disabled={votingClosed}
+                            className={`mt-3 w-full rounded-xl py-2 text-xs font-bold text-white transition-colors ${
+                              votingClosed
+                                ? "bg-slate-300 cursor-not-allowed"
+                                : "bg-amber-500 hover:bg-amber-600 cursor-pointer"
+                            }`}
+                          >
+                            {votingClosed ? "Voting Closed" : `Vote — ₦${category.vote_price}`}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </main>
+
+      {votingFor && selectedCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div className="bg-amber-500 px-6 py-4 text-white flex justify-between items-center">
+              <h3 className="font-bold text-lg">Cast Your Vote</h3>
+              <button onClick={closeModal} className="text-white bg-amber-600/50 w-7 h-7 rounded-full flex items-center justify-center font-bold">✕</button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <p className="text-xs text-slate-400 uppercase tracking-wider">Voting For</p>
+                <p className="font-bold text-slate-800">{votingFor.name}</p>
+                <p className="text-xs text-amber-600 font-semibold">{selectedCategory.name}</p>
+              </div>
+              <hr className="border-slate-100" />
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Your Full Name</label>
+                <input type="text" required placeholder="John Doe" value={payerName} onChange={(e) => setPayerName(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+                <input type="email" required placeholder="johndoe@gmail.com" value={payerEmail} onChange={(e) => setPayerEmail(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
+                <input type="tel" required placeholder="08012345678" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-2">Number of Votes</label>
+                <div className="flex items-center space-x-4">
+                  <button type="button" onClick={() => setVoteQuantity(Math.max(1, voteQuantity - 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold">-</button>
+                  <span className="text-base font-black text-slate-800 w-8 text-center">{voteQuantity}</span>
+                  <button type="button" onClick={() => setVoteQuantity(Math.min(1000, voteQuantity + 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold">+</button>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">Total: ₦{voteQuantity * selectedCategory.vote_price}</p>
+              </div>
+              <p className="text-xs text-slate-400 text-center">Protected by reCAPTCHA</p>
+              <button type="submit" disabled={processing} className="w-full rounded-xl bg-amber-500 py-3 text-sm font-bold text-white hover:bg-amber-600 disabled:bg-slate-300">
+                {processing ? "Processing..." : "Proceed to Pay"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
