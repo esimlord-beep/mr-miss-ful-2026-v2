@@ -274,10 +274,6 @@ export function VotingExperience({
           }}
         />
       )}
-
-      <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs font-semibold text-slate-400 mt-12">
-        {siteSettings?.footer_text || "Copyright ©️ 2026 Mr & Miss FUL 2026 — Federal University Lokoja SUG. All Rights Reserved."}
-      </footer>
     </div>
   );
 }
