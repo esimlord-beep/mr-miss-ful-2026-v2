@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { browserSupabase } from "@/lib/supabase";
 
+declare global {
+  interface Window {
+    grecaptcha: any;
+  }
+}
+
 export default function AwardsPage() {
  const [categories, setCategories] = useState<any[]>([]);
  const [nominees, setNominees] = useState<Record<string, any[]>>({});
@@ -19,6 +25,19 @@ export default function AwardsPage() {
  const [searchTerm, setSearchTerm] = useState("");
  const [shareOpenFor, setShareOpenFor] = useState<string | null>(null);
  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+ const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+ useEffect(() => {
+   if (!siteKey) return;
+   const script = document.createElement("script");
+   script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
+   script.async = true;
+   document.head.appendChild(script);
+   return () => {
+     document.head.removeChild(script);
+   };
+ }, [siteKey]);
 
  useEffect(() => {
    async function loadData() {
@@ -105,6 +124,11 @@ export default function AwardsPage() {
    if (!votingFor || !selectedCategory) return;
    setProcessing(true);
    try {
+     let recaptchaToken = "";
+     if (siteKey && window.grecaptcha) {
+       recaptchaToken = await window.grecaptcha.execute(siteKey, { action: "vote" });
+     }
+
      const res = await fetch("/api/awards/initialize", {
        method: "POST",
        headers: { "Content-Type": "application/json" },
@@ -114,7 +138,8 @@ export default function AwardsPage() {
          payerName,
          payerEmail,
          payerPhone,
-         voteQuantity
+         voteQuantity,
+         recaptchaToken
        })
      });
      const data = await res.json();
