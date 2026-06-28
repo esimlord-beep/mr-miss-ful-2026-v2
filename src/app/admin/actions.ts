@@ -94,13 +94,19 @@ export async function editContestant(formData: FormData) {
 }
 
 export async function deleteContestant(formData: FormData) {
- if (!adminSupabase) throw new Error("Supabase service role key is not configured.");
+ if (!adminSupabase) {
+   redirect("/admin?error=" + encodeURIComponent("Supabase service role key is not configured."));
+ }
 
  const id = String(formData.get("id") ?? "");
- if (!id) throw new Error("Missing contestant id.");
+ if (!id) {
+   redirect("/admin?error=" + encodeURIComponent("Missing contestant id."));
+ }
 
  const { error } = await adminSupabase.from("contestants").delete().eq("id", id);
- if (error) throw new Error(`Could not delete contestant: ${error.message}`);
+ if (error) {
+   redirect("/admin?error=" + encodeURIComponent(`Could not delete contestant: ${error.message}`));
+ }
 
  revalidatePath("/admin");
  revalidatePath("/");
