@@ -280,4 +280,20 @@ export default async function AdminPage({
               <input type="password" name="current_password" required className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="block text-
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">New Password</label>
+              <input type="password" name="new_password" required className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Confirm New Password</label>
+              <input type="password" name="confirm_password" required className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
+            </div>
+            <button type="submit" className="rounded-full bg-slate-800 px-6 py-3 text-sm font-black text-white hover:bg-slate-900">
+              Change Password
+            </button>
+          </form>
+        </section>
+
+      </div>
+    </main>
+  );
+}
