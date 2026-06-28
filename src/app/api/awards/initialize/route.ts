@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { initializePaystackPayment } from "@/lib/paystack";
+import { initializeFlutterwavePayment } from "@/lib/flutterwave";
 import { adminSupabase } from "@/lib/supabase";
 
 const schema = z.object({
@@ -45,6 +46,12 @@ async function verifyRecaptcha(token: string): Promise<boolean> {
   }
 }
 
+async function getActiveProvider(): Promise<"paystack" | "flutterwave"> {
+  if (!adminSupabase) return "paystack";
+  const { data } = await adminSupabase.from("settings").select("payment_provider").maybeSingle();
+  return data?.payment_provider === "flutterwave" ? "flutterwave" : "paystack";
+}
+
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0] ||
               request.headers.get("x-real-ip") ||
@@ -81,9 +88,12 @@ export async function POST(request: Request) {
 
   const reference = `AWARD2026-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   const amount = parsed.data.voteQuantity * category.vote_price;
+  const provider = await getActiveProvider();
 
   try {
-    const result = await initializePaystackPayment({
+    const initializeFn = provider === "flutterwave" ? initializeFlutterwavePayment : initializePaystackPayment;
+
+    const result = await initializeFn({
       email: parsed.data.payerEmail,
       amount,
       reference,
