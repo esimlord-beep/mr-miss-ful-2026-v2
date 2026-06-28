@@ -349,6 +349,7 @@ export default function AwardsPage() {
                </div>
                <p className="text-xs text-slate-400 mt-1">Total: ₦{voteQuantity * selectedCategory.vote_price}</p>
              </div>
+             <p className="text-xs text-slate-400 text-center">Protected by reCAPTCHA</p>
              <button type="submit" disabled={processing} className="w-full rounded-xl bg-amber-500 py-3 text-sm font-bold text-white hover:bg-amber-600 disabled:bg-slate-300">
                {processing ? "Processing..." : "Proceed to Pay"}
              </button>
