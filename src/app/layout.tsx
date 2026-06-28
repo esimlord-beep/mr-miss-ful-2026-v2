@@ -85,6 +85,9 @@ export default function RootLayout({
               <a href="/contact" className="hover:text-amber-600">Contact & Support</a>
               <a href="/terms" className="hover:text-amber-600">Terms & Privacy</a>
             </div>
+            <p className="mt-3 text-[11px] text-slate-400 font-medium">
+              © 2026 Mr & Miss FUL · Federal University Lokoja SUG
+            </p>
           </footer>
         </div>
         <SpeedInsights />
