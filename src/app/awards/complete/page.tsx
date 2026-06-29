@@ -5,7 +5,10 @@ import { useSearchParams } from "next/navigation";
 
 function AwardCompleteContent() {
   const searchParams = useSearchParams();
-  const reference = searchParams.get("reference") || searchParams.get("trxref");
+  const reference =
+    searchParams.get("reference") ||
+    searchParams.get("trxref") ||
+    searchParams.get("tx_ref");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
@@ -41,7 +44,7 @@ function AwardCompleteContent() {
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-xl">
         <p className="text-xs font-black uppercase tracking-widest text-amber-600 mb-2">FUL AWARDS 2026</p>
-        
+
         {status === "loading" && (
           <>
             <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
