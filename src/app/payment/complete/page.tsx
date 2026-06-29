@@ -6,7 +6,10 @@ import Link from "next/link";
 
 function PaymentCompleteContent() {
   const searchParams = useSearchParams();
-  const reference = searchParams.get("reference") || searchParams.get("trxref");
+  const reference =
+    searchParams.get("reference") ||
+    searchParams.get("trxref") ||
+    searchParams.get("tx_ref");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
