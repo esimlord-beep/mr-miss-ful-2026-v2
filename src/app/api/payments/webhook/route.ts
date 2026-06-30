@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { votePrice } from "@/lib/config";
 import { adminSupabase } from "@/lib/supabase";
+import { sendVoteConfirmationEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   const secret = process.env.PAYSTACK_SECRET_KEY;
@@ -86,6 +87,22 @@ async function processMainVote(reference: string, metadata: any, amountPaid: num
     p_votes_added: voteQuantity
   });
   if (rpcError) throw rpcError;
+
+  const { data: candidate } = await adminSupabase
+    .from("contestants")
+    .select("name")
+    .eq("id", metadata.candidateId)
+    .maybeSingle();
+
+  await sendVoteConfirmationEmail({
+    to: metadata.payerEmail,
+    payerName: metadata.payerName,
+    votedFor: candidate?.name || "your chosen contestant",
+    voteQuantity,
+    amountPaid,
+    reference,
+    type: "main"
+  });
 }
 
 async function processAwardVote(reference: string, metadata: any, amountPaid: number) {
@@ -141,4 +158,20 @@ async function processAwardVote(reference: string, metadata: any, amountPaid: nu
     p_votes_added: voteQuantity
   });
   if (rpcError) throw rpcError;
+
+  const { data: nominee } = await adminSupabase
+    .from("award_nominees")
+    .select("name")
+    .eq("id", metadata.nomineeId)
+    .maybeSingle();
+
+  await sendVoteConfirmationEmail({
+    to: metadata.payerEmail,
+    payerName: metadata.payerName,
+    votedFor: nominee?.name || "your chosen nominee",
+    voteQuantity,
+    amountPaid,
+    reference,
+    type: "award"
+  });
 }
