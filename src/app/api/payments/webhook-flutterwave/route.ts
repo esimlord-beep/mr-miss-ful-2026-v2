@@ -3,6 +3,20 @@ import { votePrice } from "@/lib/config";
 import { adminSupabase } from "@/lib/supabase";
 import { sendVoteConfirmationEmail } from "@/lib/email";
 
+function normalizeMetadata(rawMeta: any): Record<string, any> {
+  if (!rawMeta) return {};
+  if (Array.isArray(rawMeta)) {
+    const normalized: Record<string, any> = {};
+    for (const item of rawMeta) {
+      if (item?.metaname) {
+        normalized[item.metaname] = item.metavalue;
+      }
+    }
+    return normalized;
+  }
+  return rawMeta;
+}
+
 export async function POST(request: Request) {
   const secret = process.env.FLUTTERWAVE_SECRET_HASH;
   if (!secret || !adminSupabase) {
@@ -21,7 +35,7 @@ export async function POST(request: Request) {
   }
 
   const reference = event.data.tx_ref;
-  const metadata = event.data.meta || {};
+  const metadata = normalizeMetadata(event.data.meta);
   const amountPaid = Number(event.data.amount);
 
   try {
