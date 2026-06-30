@@ -30,6 +30,8 @@ export async function POST(request: Request) {
 
   const event = await request.json();
 
+  console.log("FULL FLUTTERWAVE WEBHOOK PAYLOAD:", JSON.stringify(event));
+
   if (event.event !== "charge.completed" || event.data?.status !== "successful") {
     return NextResponse.json({ received: true });
   }
