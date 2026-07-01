@@ -111,7 +111,8 @@ async function processMainVote(reference: string, metadata: any, amountPaid: num
     voteQuantity,
     amountPaid,
     reference,
-    type: "main"
+    type: "main",
+    provider: "flutterwave"
   });
 }
 
@@ -182,6 +183,7 @@ async function processAwardVote(reference: string, metadata: any, amountPaid: nu
     voteQuantity,
     amountPaid,
     reference,
-    type: "award"
+    type: "award",
+    provider: "flutterwave"
   });
 }
