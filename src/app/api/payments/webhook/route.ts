@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Webhook processing error:", error);
+    console.error("Paystack webhook processing error:", error);
     return NextResponse.json({ error: "Processing failed." }, { status: 500 });
   }
 }
@@ -101,7 +101,8 @@ async function processMainVote(reference: string, metadata: any, amountPaid: num
     voteQuantity,
     amountPaid,
     reference,
-    type: "main"
+    type: "main",
+    provider: "paystack"
   });
 }
 
@@ -172,6 +173,7 @@ async function processAwardVote(reference: string, metadata: any, amountPaid: nu
     voteQuantity,
     amountPaid,
     reference,
-    type: "award"
+    type: "award",
+    provider: "paystack"
   });
 }
