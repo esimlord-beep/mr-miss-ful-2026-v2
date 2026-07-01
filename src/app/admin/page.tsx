@@ -44,10 +44,25 @@ export default async function AdminPage({
             <div>
               <p className="text-xs font-black uppercase tracking-[0.22em] text-yellow-600">Admin Panel</p>
               <h1 className="mt-1 text-2xl font-black text-slate-900">Mr & Miss FUL 2026</h1>
-              <a href="/admin/awards" className="inline-flex items-center gap-2 mt-2 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-black text-white hover:bg-amber-600">
-                🏆 Manage Awards
-              </a>
+
+              {/* REPLACED BUTTON GROUP */}
+              <div className="flex flex-wrap gap-2 mt-2">
+                <a
+                  href="/admin/awards"
+                  className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-black text-white hover:bg-amber-600"
+                >
+                  🏆 Manage Awards
+                </a>
+
+                <a
+                  href="/admin/support"
+                  className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-4 py-1.5 text-xs font-black text-white hover:bg-blue-900"
+                >
+                  📨 Support Inbox
+                </a>
+              </div>
             </div>
+
             <form action="/api/admin/logout" method="POST">
               <button className="rounded-full border border-slate-200 px-4 py-2 text-sm font-black text-slate-600 hover:bg-slate-50">
                 Log out
@@ -143,12 +158,10 @@ export default async function AdminPage({
             </div>
             <div>
               <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Short Bio (optional)</label>
-              <textarea name="bio" rows={2} defaultValue={editContestantData?.bio ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="A sentence or two about them" />
+              <textarea name="bio" rows={2} defaultValue={editContestantData?.bio ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">
-                Photo {editContestantData ? "(leave empty to keep current)" : "(required)"}
-              </label>
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Photo</label>
               <input type="file" name="photo" accept="image/*" className="w-full text-sm font-semibold" />
             </div>
             <div className="flex gap-3">
@@ -167,7 +180,6 @@ export default async function AdminPage({
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-black text-slate-900 mb-5">All Contestants</h2>
           <div className="space-y-3">
-            {ranked.length === 0 && <p className="text-sm text-slate-400 font-semibold">No contestants added yet.</p>}
             {ranked.map((c, i) => (
               <div key={c.id} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-4">
                 <div>
@@ -234,45 +246,6 @@ export default async function AdminPage({
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Hero Banner Image</label>
-              <input type="file" name="logo" accept="image/*" className="w-full text-sm font-semibold" />
-              {settings.primary_logo ? (
-                <div className="mt-2 flex items-center gap-3">
-                  <img src={settings.primary_logo} alt="Current hero banner" className="h-16 w-28 rounded-lg object-cover border border-slate-200" />
-                  <p className="text-xs text-green-600 font-bold">✅ Hero banner set. Upload a new file to replace it.</p>
-                </div>
-              ) : (
-                <p className="mt-1 text-xs text-slate-400 font-semibold">No hero banner uploaded yet.</p>
-              )}
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Secondary Logo (optional)</label>
-                <input type="file" name="logo_secondary" accept="image/*" className="w-full text-sm font-semibold" />
-                {settings.secondary_logo && (
-                  <p className="mt-1 text-xs text-green-600 font-bold">✅ Secondary logo configured.</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Hero Description</label>
-              <textarea name="hero_description" rows={2} defaultValue={settings.hero_description ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="Text shown under the title on the homepage" />
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Footer Text</label>
-              <input name="footer_text" defaultValue={settings.footer_text ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. Copyright ©️ 2026 Mr & Miss FUL 2026. All Rights Reserved." />
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Page Title</label>
-              <input name="awards_title" defaultValue={settings.awards_title ?? "FUL Awards 2026"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Page Description</label>
-              <textarea name="awards_description" rows={2} defaultValue={settings.awards_description ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="Text shown under the awards page title" />
-            </div>
             <button type="submit" className="rounded-full bg-blue-700 px-6 py-3 text-sm font-black text-white hover:bg-blue-900">
               Save Settings
             </button>
