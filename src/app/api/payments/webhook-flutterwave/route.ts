@@ -37,8 +37,10 @@ export async function POST(request: Request) {
   }
 
   const reference = event.data.tx_ref;
-  const metadata = normalizeMetadata(event.data.meta);
+  const metadata = normalizeMetadata(event.data.meta_data || event.data.meta || event.meta_data || {});
   const amountPaid = Number(event.data.amount);
+
+  console.log("Normalized metadata:", JSON.stringify(metadata));
 
   try {
     if (metadata.type === "award") {
