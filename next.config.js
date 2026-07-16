@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // Vercel's Image Optimization API charges "transformations" against the
+    // free tier quota every time next/image resizes a remote image. Since all
+    // images here already live on Supabase Storage (already-hosted, static
+    // URLs), we skip Vercel's optimizer entirely and load them directly.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
