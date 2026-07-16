@@ -3,20 +3,47 @@
 import { adminSupabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import sharp from "sharp";
 
 const BUCKET = "contestants";
+
+// Max dimensions for uploaded photos. Contestant cards/hero banners never
+// need to display anything larger than this, so we downscale on upload
+// instead of relying on Vercel's Image Optimization API (which costs
+// "transformations" against the free tier quota every time it resizes).
+const MAX_WIDTH = 1600;
+const MAX_HEIGHT = 1600;
+const JPEG_QUALITY = 80;
+
+async function compressImage(arrayBuffer: ArrayBuffer): Promise<{ buffer: Buffer; contentType: string; extension: string }> {
+ const inputBuffer = Buffer.from(arrayBuffer);
+
+ const outputBuffer = await sharp(inputBuffer)
+   .rotate() // auto-orient based on EXIF, then strip EXIF
+   .resize({
+     width: MAX_WIDTH,
+     height: MAX_HEIGHT,
+     fit: "inside", // never upscale, keep aspect ratio
+     withoutEnlargement: true,
+   })
+   .jpeg({ quality: JPEG_QUALITY, mozjpeg: true })
+   .toBuffer();
+
+ return { buffer: outputBuffer, contentType: "image/jpeg", extension: "jpg" };
+}
 
 async function uploadPhoto(photo: File, name: string): Promise<string> {
  if (!adminSupabase) throw new Error("Supabase service role key is not configured.");
 
- const extension = photo.name.split(".").pop()?.toLowerCase() || "jpg";
  const safeBase = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
- const path = `${Date.now()}-${safeBase}.${extension}`;
  const arrayBuffer = await photo.arrayBuffer();
+
+ const { buffer, contentType, extension } = await compressImage(arrayBuffer);
+ const path = `${Date.now()}-${safeBase}.${extension}`;
 
  const { error: uploadError } = await adminSupabase.storage
    .from(BUCKET)
-   .upload(path, arrayBuffer, { contentType: photo.type, upsert: false });
+   .upload(path, buffer, { contentType, upsert: false });
 
  if (uploadError) throw new Error(`Photo upload failed: ${uploadError.message}`);
 
