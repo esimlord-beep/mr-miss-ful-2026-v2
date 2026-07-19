@@ -106,23 +106,24 @@ export function AwardsExperience({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nomineeId: votingFor.id,
-          categoryId: selectedCategory.id,
-          payerName,
-          payerEmail,
-          payerPhone,
-          voteQuantity,
-          recaptchaToken
+          nominee_id: votingFor.id,
+          category_id: selectedCategory.id,
+          payer_name: payerName,
+          payer_email: payerEmail,
+          payer_phone: payerPhone,
+          quantity: voteQuantity,
+          recaptcha_token: recaptchaToken
         })
       });
+
       const data = await res.json();
-      if (data?.authorization_url) {
+      if (data.authorization_url) {
         window.location.href = data.authorization_url;
       } else {
-        alert(data?.error || "Failed to initialize payment.");
+        alert(data.error || "Something went wrong. Please try again.");
       }
-    } catch {
-      alert("Something went wrong.");
+    } catch (err) {
+      alert("Something went wrong. Please try again.");
     } finally {
       setProcessing(false);
     }
@@ -130,28 +131,19 @@ export function AwardsExperience({
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="bg-slate-900 text-white py-12 px-4 text-center">
-        <p className="text-amber-400 text-xs font-black uppercase tracking-widest mb-2">Federal University Lokoja SUG</p>
-        <h1 className="text-4xl font-black">{settings.awards_title || "FUL Awards 2026"}</h1>
-        <p className="text-slate-300 mt-3 text-sm max-w-md mx-auto">{settings.awards_description || "Vote for your favorites across all categories. Minimum 250 votes required for each award to be presented."}</p>
-      </div>
-
-      {votingClosed && (
-        <div className="bg-red-50 border-b border-red-200 py-3 text-center">
-          <p className="text-sm font-bold text-red-600">🔒 Voting is currently closed.</p>
-        </div>
-      )}
-
-      <div className="max-w-5xl mx-auto px-4 pt-8">
-        <div className="relative">
+      <div className="bg-white border-b border-slate-100 sticky top-0 z-40">
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          <h1 className="text-2xl font-black text-slate-900">{settings?.awards_title || "FUL Awards 2026"}</h1>
+          {settings?.awards_description && (
+            <p className="text-slate-500 text-sm mt-1">{settings.awards_description}</p>
+          )}
           <input
             type="text"
+            placeholder="Search categories..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search award categories..."
-            className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-700 outline-none focus:border-amber-500 shadow-sm"
+            className="mt-4 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold outline-none focus:border-amber-500"
           />
-          <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
         </div>
       </div>
 
@@ -165,15 +157,24 @@ export function AwardsExperience({
             <p className="text-slate-500 font-medium text-lg">No categories match "{searchTerm}"</p>
           </div>
         ) : (
-          filteredCategories.map((category) => {
+          filteredCategories.map((category, index) => {
             const noms = nominees[category.id] || [];
             const totalVotes = noms.reduce((sum, n) => sum + (n.votes || 0), 0);
             const minReached = totalVotes >= category.minimum_votes;
+            const groupName = category.group_name || "General";
+            const prevGroupName = index > 0 ? (filteredCategories[index - 1].group_name || "General") : null;
+            const showGroupHeader = groupName !== prevGroupName;
 
             return (
-              <div key={category.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+              <div key={category.id} className="mb-16 last:mb-0">
+                {showGroupHeader && (
+                  <h2 className="text-2xl font-black text-blue-600 mb-6 pb-2 border-b-2 border-blue-100">
+                    {groupName}
+                  </h2>
+                )}
+                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="bg-slate-900 px-6 py-5">
-                  <h2 className="text-xl font-black text-white">{category.name}</h2>
+                  <h2 className="text-xl font-black text-white">{category.category_number ? `${category.category_number}. ` : ""}{category.name}</h2>
                   {category.description && <p className="text-slate-400 text-sm mt-1">{category.description}</p>}
                   <div className="mt-3 flex items-center gap-3 flex-wrap">
                     <span className="text-xs font-bold text-amber-400">₦{category.vote_price} per vote</span>
@@ -218,30 +219,29 @@ export function AwardsExperience({
                         <div className="p-4">
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <p className="font-bold text-slate-900">{nominee.name}</p>
+                              <p className="font-bold text-slate-900">{nominee.nominee_number ? `#${nominee.nominee_number} · ` : ""}{nominee.name}</p>
                               <p className="text-xs text-slate-400 mt-0.5">🗳️ {nominee.votes || 0} votes</p>
                             </div>
                             <div className="relative">
                               <button
                                 onClick={() => setShareOpenFor(shareOpenFor === nominee.id ? null : nominee.id)}
-                                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-sm shrink-0"
-                                aria-label="Share"
+                                className="text-slate-400 hover:text-slate-600 p-1"
                               >
-                                🔗
+                                ⋯
                               </button>
                               {shareOpenFor === nominee.id && (
-                                <div className="absolute right-0 top-9 z-10 w-44 rounded-xl bg-white border border-slate-200 shadow-lg py-1.5 overflow-hidden">
+                                <div className="absolute right-0 top-8 z-10 w-40 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
                                   <button
                                     onClick={() => handleShare("whatsapp", nominee, category)}
                                     className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                                   >
-                                    💬 WhatsApp
+                                    📱 WhatsApp
                                   </button>
                                   <button
                                     onClick={() => handleShare("twitter", nominee, category)}
                                     className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                                   >
-                                    𝕏 Twitter
+                                    🐦 Twitter
                                   </button>
                                   <button
                                     onClick={() => handleShare("copy", nominee, category)}
@@ -269,6 +269,7 @@ export function AwardsExperience({
                     ))}
                   </div>
                 )}
+                </div>
               </div>
             );
           })
@@ -284,35 +285,30 @@ export function AwardsExperience({
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <p className="text-xs text-slate-400 uppercase tracking-wider">Voting For</p>
-                <p className="font-bold text-slate-800">{votingFor.name}</p>
-                <p className="text-xs text-amber-600 font-semibold">{selectedCategory.name}</p>
-              </div>
-              <hr className="border-slate-100" />
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Your Full Name</label>
-                <input type="text" required placeholder="John Doe" value={payerName} onChange={(e) => setPayerName(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
+                <p className="text-sm font-bold text-slate-900">Voting for: {votingFor.name}</p>
+                <p className="text-xs text-slate-500">{selectedCategory.name}</p>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-                <input type="email" required placeholder="johndoe@gmail.com" value={payerEmail} onChange={(e) => setPayerEmail(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Your Name</label>
+                <input required value={payerName} onChange={(e) => setPayerName(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
-                <input type="tel" required placeholder="08012345678" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Email</label>
+                <input required type="email" value={payerEmail} onChange={(e) => setPayerEmail(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-2">Number of Votes</label>
-                <div className="flex items-center space-x-4">
-                  <button type="button" onClick={() => setVoteQuantity(Math.max(1, voteQuantity - 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold">-</button>
-                  <span className="text-base font-black text-slate-800 w-8 text-center">{voteQuantity}</span>
-                  <button type="button" onClick={() => setVoteQuantity(Math.min(1000, voteQuantity + 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold">+</button>
-                </div>
-                <p className="text-xs text-slate-400 mt-1">Total: ₦{voteQuantity * selectedCategory.vote_price}</p>
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Phone</label>
+                <input required value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
               </div>
-              <p className="text-xs text-slate-400 text-center">Protected by reCAPTCHA</p>
-              <button type="submit" disabled={processing} className="w-full rounded-xl bg-amber-500 py-3 text-sm font-bold text-white hover:bg-amber-600 disabled:bg-slate-300">
-                {processing ? "Processing..." : "Proceed to Pay"}
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Number of Votes</label>
+                <input required type="number" min={1} value={voteQuantity} onChange={(e) => setVoteQuantity(Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
+              </div>
+              <div className="text-sm font-bold text-slate-900">
+                Total: ₦{(selectedCategory.vote_price * voteQuantity).toLocaleString()}
+              </div>
+              <button type="submit" disabled={processing} className="w-full rounded-xl bg-amber-500 py-3 text-sm font-black text-white hover:bg-amber-600 disabled:opacity-50">
+                {processing ? "Processing..." : "Proceed to Payment"}
               </button>
             </form>
           </div>
