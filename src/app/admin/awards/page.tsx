@@ -6,7 +6,14 @@ async function getAwardCategories() {
  const { data } = await adminSupabase
    .from("award_categories")
    .select("*, award_nominees(*)")
-   .order("created_at");
+   .order("category_number", { ascending: true });
+
+ // Ensure nominees within each category are ordered by their number
+ for (const cat of data || []) {
+   if (cat.award_nominees) {
+     cat.award_nominees.sort((a: any, b: any) => (a.nominee_number ?? 0) - (b.nominee_number ?? 0));
+   }
+ }
  return data || [];
 }
 
@@ -15,10 +22,22 @@ async function addCategory(formData: FormData) {
  if (!adminSupabase) return;
  const name = String(formData.get("name") ?? "").trim();
  const description = String(formData.get("description") ?? "").trim();
+ const group_name = String(formData.get("group_name") ?? "General").trim() || "General";
  const vote_price = Number(formData.get("vote_price") ?? 100);
  const minimum_votes = Number(formData.get("minimum_votes") ?? 250);
  if (!name) return;
- await adminSupabase.from("award_categories").insert({ name, description, vote_price, minimum_votes });
+
+ const { data: existing } = await adminSupabase
+   .from("award_categories")
+   .select("category_number")
+   .order("category_number", { ascending: false })
+   .limit(1);
+
+ const nextNumber = existing && existing.length > 0 && existing[0].category_number
+   ? existing[0].category_number + 1
+   : 1;
+
+ await adminSupabase.from("award_categories").insert({ name, description, vote_price, minimum_votes, group_name, category_number: nextNumber });
  revalidatePath("/admin/awards");
 }
 
@@ -49,7 +68,18 @@ async function addNominee(formData: FormData) {
      photo_url = urlData.publicUrl;
    }
  }
- await adminSupabase.from("award_nominees").insert({ category_id, name, photo_url });
+ const { data: existing } = await adminSupabase
+   .from("award_nominees")
+   .select("nominee_number")
+   .eq("category_id", category_id)
+   .order("nominee_number", { ascending: false })
+   .limit(1);
+
+ const nextNumber = existing && existing.length > 0 && existing[0].nominee_number
+   ? existing[0].nominee_number + 1
+   : 1;
+
+ await adminSupabase.from("award_nominees").insert({ category_id, name, photo_url, nominee_number: nextNumber });
  revalidatePath("/admin/awards");
 }
 
@@ -86,6 +116,10 @@ export default async function AwardsAdminPage() {
              <input name="name" required placeholder="e.g. Best Dressed Male" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
            </div>
            <div>
+             <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Group Name</label>
+             <input name="group_name" placeholder="e.g. Executive / Faculty Leadership" defaultValue="General" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
+           </div>
+           <div>
              <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Description (optional)</label>
              <input name="description" placeholder="Brief description" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
            </div>
@@ -114,7 +148,8 @@ export default async function AwardsAdminPage() {
            <div key={category.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
              <div className="bg-slate-900 px-6 py-4 flex items-center justify-between">
                <div>
-                 <h3 className="font-black text-white">{category.name}</h3>
+                 <p className="text-[10px] font-black uppercase tracking-widest text-amber-400">{category.group_name || "General"}</p>
+                 <h3 className="font-black text-white">#{category.category_number ?? "—"} · {category.name}</h3>
                  <p className="text-xs text-slate-400 mt-0.5">₦{category.vote_price}/vote · Min {category.minimum_votes} votes</p>
                </div>
                <form action={deleteCategory}>
@@ -151,7 +186,7 @@ export default async function AwardsAdminPage() {
                          <img src={nominee.photo_url} alt={nominee.name} className="w-8 h-8 rounded-full object-cover" />
                        )}
                        <div>
-                         <p className="font-bold text-sm text-slate-900">{nominee.name}</p>
+                         <p className="font-bold text-sm text-slate-900">#{nominee.nominee_number ?? "—"} · {nominee.name}</p>
                          <p className="text-xs text-slate-400">{nominee.votes || 0} votes</p>
                          </div>
                      </div>
