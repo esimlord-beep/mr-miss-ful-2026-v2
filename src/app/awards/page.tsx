@@ -15,7 +15,7 @@ async function getAwardsData() {
     .from("award_categories")
     .select("*")
     .eq("is_active", true)
-    .order("created_at");
+    .order("category_number", { ascending: true });
 
   const categories = cats || [];
   const nomineeMap: Record<string, any[]> = {};
