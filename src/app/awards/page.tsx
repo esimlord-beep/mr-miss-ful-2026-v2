@@ -15,6 +15,7 @@ async function getAwardsData() {
     .from("award_categories")
     .select("*")
     .eq("is_active", true)
+    .order("group_name", { ascending: true })
     .order("category_number", { ascending: true });
 
   const categories = cats || [];
