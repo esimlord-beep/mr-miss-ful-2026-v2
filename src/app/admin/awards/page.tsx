@@ -1,5 +1,6 @@
 import { adminSupabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 async function getAwardCategories() {
  if (!adminSupabase) return [];
@@ -37,8 +38,15 @@ async function addCategory(formData: FormData) {
    ? existing[0].category_number + 1
    : 1;
 
- await adminSupabase.from("award_categories").insert({ name, description, vote_price, minimum_votes, group_name, category_number: nextNumber });
+ const { error } = await adminSupabase.from("award_categories").insert({ name, description, vote_price, minimum_votes, group_name, category_number: nextNumber });
+
+ if (error) {
+   console.error("addCategory insert failed:", error.message, error.details, error.hint);
+   redirect(`/admin/awards?error=${encodeURIComponent(error.message)}`);
+ }
+
  revalidatePath("/admin/awards");
+ redirect("/admin/awards?saved=1");
 }
 
 async function deleteCategory(formData: FormData) {
@@ -79,8 +87,15 @@ async function addNominee(formData: FormData) {
    ? existing[0].nominee_number + 1
    : 1;
 
- await adminSupabase.from("award_nominees").insert({ category_id, name, photo_url, nominee_number: nextNumber });
+ const { error } = await adminSupabase.from("award_nominees").insert({ category_id, name, photo_url, nominee_number: nextNumber });
+
+ if (error) {
+   console.error("addNominee insert failed:", error.message, error.details, error.hint);
+   redirect(`/admin/awards?error=${encodeURIComponent(error.message)}`);
+ }
+
  revalidatePath("/admin/awards");
+ redirect("/admin/awards?saved=1");
 }
 
 async function deleteNominee(formData: FormData) {
@@ -91,13 +106,30 @@ async function deleteNominee(formData: FormData) {
  revalidatePath("/admin/awards");
 }
 
-export default async function AwardsAdminPage() {
+export default async function AwardsAdminPage({
+ searchParams
+}: {
+ searchParams: Promise<{ saved?: string; error?: string }>;
+}) {
+ const params = await searchParams;
  const categories = await getAwardCategories();
 
  return (
    <main className="min-h-screen bg-slate-50 p-4">
      <div className="max-w-4xl mx-auto space-y-8">
-       
+
+       {params.error && (
+         <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-center text-sm font-bold text-red-700">
+           ❌ {params.error}
+         </div>
+       )}
+
+       {params.saved && (
+         <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 text-center text-sm font-bold text-green-700">
+           ✅ Saved successfully!
+         </div>
+       )}
+
        <div className="flex items-center justify-between">
          <div>
            <p className="text-xs font-black uppercase tracking-widest text-amber-600">Admin Panel</p>
