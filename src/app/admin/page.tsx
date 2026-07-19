@@ -1,279 +1,207 @@
-import { BarChart3, Settings, Trophy, Users, Wallet, Crown } from "lucide-react";
-import { getContestants } from "@/lib/contestants";
 import { adminSupabase } from "@/lib/supabase";
-import { addContestant, editContestant, deleteContestant, saveSettings, changePassword } from "@/app/admin/actions";
+import { revalidatePath } from "next/cache";
 
-async function getSettings() {
-  if (!adminSupabase) return {};
-  const { data } = await adminSupabase.from("settings").select("*").maybeSingle();
-  if (!data) return {};
-  return data;
+async function getAwardCategories() {
+ if (!adminSupabase) return [];
+ const { data } = await adminSupabase
+   .from("award_categories")
+   .select("*, award_nominees(*)")
+   .order("category_number", { ascending: true });
+
+ // Ensure nominees within each category are ordered by their number
+ for (const cat of data || []) {
+   if (cat.award_nominees) {
+     cat.award_nominees.sort((a: any, b: any) => (a.nominee_number ?? 0) - (b.nominee_number ?? 0));
+   }
+ }
+ return data || [];
 }
 
-async function getRevenue() {
-  if (!adminSupabase) return 0;
-  const { data } = await adminSupabase.from("payments").select("amount_paid").eq("processed", true);
-  if (!data) return 0;
-  return data.reduce((sum: number, p: { amount_paid: number }) => sum + p.amount_paid, 0);
+async function addCategory(formData: FormData) {
+ "use server";
+ if (!adminSupabase) return;
+ const name = String(formData.get("name") ?? "").trim();
+ const description = String(formData.get("description") ?? "").trim();
+ const group_name = String(formData.get("group_name") ?? "General").trim() || "General";
+ const vote_price = Number(formData.get("vote_price") ?? 100);
+ const minimum_votes = Number(formData.get("minimum_votes") ?? 250);
+ if (!name) return;
+
+ const { data: existing } = await adminSupabase
+   .from("award_categories")
+   .select("category_number")
+   .order("category_number", { ascending: false })
+   .limit(1);
+
+ const nextNumber = existing && existing.length > 0 && existing[0].category_number
+   ? existing[0].category_number + 1
+   : 1;
+
+ await adminSupabase.from("award_categories").insert({ name, description, vote_price, minimum_votes, group_name, category_number: nextNumber });
+ revalidatePath("/admin/awards");
 }
 
-export default async function AdminPage({
-  searchParams
-}: {
-  searchParams: Promise<{ saved?: string; pwinfo?: string; edit?: string; error?: string }>;
-}) {
-  const params = await searchParams;
-  const [contestants, settings, revenue] = await Promise.all([
-    getContestants(),
-    getSettings(),
-    getRevenue()
-  ]);
+async function deleteCategory(formData: FormData) {
+ "use server";
+ if (!adminSupabase) return;
+ const id = String(formData.get("id"));
+ await adminSupabase.from("award_categories").delete().eq("id", id);
+ revalidatePath("/admin/awards");
+}
 
-  const totalVotes = contestants.reduce((sum, c) => sum + c.votes, 0);
-  const ranked = [...contestants].sort((a, b) => b.votes - a.votes);
-  const votePrice = Number(settings.vote_price ?? 200);
-  const editId = params.edit ?? null;
-  const editContestantData = editId ? contestants.find(c => c.id === editId) : null;
+async function addNominee(formData: FormData) {
+ "use server";
+ if (!adminSupabase) return;
+ const category_id = String(formData.get("category_id"));
+ const name = String(formData.get("name") ?? "").trim();
+ const photo = formData.get("photo") as File | null;
+ if (!name || !category_id) return;
+ let photo_url = null;
+ if (photo && photo.size > 0) {
+   const ext = photo.name.split(".").pop();
+   const filename = `${Date.now()}-nominee.${ext}`;
+   const { data } = await adminSupabase.storage
+     .from("contestants")
+     .upload(filename, photo, { upsert: true });
+   if (data) {
+     const { data: urlData } = adminSupabase.storage.from("contestants").getPublicUrl(filename);
+     photo_url = urlData.publicUrl;
+   }
+ }
+ const { data: existing } = await adminSupabase
+   .from("award_nominees")
+   .select("nominee_number")
+   .eq("category_id", category_id)
+   .order("nominee_number", { ascending: false })
+   .limit(1);
 
-  return (
-    <main className="min-h-screen bg-slate-50">
+ const nextNumber = existing && existing.length > 0 && existing[0].nominee_number
+   ? existing[0].nominee_number + 1
+   : 1;
 
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-yellow-600">Admin Panel</p>
-              <h1 className="mt-1 text-2xl font-black text-slate-900">Mr & Miss FUL 2026</h1>
+ await adminSupabase.from("award_nominees").insert({ category_id, name, photo_url, nominee_number: nextNumber });
+ revalidatePath("/admin/awards");
+}
 
-              {/* REPLACED BUTTON GROUP */}
-              <div className="flex flex-wrap gap-2 mt-2">
-                <a
-                  href="/admin/awards"
-                  className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-black text-white hover:bg-amber-600"
-                >
-                  🏆 Manage Awards
-                </a>
+async function deleteNominee(formData: FormData) {
+ "use server";
+ if (!adminSupabase) return;
+ const id = String(formData.get("id"));
+ await adminSupabase.from("award_nominees").delete().eq("id", id);
+ revalidatePath("/admin/awards");
+}
 
-                <a
-                  href="/admin/support"
-                  className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-4 py-1.5 text-xs font-black text-white hover:bg-blue-900"
-                >
-                  📨 Support Inbox
-                </a>
-              </div>
-            </div>
+export default async function AwardsAdminPage() {
+ const categories = await getAwardCategories();
 
-            <form action="/api/admin/logout" method="POST">
-              <button className="rounded-full border border-slate-200 px-4 py-2 text-sm font-black text-slate-600 hover:bg-slate-50">
-                Log out
-              </button>
-            </form>
-          </div>
-        </div>
-      </section>
+ return (
+   <main className="min-h-screen bg-slate-50 p-4">
+     <div className="max-w-4xl mx-auto space-y-8">
+       
+       <div className="flex items-center justify-between">
+         <div>
+           <p className="text-xs font-black uppercase tracking-widest text-amber-600">Admin Panel</p>
+           <h1 className="text-2xl font-black text-slate-900">Awards Management</h1>
+         </div>
+         <a href="/admin" className="rounded-full border border-slate-200 px-4 py-2 text-sm font-black text-slate-600 hover:bg-slate-50">
+           ← Back to Admin
+         </a>
+       </div>
 
-      {params.saved && (
-        <div className="bg-green-50 border-b border-green-200 px-4 py-3 text-center text-sm font-bold text-green-700">
-          ✅ Settings saved successfully!
-        </div>
-      )}
+       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+         <h2 className="text-lg font-black text-slate-900 mb-4">Add Award Category</h2>
+         <form action={addCategory} className="space-y-4">
+           <div>
+             <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Category Name</label>
+             <input name="name" required placeholder="e.g. Best Dressed Male" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
+           </div>
+           <div>
+             <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Group Name</label>
+             <input name="group_name" placeholder="e.g. Executive / Faculty Leadership" defaultValue="General" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
+           </div>
+           <div>
+             <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Description (optional)</label>
+             <input name="description" placeholder="Brief description" className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
+           </div>
+           <div className="grid grid-cols-2 gap-4">
+             <div>
+               <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Vote Price (₦)</label>
+               <input name="vote_price" type="number" defaultValue={100} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
+             </div>
+             <div>
+               <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Minimum Votes</label>
+               <input name="minimum_votes" type="number" defaultValue={250} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
+             </div>
+           </div>
+           <button type="submit" className="w-full rounded-xl bg-amber-500 py-3 text-sm font-black text-white hover:bg-amber-600">
+             Add Category
+           </button>
+         </form>
+       </div>
 
-      {params.pwinfo && (
-        <div className="bg-blue-50 border-b border-blue-200 px-4 py-3 text-center text-sm font-bold text-blue-700">
-          To change your password, update ADMIN_PASSWORD in Vercel → Settings → Environment Variables, then redeploy.
-        </div>
-      )}
+       {categories.length === 0 ? (
+         <div className="text-center py-12 bg-white rounded-2xl border border-slate-100">
+           <p className="text-slate-400 font-medium">No categories yet. Add one above!</p>
+         </div>
+       ) : (
+         categories.map((category: any) => (
+           <div key={category.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+             <div className="bg-slate-900 px-6 py-4 flex items-center justify-between">
+               <div>
+                 <p className="text-[10px] font-black uppercase tracking-widest text-amber-400">{category.group_name || "General"}</p>
+                 <h3 className="font-black text-white">#{category.category_number ?? "—"} · {category.name}</h3>
+                 <p className="text-xs text-slate-400 mt-0.5">₦{category.vote_price}/vote · Min {category.minimum_votes} votes</p>
+               </div>
+               <form action={deleteCategory}>
+                 <input type="hidden" name="id" value={category.id} />
+                 <button type="submit" className="text-xs font-bold text-red-400 hover:text-red-300">Delete</button>
+               </form>
+             </div>
 
-      {params.error && (
-        <div className="bg-red-50 border-b border-red-200 px-4 py-3 text-center text-sm font-bold text-red-700">
-          ❌ {params.error}
-        </div>
-      )}
+             <div className="p-4 border-b border-slate-100">
+               <form action={addNominee} encType="multipart/form-data" className="flex gap-3 items-end flex-wrap">
+                 <input type="hidden" name="category_id" value={category.id} />
+                 <div className="flex-1 min-w-[150px]">
+                   <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Add Nominee</label>
+                   <input name="name" required placeholder="Full name" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold outline-none focus:border-amber-500" />
+                 </div>
+                 <div>
+                   <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Photo</label>
+                   <input name="photo" type="file" accept="image/*" className="text-xs" />
+                 </div>
+                 <button type="submit" className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-white hover:bg-amber-600 whitespace-nowrap">
+                   Add
+                 </button>
+               </form>
+             </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-          {[
-            { label: "Total Votes", value: totalVotes.toLocaleString(), Icon: Trophy },
-            { label: "Revenue", value: `₦${revenue.toLocaleString()}`, Icon: Wallet },
-            { label: "Contestants", value: contestants.length.toString(), Icon: Users },
-            { label: "Vote Price", value: `₦${votePrice}`, Icon: BarChart3 }
-          ].map(({ label, value, Icon }) => (
-            <article key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <Icon className="text-blue-700" size={20} />
-              <p className="mt-3 text-xs font-bold text-slate-500">{label}</p>
-              <p className="mt-1 text-2xl font-black text-slate-900">{value}</p>
-            </article>
-          ))}
-        </div>
-
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <Crown className="text-yellow-500" size={20} />
-            <h2 className="text-lg font-black text-slate-900">Live Leaderboard</h2>
-          </div>
-          <div className="space-y-2">
-            {ranked.slice(0, 5).map((c, i) => (
-              <div key={c.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <span className={`text-lg font-black ${i === 0 ? "text-yellow-500" : i === 1 ? "text-slate-400" : i === 2 ? "text-amber-600" : "text-slate-400"}`}>#{i + 1}</span>
-                  <div>
-                    <p className="font-black text-slate-900">{c.name}</p>
-                    <p className="text-xs font-semibold text-slate-500">{c.category} · {c.department}</p>
-                  </div>
-                </div>
-                <p className="text-lg font-black text-blue-700">{c.votes.toLocaleString()}</p>
-              </div>
-            ))}
-            {ranked.length === 0 && <p className="text-sm text-slate-400 font-semibold">No contestants yet.</p>}
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-black text-slate-900 mb-5">
-            {editContestantData ? `Edit — ${editContestantData.name}` : "Add Contestant"}
-          </h2>
-          <form action={editContestantData ? editContestant : addContestant} encType="multipart/form-data" className="space-y-4">
-            {editContestantData && <input type="hidden" name="id" value={editContestantData.id} />}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Full Name</label>
-                <input name="name" required defaultValue={editContestantData?.name ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. Amaka Nwosu" />
-              </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Category</label>
-                <select name="category" required defaultValue={editContestantData?.category ?? "Miss FUL"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
-                  <option value="Mr FUL">Mr FUL</option>
-                  <option value="Miss FUL">Miss FUL</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Department</label>
-                <input name="department" required defaultValue={editContestantData?.department ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. Mass Communication" />
-              </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Faculty</label>
-                <input name="faculty" required defaultValue={editContestantData?.faculty ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. Social Sciences" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Short Bio (optional)</label>
-              <textarea name="bio" rows={2} defaultValue={editContestantData?.bio ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Photo</label>
-              <input type="file" name="photo" accept="image/*" className="w-full text-sm font-semibold" />
-            </div>
-            <div className="flex gap-3">
-              <button type="submit" className="rounded-full bg-blue-700 px-6 py-3 text-sm font-black text-white hover:bg-blue-900">
-                {editContestantData ? "Save Changes" : "Add Contestant"}
-              </button>
-              {editContestantData && (
-                <a href="/admin" className="rounded-full border border-slate-200 px-6 py-3 text-sm font-black text-slate-600 hover:bg-slate-50">
-                  Cancel
-                </a>
-              )}
-            </div>
-          </form>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-black text-slate-900 mb-5">All Contestants</h2>
-          <div className="space-y-3">
-            {ranked.map((c, i) => (
-              <div key={c.id} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-4">
-                <div>
-                  <p className="text-xs font-black text-blue-700">#{i + 1} · {c.contestant_number} · {c.category}</p>
-                  <p className="font-black text-slate-900">{c.name}</p>
-                  <p className="text-sm font-semibold text-slate-500">{c.department}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <p className="text-lg font-black tabular-nums text-blue-700">{c.votes.toLocaleString()}</p>
-                  <a href={`/admin?edit=${c.id}`} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-100">
-                    Edit
-                  </a>
-                  <form action={deleteContestant}>
-                    <input type="hidden" name="id" value={c.id} />
-                    <button type="submit" className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-black text-rose-600 hover:bg-rose-50">
-                      Delete
-                    </button>
-                  </form>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-5">
-            <Settings className="text-slate-500" size={20} />
-            <h2 className="text-lg font-black text-slate-900">Site Settings</h2>
-          </div>
-          <form action={saveSettings} encType="multipart/form-data" className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Site Title</label>
-                <input name="site_title" defaultValue={settings.site_title ?? "Mr & Miss FUL 2026"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
-              </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Vote Price (₦)</label>
-                <input name="vote_price" type="number" defaultValue={settings.vote_price ?? "200"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
-              </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Main Voting Status</label>
-                <select name="voting_status" defaultValue={settings.voting_status ?? "open"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
-                  <option value="open">Open — voting is live</option>
-                  <option value="closed">Closed — voting is ended</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Awards Voting Status</label>
-                <select name="awards_voting_status" defaultValue={settings.awards_voting_status ?? "open"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
-                  <option value="open">Open — awards voting is live</option>
-                  <option value="closed">Closed — awards voting is ended</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Payment Gateway</label>
-                <select name="payment_provider" defaultValue={settings.payment_provider ?? "paystack"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
-                  <option value="paystack">Paystack</option>
-                  <option value="flutterwave">Flutterwave</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Voting End Date</label>
-                <input name="voting_end" type="datetime-local" defaultValue={settings.voting_end_date ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
-              </div>
-            </div>
-
-            <button type="submit" className="rounded-full bg-blue-700 px-6 py-3 text-sm font-black text-white hover:bg-blue-900">
-              Save Settings
-            </button>
-          </form>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-black text-slate-900 mb-5">Change Admin Password</h2>
-          <form action={changePassword} className="space-y-4 max-w-sm">
-            <div>
-              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Current Password</label>
-              <input type="password" name="current_password" required className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">New Password</label>
-              <input type="password" name="new_password" required className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Confirm New Password</label>
-              <input type="password" name="confirm_password" required className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" />
-            </div>
-            <button type="submit" className="rounded-full bg-slate-800 px-6 py-3 text-sm font-black text-white hover:bg-slate-900">
-              Change Password
-            </button>
-          </form>
-        </section>
-
-      </div>
-    </main>
-  );
+             <div className="p-4 space-y-2">
+               {!category.award_nominees || category.award_nominees.length === 0 ? (
+                 <p className="text-xs text-slate-400 text-center py-4">No nominees yet</p>
+               ) : (
+                 category.award_nominees.map((nominee: any) => (
+                   <div key={nominee.id} className="flex items-center justify-between py-2 border-b border-slate-50">
+                     <div className="flex items-center gap-3">
+                       {nominee.photo_url && (
+                         <img src={nominee.photo_url} alt={nominee.name} className="w-8 h-8 rounded-full object-cover" />
+                       )}
+                       <div>
+                         <p className="font-bold text-sm text-slate-900">#{nominee.nominee_number ?? "—"} · {nominee.name}</p>
+                         <p className="text-xs text-slate-400">{nominee.votes || 0} votes</p>
+                         </div>
+                     </div>
+                     <form action={deleteNominee}>
+                       <input type="hidden" name="id" value={nominee.id} />
+                       <button type="submit" className="text-xs font-bold text-red-400 hover:text-red-300">Remove</button>
+                     </form>
+                   </div>
+                 ))
+               )}
+             </div>
+           </div>
+         ))
+       )}
+     </div>
+   </main>
+ );
 }
