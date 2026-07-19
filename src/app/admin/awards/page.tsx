@@ -7,6 +7,7 @@ async function getAwardCategories() {
  const { data } = await adminSupabase
    .from("award_categories")
    .select("*, award_nominees(*)")
+   .order("group_name", { ascending: true })
    .order("category_number", { ascending: true });
 
  // Ensure nominees within each category are ordered by their number
@@ -31,6 +32,7 @@ async function addCategory(formData: FormData) {
  const { data: existing } = await adminSupabase
    .from("award_categories")
    .select("category_number")
+   .eq("group_name", group_name)
    .order("category_number", { ascending: false })
    .limit(1);
 
