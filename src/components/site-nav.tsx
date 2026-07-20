@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, Drama, Trophy, MessageCircle, FileText } from "lucide-react";
+import { Menu, X, Trophy, Drama, MessageCircle, FileText } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Mr & Miss FUL Voting", icon: Drama },
   { href: "/awards", label: "FUL Awards 2026", icon: Trophy },
+  { href: "/", label: "Mr & Miss FUL Voting", icon: Drama },
   { href: "/contact", label: "Contact & Support", icon: MessageCircle },
   { href: "/terms", label: "Terms & Privacy", icon: FileText },
 ];
@@ -15,7 +15,6 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  // Lock body scroll while the drawer is open
   useEffect(() => {
     if (open) {
       const prev = document.body.style.overflow;
@@ -26,7 +25,6 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
     }
   }, [open]);
 
-  // Close on Escape
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -56,7 +54,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
       <div
         onClick={() => setOpen(false)}
         aria-hidden={!open}
-        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] transition-opacity duration-300 ${
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       />
@@ -66,27 +64,42 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
         role="dialog"
         aria-modal="true"
         aria-label="Site menu"
-        className={`fixed top-0 right-0 z-50 h-full w-[78%] max-w-xs
+        className={`fixed top-0 right-0 z-50 h-auto max-h-full w-[78%] max-w-xs
           bg-[#0B132B] shadow-2xl
           rounded-l-[20px]
           transition-transform duration-300 ease-out
           ${open ? "translate-x-0" : "translate-x-full"}`}
       >
-        <div className="flex items-center justify-between px-6 pt-6 pb-2">
-          <span className="text-[11px] font-medium tracking-[0.14em] text-white/40 uppercase">
-            Menu
-          </span>
+        {/* Branding block */}
+        <div className="flex items-start justify-between px-6 pt-7 pb-5">
+          <div>
+            <p className="text-[10px] font-semibold tracking-[0.16em] text-white/40 uppercase">
+              Federal University Lokoja
+            </p>
+            <p className="mt-1.5 text-[17px] font-semibold text-white tracking-tight leading-tight">
+              FUL Awards 2026
+            </p>
+            <p className="mt-0.5 text-[12px] text-[#D4AF37]/90 font-medium">
+              Official Voting Platform
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Close menu"
-            className="p-2 -mr-2 text-white/70 hover:text-white transition-colors"
+            className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full
+              bg-white/[0.06] text-white/70 hover:bg-white/[0.12] hover:text-white
+              transition-colors active:scale-95 duration-150"
           >
-            <X size={20} strokeWidth={1.75} />
+            <X size={16} strokeWidth={2} />
           </button>
         </div>
 
-        <div className="mt-4 px-3 flex flex-col">
+        {/* Gold divider */}
+        <div className="mx-6 h-px bg-gradient-to-r from-[#D4AF37]/70 via-[#D4AF37]/25 to-transparent" />
+
+        {/* Nav items */}
+        <div className="px-4 py-3 flex flex-col">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
@@ -95,27 +108,24 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-4 px-4 py-4 rounded-xl text-[14.5px] font-medium
-                  transition-colors
-                  ${active ? "text-[#D4AF37]" : "text-white/80 hover:text-white hover:bg-white/[0.04]"}`}
+                className={`group flex items-center gap-3.5 px-3 py-[13px] rounded-xl text-[14.5px] font-medium
+                  transition-colors duration-150
+                  ${active ? "text-[#D4AF37]" : "text-white/85 hover:text-white active:bg-white/[0.05]"}`}
               >
                 <Icon
-                  size={19}
-                  strokeWidth={1.5}
-                  className={active ? "text-[#D4AF37]" : "text-white/50"}
+                  size={20}
+                  strokeWidth={1.6}
+                  className={`flex-shrink-0 transition-transform duration-150 group-active:scale-95 ${
+                    active ? "text-[#D4AF37]" : "text-white/45 group-hover:text-white/70"
+                  }`}
                 />
-                <span>{item.label}</span>
+                <span className="leading-none">{item.label}</span>
               </a>
             );
           })}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 px-6 py-5">
-          <div className="h-px bg-white/10 mb-4" />
-          <p className="text-[11px] text-white/30 font-medium">
-            © 2026 Mr & Miss FUL
-          </p>
-        </div>
+        <div className="pb-6" />
       </div>
     </nav>
   );
