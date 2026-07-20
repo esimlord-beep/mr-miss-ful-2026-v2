@@ -46,7 +46,7 @@ export function Hero({
         </div>
 
         {/* Headline — an invitation, not a repeat of the site name */}
-        <h1 className="mt-6 text-[2.15rem] leading-[1.12] sm:text-5xl font-bold tracking-tight text-white animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100">
+        <h1 className="mt-6 font-serif text-[2.15rem] leading-[1.12] sm:text-5xl font-bold tracking-tight text-white animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100">
           Who wears the{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-[#f3d878]">
             crown
