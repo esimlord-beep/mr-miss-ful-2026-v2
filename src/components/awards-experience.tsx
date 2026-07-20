@@ -144,10 +144,25 @@ export function AwardsExperience({
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F8F9FC" }}>
-      <div className="py-12 px-4 text-center" style={{ backgroundColor: "#0B132B" }}>
-        <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "#D4AF37" }}>Federal University Lokoja SUG</p>
-        <h1 className="text-4xl font-black text-white">{settings.awards_title || "FUL Awards 2026"}</h1>
-        <p className="mt-3 text-sm max-w-md mx-auto" style={{ color: "#94A3B8" }}>{settings.awards_description || "Vote for your favorites across all categories. Minimum 250 votes required for each award to be presented."}</p>
+      <div className="relative overflow-hidden py-7 px-4 text-center" style={{ background: "linear-gradient(180deg, #050912 0%, #0B132B 100%)" }}>
+        <div
+          className="absolute inset-0 opacity-40 pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(circle at 15% 20%, rgba(212,175,55,0.12) 0%, transparent 35%), radial-gradient(circle at 85% 75%, rgba(212,175,55,0.10) 0%, transparent 40%)"
+          }}
+        />
+        <div className="relative">
+          <p className="text-[11px] font-black uppercase tracking-widest mb-1.5" style={{ color: "#D4AF37" }}>Federal University Lokoja SUG</p>
+          <h1 className="text-2xl font-black text-white">{settings.awards_title || "Awards Categories"}</h1>
+          <p className="mt-2 text-xs max-w-xs mx-auto" style={{ color: "#94A3B8" }}>{settings.awards_description || "Celebrate excellence. Vote for your favourite nominees."}</p>
+          <a
+            href="#categories"
+            className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full text-xs font-black transition-transform active:scale-95"
+            style={{ backgroundColor: "#D4AF37", color: "#0B132B" }}
+          >
+            🏆 Start Voting
+          </a>
+        </div>
       </div>
 
       {votingClosed && (
@@ -156,7 +171,7 @@ export function AwardsExperience({
         </div>
       )}
 
-      <div className="max-w-2xl mx-auto px-4 pt-8">
+      <div id="categories" className="max-w-2xl mx-auto px-4 pt-8 scroll-mt-4">
         <div className="relative">
           <input
             type="text"
@@ -166,7 +181,10 @@ export function AwardsExperience({
             className="w-full rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold outline-none shadow-sm transition-shadow focus:shadow-md"
             style={{ border: "1px solid #E2E8F0", color: "#1E293B" }}
           />
-          <span className="absolute right-5 top-1/2 -translate-y-1/2" style={{ color: "#64748B" }}>🔍</span>
+          <svg className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "#D4AF37" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
+          </svg>
         </div>
       </div>
 
