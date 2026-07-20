@@ -39,9 +39,8 @@ export function AwardsExperience({
 
   const categoryIcon = (name: string) => {
     const n = name.toLowerCase();
-    if (n.includes("academic") || n.includes("lecturer") || n.includes("course")) return "🎓";
-    if (n.includes("tutor")) return "👨‍🏫";
-    if (n.includes("president") || n.includes("secretary") || n.includes("treasurer") || n.includes("leader") || n.includes("pro ") || n.includes("director")) return "🏅";
+    if (n.includes("leadership") || n.includes("executive") || n.includes("president") || n.includes("secretary") || n.includes("treasurer") || n.includes("leader") || n.includes("pro ") || n.includes("director")) return "👑";
+    if (n.includes("academic") || n.includes("lecturer") || n.includes("course") || n.includes("tutor")) return "🎓";
     if (n.includes("music") || n.includes("entertain") || n.includes("mc ") || n.includes("comedian")) return "🎤";
     if (n.includes("sport") || n.includes("athlete")) return "⚽";
     if (n.includes("photo")) return "📷";
@@ -192,85 +191,100 @@ export function AwardsExperience({
             const progressPct = Math.min((totalVotes / category.minimum_votes) * 100, 100);
 
             return (
-              <div key={category.id} className="mb-4 last:mb-0 transition-opacity duration-500 opacity-100">
+              <div key={category.id} className="mb-3 last:mb-0 transition-opacity duration-500 opacity-100">
                 {showGroupHeader && (
-                  <h2 className="text-lg font-black mb-4 mt-8 first:mt-0 pb-2" style={{ color: "#0B132B", borderBottom: "2px solid #D4AF37" }}>
-                    {groupName}
-                  </h2>
+                  <div className="mb-4 mt-8 first:mt-0 overflow-hidden" style={{ borderRadius: "16px" }}>
+                    <div
+                      className="px-5 py-4"
+                      style={{ background: "linear-gradient(135deg, #0B132B 0%, #1C2541 100%)" }}
+                    >
+                      <p className="text-base font-black text-white flex items-center gap-2">
+                        <span>{categoryIcon(groupName)}</span>
+                        {groupName}
+                      </p>
+                      <p className="text-xs mt-1" style={{ color: "#94A3B8" }}>
+                        {filteredCategories.filter((c) => (c.group_name || "General") === groupName).length} Categories
+                      </p>
+                    </div>
+                    <div style={{ height: "3px", background: "linear-gradient(90deg, #D4AF37, #F4E4A1, #D4AF37)" }} />
+                  </div>
                 )}
 
                 <div
                   className="bg-white overflow-hidden transition-all duration-200 active:scale-[0.99]"
                   style={{
-                    borderRadius: "20px",
+                    borderRadius: "16px",
                     border: "1px solid #E2E8F0",
-                    boxShadow: isExpanded ? "0 8px 24px rgba(11,19,43,0.10)" : "0 2px 8px rgba(11,19,43,0.05)"
+                    boxShadow: isExpanded ? "0 8px 24px rgba(11,19,43,0.10)" : "0 1px 4px rgba(11,19,43,0.04)"
                   }}
                 >
                   <button
                     onClick={() => setExpandedCategory(isExpanded ? null : category.id)}
-                    className="w-full text-left px-5 py-4"
+                    className="w-full text-left px-4 py-3.5"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-2.5 min-w-0">
-                        <span className="text-xl leading-none mt-0.5">{categoryIcon(category.name)}</span>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-lg leading-none shrink-0">{categoryIcon(category.name)}</span>
                         <div className="min-w-0">
-                          <h3 className="font-bold text-base leading-snug truncate" style={{ color: "#0B132B" }}>
+                          <h3 className="font-bold text-sm leading-snug truncate" style={{ color: "#0B132B" }}>
                             {category.category_number ? `${category.category_number}. ` : ""}{category.name}
                           </h3>
-                          <p className="text-xs mt-0.5" style={{ color: "#64748B" }}>
-                            ₦{category.vote_price} per vote · {category.minimum_votes} minimum votes
+                          <p className="text-[11px] mt-0.5" style={{ color: "#64748B" }}>
+                            ₦{category.vote_price}/Vote · Min. {category.minimum_votes} Votes
                           </p>
                         </div>
                       </div>
                       <span
-                        className="shrink-0 text-sm font-bold transition-transform duration-200"
-                        style={{ color: "#D4AF37", transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}
+                        className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full font-bold transition-transform duration-200"
+                        style={{ backgroundColor: "#D4AF37", color: "#0B132B", transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}
                       >
-                        ›
+                        ➜
                       </span>
                     </div>
 
-                    <div className="mt-3">
-                      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E5E7EB" }}>
-                        <div
-                          className="h-full rounded-full transition-all duration-700 ease-out"
-                          style={{ width: `${progressPct}%`, backgroundColor: "#D4AF37" }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-[11px] font-bold" style={{ color: minReached ? "#15803D" : "#64748B" }}>
-                          {minReached ? `✅ Qualified · ${totalVotes} votes` : `${totalVotes}/${category.minimum_votes} votes`}
+                    <div className="mt-2.5 flex items-center justify-between gap-2">
+                      {totalVotes > 0 ? (
+                        <div className="flex-1">
+                          <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E5E7EB" }}>
+                            <div
+                              className="h-full rounded-full transition-all duration-700 ease-out"
+                              style={{ width: `${progressPct}%`, backgroundColor: "#D4AF37" }}
+                            />
+                          </div>
+                          <span className="text-[11px] font-bold mt-1 block" style={{ color: minReached ? "#15803D" : "#64748B" }}>
+                            {minReached ? `✅ Qualified · ${totalVotes} votes` : `${totalVotes}/${category.minimum_votes} votes`}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] font-semibold italic" style={{ color: "#94A3B8" }}>
+                          Voting opens soon
                         </span>
-                        <span className="text-[11px] font-semibold" style={{ color: "#64748B" }}>
-                          {noms.length > 0 ? `${noms.length} nominee${noms.length !== 1 ? "s" : ""}` : ""}
-                        </span>
-                      </div>
+                      )}
                     </div>
 
                     {noms.length === 0 && (
                       <span
-                        className="inline-block mt-3 text-[11px] font-bold px-2.5 py-1 rounded-full"
+                        className="inline-block mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full"
                         style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}
                       >
-                        Nominees opening soon
+                        Opening soon
                       </span>
                     )}
 
                     {noms.length > 0 && (
                       <span
-                        className="inline-block mt-3 text-[11px] font-black px-3 py-1.5 rounded-full"
+                        className="inline-block mt-2 text-[10px] font-black px-2.5 py-1 rounded-full"
                         style={{ backgroundColor: isExpanded ? "#0B132B" : "#F8F9FC", color: isExpanded ? "#D4AF37" : "#0B132B", border: isExpanded ? "none" : "1px solid #E2E8F0" }}
                       >
-                        {isExpanded ? "Hide Nominees" : "View Nominees →"}
+                        {isExpanded ? "Hide Nominees" : `View ${noms.length} Nominee${noms.length !== 1 ? "s" : ""}`}
                       </span>
                     )}
                   </button>
 
                   {isExpanded && noms.length > 0 && (
-                    <div className="px-5 pb-5 pt-1 grid gap-3 sm:grid-cols-2" style={{ borderTop: "1px solid #E2E8F0" }}>
+                    <div className="px-4 pb-4 pt-1 grid gap-3 sm:grid-cols-2" style={{ borderTop: "1px solid #E2E8F0" }}>
                       {noms.map((nominee) => (
-                        <div key={nominee.id} className="rounded-2xl overflow-hidden relative mt-4" style={{ border: "1px solid #E2E8F0" }}>
+                        <div key={nominee.id} className="overflow-hidden relative mt-4" style={{ border: "1px solid #E2E8F0", borderRadius: "14px" }}>
                           <div className="relative w-full h-32" style={{ backgroundColor: "#F8F9FC" }}>
                             {nominee.photo_url ? (
                               <Image
