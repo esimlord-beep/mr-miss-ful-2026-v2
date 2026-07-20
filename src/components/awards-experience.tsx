@@ -1,62 +1,104 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
+declare global {
+  interface Window {
+    grecaptcha: any;
+  }
+}
+
 export function AwardsExperience({
-  categories,
-  nominees,
-  siteSettings,
-  votingClosed,
-  openVoteModal,
+  initialCategories = [],
+  initialNominees = {},
+  siteSettings
 }: {
-  categories: any[];
-  nominees: Record<string, any[]>;
+  initialCategories: any[];
+  initialNominees: Record<string, any[]>;
   siteSettings: any;
-  votingClosed: boolean;
-  openVoteModal: (nominee: any, category: any) => void;
 }) {
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const categories = initialCategories;
+  const nominees = initialNominees;
+  const settings = siteSettings;
+
+  const [votingFor, setVotingFor] = useState<any | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
+  const [payerName, setPayerName] = useState("");
+  const [payerEmail, setPayerEmail] = useState("");
+  const [payerPhone, setPayerPhone] = useState("");
+  const [voteQuantity, setVoteQuantity] = useState(1);
+  const [processing, setProcessing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [shareOpenFor, setShareOpenFor] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const filteredCategories = useMemo(() => {
-    if (!searchTerm.trim()) return categories;
-    const term = searchTerm.toLowerCase();
-    return categories.filter(
-      (c) =>
-        c.name.toLowerCase().includes(term) ||
-        (c.group_name || "").toLowerCase().includes(term)
-    );
-  }, [categories, searchTerm]);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   const categoryIcon = (name: string) => {
     const n = name.toLowerCase();
-    if (n.includes("sport") || n.includes("athlete") || n.includes("footbal") || n.includes("basketball")) return "⚽";
-    if (n.includes("music") || n.includes("song") || n.includes("dj") || n.includes("producer")) return "🎵";
-    if (n.includes("fashion") || n.includes("model") || n.includes("style") || n.includes("dress")) return "👗";
-    if (n.includes("business") || n.includes("entrepreneur") || n.includes("brand") || n.includes("vendor")) return "💼";
-    if (n.includes("humanitarian") || n.includes("philanthrop") || n.includes("community")) return "🤝";
-    if (n.includes("king") || n.includes("queen") || n.includes("royal")) return "👑";
-    if (n.includes("fresher")) return "🌱";
-    if (n.includes("fyb") || n.includes("final year")) return "🎓";
-    if (n.includes("couple") || n.includes("bestie") || n.includes("clique")) return "💞";
-    if (n.includes("social media") || n.includes("tiktok") || n.includes("youtub") || n.includes("blog") || n.includes("content")) return "📱";
-    if (n.includes("photograph") || n.includes("video") || n.includes("cinemat") || n.includes("graphic") || n.includes("media")) return "📸";
-    if (n.includes("faculty") || n.includes("department") || n.includes("academic") || n.includes("lecturer")) return "🏛️";
+    if (n.includes("leadership") || n.includes("executive") || n.includes("president") || n.includes("secretary") || n.includes("treasurer") || n.includes("leader") || n.includes("pro ") || n.includes("director")) return "👑";
+    if (n.includes("academic") || n.includes("lecturer") || n.includes("course") || n.includes("tutor")) return "🎓";
+    if (n.includes("music") || n.includes("entertain") || n.includes("mc ") || n.includes("comedian")) return "🎤";
+    if (n.includes("sport") || n.includes("athlete")) return "⚽";
+    if (n.includes("photo")) return "📷";
+    if (n.includes("art") || n.includes("fashion") || n.includes("dressed") || n.includes("style")) return "🎭";
+    if (n.includes("business") || n.includes("entrepreneur") || n.includes("hustle")) return "💼";
     return "🏆";
   };
 
+  useEffect(() => {
+    if (!siteKey) return;
+    const script = document.createElement("script");
+    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
+    script.async = true;
+    document.head.appendChild(script);
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, [siteKey]);
+
+  const votingClosed = settings?.voting_status === "closed";
+
+  const filteredCategories = categories.filter((category) =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const openVoteModal = (nominee: any, category: any) => {
+    if (votingClosed) return;
+    setVotingFor(nominee);
+    setSelectedCategory(category);
+    setVoteQuantity(1);
+  };
+
+  const closeModal = () => {
+    setVotingFor(null);
+    setSelectedCategory(null);
+    setPayerName("");
+    setPayerEmail("");
+    setPayerPhone("");
+  };
+
+  const getShareUrl = () => {
+    if (typeof window === "undefined") return "";
+    return window.location.href;
+  };
+
+  const getShareText = (nominee: any, category: any) => {
+    return `Vote for ${nominee.name} in ${category.name} — FUL Awards 2026!`;
+  };
+
   const handleShare = (platform: "whatsapp" | "twitter" | "copy", nominee: any, category: any) => {
-    const url = `${window.location.origin}/awards?nominee=${nominee.id}`;
-    const text = `Vote for ${nominee.name} in ${category.name} — Mr & Miss FUL 2026 Awards!`;
+    const url = getShareUrl();
+    const text = getShareText(nominee, category);
 
     if (platform === "whatsapp") {
-      window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, "_blank");
+      window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`, "_blank");
     } else if (platform === "twitter") {
       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank");
-    } else {
+    } else if (platform === "copy") {
       navigator.clipboard.writeText(url);
       setCopiedId(nominee.id);
       setTimeout(() => setCopiedId(null), 2000);
@@ -64,17 +106,86 @@ export function AwardsExperience({
     setShareOpenFor(null);
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!votingFor || !selectedCategory) return;
+    setProcessing(true);
+    try {
+      let recaptchaToken = "";
+      if (siteKey && window.grecaptcha) {
+        recaptchaToken = await window.grecaptcha.execute(siteKey, { action: "vote" });
+      }
+
+      const res = await fetch("/api/awards/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nomineeId: votingFor.id,
+          categoryId: selectedCategory.id,
+          payerName,
+          payerEmail,
+          payerPhone,
+          voteQuantity,
+          recaptchaToken
+        })
+      });
+      const data = await res.json();
+      if (data?.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        alert(data?.error || "Failed to initialize payment.");
+      }
+    } catch {
+      alert("Something went wrong.");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F8F9FC" }}>
-      <div className="sticky top-0 z-20 px-4 pt-4 pb-3" style={{ backgroundColor: "#F8F9FC", borderBottom: "1px solid #E2E8F0" }}>
-        <input
-          type="text"
-          placeholder="Search categories…"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full rounded-full px-4 py-2.5 text-sm focus:outline-none"
-          style={{ border: "1px solid #E2E8F0", backgroundColor: "white" }}
+      <div className="relative overflow-hidden py-7 px-4 text-center" style={{ background: "linear-gradient(180deg, #050912 0%, #0B132B 100%)" }}>
+        <div
+          className="absolute inset-0 opacity-40 pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(circle at 15% 20%, rgba(212,175,55,0.12) 0%, transparent 35%), radial-gradient(circle at 85% 75%, rgba(212,175,55,0.10) 0%, transparent 40%)"
+          }}
         />
+        <div className="relative">
+          <p className="text-[11px] font-black uppercase tracking-widest mb-1.5" style={{ color: "#D4AF37" }}>Federal University Lokoja SUG</p>
+          <h1 className="text-2xl font-black text-white">{settings.awards_title || "Awards Categories"}</h1>
+          <p className="mt-2 text-xs max-w-xs mx-auto" style={{ color: "#94A3B8" }}>{settings.awards_description || "Celebrate excellence. Vote for your favourite nominees."}</p>
+          <a
+            href="#categories"
+            className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full text-xs font-black transition-transform active:scale-95"
+            style={{ backgroundColor: "#D4AF37", color: "#0B132B" }}
+          >
+            🏆 Start Voting
+          </a>
+        </div>
+      </div>
+
+      {votingClosed && (
+        <div className="bg-amber-50 border-b border-amber-200 py-3 text-center">
+          <p className="text-sm font-bold" style={{ color: "#92400E" }}>🔒 Voting is currently closed.</p>
+        </div>
+      )}
+
+      <div id="categories" className="max-w-2xl mx-auto px-4 pt-8 scroll-mt-4">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search award categories..."
+            className="w-full rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold outline-none shadow-sm transition-shadow focus:shadow-md"
+            style={{ border: "1px solid #E2E8F0", color: "#1E293B" }}
+          />
+          <svg className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "#D4AF37" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
+          </svg>
+        </div>
       </div>
 
       <main className="max-w-2xl mx-auto px-4 py-10">
@@ -281,6 +392,50 @@ export function AwardsExperience({
           })
         )}
       </main>
+
+      {votingFor && selectedCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div className="px-6 py-4 flex justify-between items-center" style={{ backgroundColor: "#0B132B" }}>
+              <h3 className="font-bold text-lg" style={{ color: "#D4AF37" }}>Cast Your Vote</h3>
+              <button onClick={closeModal} className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-white" style={{ backgroundColor: "rgba(212,175,55,0.2)" }}>✕</button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div>
+                <p className="text-xs uppercase tracking-wider" style={{ color: "#64748B" }}>Voting For</p>
+                <p className="font-bold" style={{ color: "#1E293B" }}>{votingFor.name}</p>
+                <p className="text-xs font-semibold" style={{ color: "#D4AF37" }}>{selectedCategory.name}</p>
+              </div>
+              <hr style={{ borderColor: "#E2E8F0" }} />
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "#1E293B" }}>Your Full Name</label>
+                <input type="text" required placeholder="John Doe" value={payerName} onChange={(e) => setPayerName(e.target.value)} className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none" style={{ border: "1px solid #E2E8F0" }} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "#1E293B" }}>Email Address</label>
+                <input type="email" required placeholder="johndoe@gmail.com" value={payerEmail} onChange={(e) => setPayerEmail(e.target.value)} className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none" style={{ border: "1px solid #E2E8F0" }} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "#1E293B" }}>Phone Number</label>
+                <input type="tel" required placeholder="08012345678" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none" style={{ border: "1px solid #E2E8F0" }} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold mb-2" style={{ color: "#1E293B" }}>Number of Votes</label>
+                <div className="flex items-center space-x-4">
+                  <button type="button" onClick={() => setVoteQuantity(Math.max(1, voteQuantity - 1))} className="flex h-10 w-10 items-center justify-center rounded-xl text-lg font-bold" style={{ backgroundColor: "#F8F9FC" }}>-</button>
+                  <span className="text-base font-black w-8 text-center" style={{ color: "#1E293B" }}>{voteQuantity}</span>
+                  <button type="button" onClick={() => setVoteQuantity(Math.min(1000, voteQuantity + 1))} className="flex h-10 w-10 items-center justify-center rounded-xl text-lg font-bold" style={{ backgroundColor: "#F8F9FC" }}>+</button>
+                </div>
+                <p className="text-xs mt-1" style={{ color: "#64748B" }}>Total: ₦{voteQuantity * selectedCategory.vote_price}</p>
+              </div>
+              <p className="text-xs text-center" style={{ color: "#94A3B8" }}>Protected by reCAPTCHA</p>
+              <button type="submit" disabled={processing} className="w-full rounded-full py-3 text-sm font-black transition-all active:scale-95" style={{ backgroundColor: processing ? "#E5E7EB" : "#D4AF37", color: processing ? "#94A3B8" : "#0B132B" }}>
+                {processing ? "Processing..." : "Proceed to Pay"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
