@@ -36,6 +36,7 @@ async function approveNomination(formData: FormData) {
 
   if (fetchError || !submission) {
     redirect(`/admin/nominations?error=${encodeURIComponent(fetchError?.message ?? "Submission not found")}`);
+    return;
   }
 
   const { data: existing } = await adminSupabase
@@ -59,6 +60,7 @@ async function approveNomination(formData: FormData) {
   if (insertError) {
     console.error("Promote nomination failed:", insertError.message);
     redirect(`/admin/nominations?error=${encodeURIComponent(insertError.message)}`);
+    return;
   }
 
   await adminSupabase
@@ -84,6 +86,7 @@ async function rejectNomination(formData: FormData) {
 
   if (error) {
     redirect(`/admin/nominations?error=${encodeURIComponent(error.message)}`);
+    return;
   }
 
   revalidatePath("/admin/nominations");
