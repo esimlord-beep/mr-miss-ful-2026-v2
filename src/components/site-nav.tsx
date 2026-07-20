@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, Drama, Trophy, MessageCircle, FileText, PenSquare } from "lucide-react";
+import { Menu, X, Drama, Trophy, MessageCircle, FileText, PenSquare, Crown } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/", label: "Mr & Miss FUL Voting", icon: Drama },
