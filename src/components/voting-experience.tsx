@@ -2,9 +2,12 @@
 
 import { useState, useRef, useMemo, useEffect } from "react";
 import Image from "next/image";
+import { Trophy, ArrowRight } from "lucide-react";
 import { Hero } from "@/components/hero";
 import { Podium } from "@/components/podium";
 import { ProfileOverlay } from "@/components/profile-overlay";
+import { StatsBar } from "@/components/stats-bar";
+import { Sponsors } from "@/components/sponsors";
 
 declare global {
   interface Window {
@@ -51,6 +54,13 @@ export function VotingExperience({
     return [...initialContestants]
       .sort((a, b) => (b.votes || 0) - (a.votes || 0))
       .slice(0, 3);
+  }, [initialContestants]);
+
+  const categoryCount = useMemo(() => {
+    const categories = new Set(
+      initialContestants.map((c) => c.category).filter(Boolean)
+    );
+    return categories.size;
   }, [initialContestants]);
 
   const openVoteModal = (contestant: any) => {
@@ -109,37 +119,59 @@ export function VotingExperience({
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-amber-200">
       <Hero 
         onExplore={() => contestantsRef.current?.scrollIntoView({ behavior: "smooth" })} 
+        onVote={() => contestantsRef.current?.scrollIntoView({ behavior: "smooth" })}
         siteSettings={siteSettings} 
       />
 
-      {/* Awards Navigation Banner */}
-      <div className="bg-amber-500 py-3 px-4 text-center">
-        <p className="text-sm font-black text-white">
-          🏆 Also vote in the{" "}
-          <a href="/awards" className="underline hover:text-amber-100">
-            FUL Awards 2026
-          </a>{" "}
-          — Best Dressed, Most Popular & more!
-        </p>
-      </div>
+      <StatsBar
+        contestantCount={initialContestants.length}
+        categoryCount={categoryCount || 1}
+        prizePool={siteSettings?.prize_pool || "₦1,000,000"}
+      />
 
       {votingClosed && (
         <div className="bg-red-50 border-b border-red-200 py-3 text-center">
           <p className="text-sm font-bold text-red-600">🔒 Voting is currently closed.</p>
         </div>
       )}
-      
-      <main ref={contestantsRef} className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-16">
-        
-        {topContestants.length > 0 && (
-          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+
+      {topContestants.length > 0 && (
+        <section className="bg-slate-50 py-14 px-4 sm:px-6">
+          <div className="mx-auto max-w-3xl bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-black text-slate-800 tracking-tight">Live Leaderboard</h2>
               <p className="text-xs text-slate-400 font-medium">Currently leading the ranks</p>
             </div>
             <Podium contestants={topContestants} />
           </div>
-        )}
+        </section>
+      )}
+
+      {/* Award Categories teaser */}
+      <section className="bg-[#0B132B] py-14 px-4 sm:px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-[#D4AF37]/10">
+            <Trophy size={20} strokeWidth={1.75} className="text-[#D4AF37]" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            FUL Awards 2026
+          </h2>
+          <p className="mt-2 text-white/60 text-sm sm:text-base max-w-md mx-auto">
+            Best Dressed, Most Popular, and more — vote across every category.
+          </p>
+          <a
+            href="/awards"
+            className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 px-6 py-3 text-sm font-semibold text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors"
+          >
+            Explore Award Categories
+            <ArrowRight size={16} strokeWidth={2.25} />
+          </a>
+        </div>
+      </section>
+
+      <Sponsors sponsors={siteSettings?.sponsors} />
+      
+      <main ref={contestantsRef} className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-16">
 
         <div>
           <div className="mb-6">
