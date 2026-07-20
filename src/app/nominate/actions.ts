@@ -43,19 +43,21 @@ export async function submitNomination(formData: FormData) {
   }
 
   // Check if this exact nominee has already been nominated for this category
-  const { data: existingNomination, error: lookupError } = await adminSupabase
+  const { data: existingMatches, error: lookupError } = await adminSupabase
     .from("nomination_submissions")
     .select("id, nomination_count")
     .eq("category_id", category_id)
     .ilike("nominee_name", nominee_name)
     .neq("status", "rejected")
-    .maybeSingle();
+    .order("created_at", { ascending: true });
 
   if (lookupError) {
     console.error("Nomination lookup failed:", lookupError.message, lookupError.details, lookupError.hint);
     redirect(`/nominate?error=${encodeURIComponent(lookupError.message)}`);
     return;
   }
+
+  const existingNomination = existingMatches && existingMatches.length > 0 ? existingMatches[0] : null;
 
   if (existingNomination) {
     const { error: updateError } = await adminSupabase
