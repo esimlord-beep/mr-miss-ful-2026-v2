@@ -79,7 +79,7 @@ export function Hero({
       </div>
 
       {/* Bottom fade into page body */}
-      <div className="h-8 bg-gradient-to-b from-transparent to-slate-50" />
+      <div className="h-24 bg-gradient-to-b from-transparent via-slate-50/60 to-slate-50" />
     </section>
   );
 }
