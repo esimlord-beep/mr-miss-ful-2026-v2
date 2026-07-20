@@ -42,6 +42,38 @@ export async function submitNomination(formData: FormData) {
     }
   }
 
+  // Check if this exact nominee has already been nominated for this category
+  const { data: existingNomination, error: lookupError } = await adminSupabase
+    .from("nomination_submissions")
+    .select("id, nomination_count")
+    .eq("category_id", category_id)
+    .ilike("nominee_name", nominee_name)
+    .neq("status", "rejected")
+    .maybeSingle();
+
+  if (lookupError) {
+    console.error("Nomination lookup failed:", lookupError.message, lookupError.details, lookupError.hint);
+    redirect(`/nominate?error=${encodeURIComponent(lookupError.message)}`);
+    return;
+  }
+
+  if (existingNomination) {
+    const { error: updateError } = await adminSupabase
+      .from("nomination_submissions")
+      .update({ nomination_count: (existingNomination.nomination_count ?? 1) + 1 })
+      .eq("id", existingNomination.id);
+
+    if (updateError) {
+      console.error("Nomination count update failed:", updateError.message, updateError.details, updateError.hint);
+      redirect(`/nominate?error=${encodeURIComponent(updateError.message)}`);
+      return;
+    }
+
+    revalidatePath("/admin/nominations");
+    redirect("/nominate?submitted=1");
+    return;
+  }
+
   const { error } = await adminSupabase.from("nomination_submissions").insert({
     category_id,
     nominee_name,
