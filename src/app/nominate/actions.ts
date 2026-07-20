@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 export async function submitNomination(formData: FormData) {
   if (!adminSupabase) {
     redirect("/nominate?error=Server not configured");
+    return;
   }
 
   const category_id = String(formData.get("category_id") ?? "").trim();
@@ -18,6 +19,7 @@ export async function submitNomination(formData: FormData) {
 
   if (!category_id || !nominee_name || !nominator_name || !nominator_email) {
     redirect("/nominate?error=Please fill in all required fields");
+    return;
   }
 
   let photo_url: string | null = null;
@@ -31,6 +33,7 @@ export async function submitNomination(formData: FormData) {
     if (uploadError) {
       console.error("Nomination photo upload failed:", uploadError.message);
       redirect("/nominate?error=Photo upload failed. Please try again.");
+      return;
     }
 
     if (data) {
@@ -52,6 +55,7 @@ export async function submitNomination(formData: FormData) {
   if (error) {
     console.error("Nomination submission failed:", error.message, error.details, error.hint);
     redirect(`/nominate?error=${encodeURIComponent(error.message)}`);
+    return;
   }
 
   revalidatePath("/admin/nominations");
