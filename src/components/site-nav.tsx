@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, Trophy, Drama, MessageCircle, FileText } from "lucide-react";
+import { Menu, X, Trophy, Drama, MessageCircle, FileText, Crown } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/awards", label: "FUL Awards 2026", icon: Trophy },
@@ -37,9 +37,14 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
   return (
     <nav className="relative bg-[#0B132B] px-4 py-3 sm:px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <p className="text-white font-semibold text-[15px] tracking-tight">
-          {siteTitle}
-        </p>
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30">
+            <Crown size={14} strokeWidth={2} className="text-[#D4AF37]" />
+          </div>
+          <p className="text-white/90 font-medium text-[13px] tracking-[0.06em] uppercase">
+            FUL 2026
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => setOpen(true)}
