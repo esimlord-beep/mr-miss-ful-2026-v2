@@ -1,14 +1,23 @@
 export const dynamic = "force-dynamic";
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Cinzel, Manrope } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { adminSupabase } from "@/lib/supabase";
 import { SiteNav } from "@/components/site-nav";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-cinzel",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+});
 
 async function getSettings() {
   if (!adminSupabase) return {};
@@ -48,7 +57,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="h-full scroll-smooth">
-      <body className={`${inter.className} antialiased h-full text-slate-600 bg-slate-50/30`}>
+      <body className={`${manrope.variable} ${cinzel.variable} font-sans antialiased h-full text-slate-600 bg-slate-50/30`}>
         <SiteNav siteTitle={siteTitle} />
         <div className="min-h-screen flex flex-col">
           <div className="flex-grow">
