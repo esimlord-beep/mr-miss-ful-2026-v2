@@ -33,7 +33,22 @@ export function AwardsExperience({
   const [shareOpenFor, setShareOpenFor] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+  const categoryIcon = (name: string) => {
+    const n = name.toLowerCase();
+    if (n.includes("academic") || n.includes("lecturer") || n.includes("course")) return "🎓";
+    if (n.includes("tutor")) return "👨‍🏫";
+    if (n.includes("president") || n.includes("secretary") || n.includes("treasurer") || n.includes("leader") || n.includes("pro ") || n.includes("director")) return "🏅";
+    if (n.includes("music") || n.includes("entertain") || n.includes("mc ") || n.includes("comedian")) return "🎤";
+    if (n.includes("sport") || n.includes("athlete")) return "⚽";
+    if (n.includes("photo")) return "📷";
+    if (n.includes("art") || n.includes("fashion") || n.includes("dressed") || n.includes("style")) return "🎭";
+    if (n.includes("business") || n.includes("entrepreneur") || n.includes("hustle")) return "💼";
+    return "🏆";
+  };
 
   useEffect(() => {
     if (!siteKey) return;
@@ -106,55 +121,64 @@ export function AwardsExperience({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nominee_id: votingFor.id,
-          category_id: selectedCategory.id,
-          payer_name: payerName,
-          payer_email: payerEmail,
-          payer_phone: payerPhone,
-          quantity: voteQuantity,
-          recaptcha_token: recaptchaToken
+          nomineeId: votingFor.id,
+          categoryId: selectedCategory.id,
+          payerName,
+          payerEmail,
+          payerPhone,
+          voteQuantity,
+          recaptchaToken
         })
       });
-
       const data = await res.json();
-      if (data.authorization_url) {
+      if (data?.authorization_url) {
         window.location.href = data.authorization_url;
       } else {
-        alert(data.error || "Something went wrong. Please try again.");
+        alert(data?.error || "Failed to initialize payment.");
       }
-    } catch (err) {
-      alert("Something went wrong. Please try again.");
+    } catch {
+      alert("Something went wrong.");
     } finally {
       setProcessing(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-100 sticky top-0 z-40">
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-black text-slate-900">{settings?.awards_title || "FUL Awards 2026"}</h1>
-          {settings?.awards_description && (
-            <p className="text-slate-500 text-sm mt-1">{settings.awards_description}</p>
-          )}
+    <div className="min-h-screen" style={{ backgroundColor: "#F8F9FC" }}>
+      <div className="py-12 px-4 text-center" style={{ backgroundColor: "#0B132B" }}>
+        <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "#D4AF37" }}>Federal University Lokoja SUG</p>
+        <h1 className="text-4xl font-black text-white">{settings.awards_title || "FUL Awards 2026"}</h1>
+        <p className="mt-3 text-sm max-w-md mx-auto" style={{ color: "#94A3B8" }}>{settings.awards_description || "Vote for your favorites across all categories. Minimum 250 votes required for each award to be presented."}</p>
+      </div>
+
+      {votingClosed && (
+        <div className="bg-amber-50 border-b border-amber-200 py-3 text-center">
+          <p className="text-sm font-bold" style={{ color: "#92400E" }}>🔒 Voting is currently closed.</p>
+        </div>
+      )}
+
+      <div className="max-w-2xl mx-auto px-4 pt-8">
+        <div className="relative">
           <input
             type="text"
-            placeholder="Search categories..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="mt-4 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold outline-none focus:border-amber-500"
+            placeholder="Search award categories..."
+            className="w-full rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold outline-none shadow-sm transition-shadow focus:shadow-md"
+            style={{ border: "1px solid #E2E8F0", color: "#1E293B" }}
           />
+          <span className="absolute right-5 top-1/2 -translate-y-1/2" style={{ color: "#64748B" }}>🔍</span>
         </div>
       </div>
 
-      <main className="max-w-5xl mx-auto px-4 py-12 space-y-16">
+      <main className="max-w-2xl mx-auto px-4 py-10">
         {categories.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-slate-500 font-medium text-lg">Award categories coming soon! 👑</p>
+            <p className="font-medium text-lg" style={{ color: "#64748B" }}>Award categories coming soon! 👑</p>
           </div>
         ) : filteredCategories.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-slate-500 font-medium text-lg">No categories match "{searchTerm}"</p>
+            <p className="font-medium text-lg" style={{ color: "#64748B" }}>No categories match "{searchTerm}"</p>
           </div>
         ) : (
           filteredCategories.map((category, index) => {
@@ -164,111 +188,163 @@ export function AwardsExperience({
             const groupName = category.group_name || "General";
             const prevGroupName = index > 0 ? (filteredCategories[index - 1].group_name || "General") : null;
             const showGroupHeader = groupName !== prevGroupName;
+            const isExpanded = expandedCategory === category.id;
+            const progressPct = Math.min((totalVotes / category.minimum_votes) * 100, 100);
 
             return (
-              <div key={category.id} className="mb-16 last:mb-0">
+              <div key={category.id} className="mb-4 last:mb-0 transition-opacity duration-500 opacity-100">
                 {showGroupHeader && (
-                  <h2 className="text-2xl font-black text-blue-600 mb-6 pb-2 border-b-2 border-blue-100">
+                  <h2 className="text-lg font-black mb-4 mt-8 first:mt-0 pb-2" style={{ color: "#0B132B", borderBottom: "2px solid #D4AF37" }}>
                     {groupName}
                   </h2>
                 )}
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="bg-slate-900 px-6 py-5">
-                  <h2 className="text-xl font-black text-white">{category.category_number ? `${category.category_number}. ` : ""}{category.name}</h2>
-                  {category.description && <p className="text-slate-400 text-sm mt-1">{category.description}</p>}
-                  <div className="mt-3 flex items-center gap-3 flex-wrap">
-                    <span className="text-xs font-bold text-amber-400">₦{category.vote_price} per vote</span>
-                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${minReached ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
-                      {minReached ? "✅ Minimum reached!" : `${totalVotes}/${category.minimum_votes} votes`}
-                    </span>
-                    {minReached && (
-                      <span className="text-xs font-bold px-2 py-1 rounded-full bg-amber-500/20 text-amber-400">
-                        🗳️ {totalVotes} votes
-                      </span>
-                    )}
-                  </div>
-                  {!minReached && (
-                    <div className="mt-2 w-full bg-slate-700 rounded-full h-1.5">
-                      <div
-                        className="bg-amber-400 h-1.5 rounded-full transition-all"
-                        style={{ width: `${Math.min((totalVotes / category.minimum_votes) * 100, 100)}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
 
-                {noms.length === 0 ? (
-                  <div className="p-8 text-center text-slate-400 font-medium">Nominees coming soon!</div>
-                ) : (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 p-6">
-                    {noms.map((nominee) => (
-                      <div key={nominee.id} className="rounded-2xl border border-slate-100 overflow-hidden hover:-translate-y-1 transition-all relative">
-                        <div className="relative w-full h-40 bg-slate-100">
-                          {nominee.photo_url ? (
-                            <Image
-                              src={nominee.photo_url}
-                              alt={nominee.name}
-                              fill
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">No Photo</div>
-                          )}
-                        </div>
-                        <div className="p-4">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <p className="font-bold text-slate-900">{nominee.nominee_number ? `#${nominee.nominee_number} · ` : ""}{nominee.name}</p>
-                              <p className="text-xs text-slate-400 mt-0.5">🗳️ {nominee.votes || 0} votes</p>
-                            </div>
-                            <div className="relative">
-                              <button
-                                onClick={() => setShareOpenFor(shareOpenFor === nominee.id ? null : nominee.id)}
-                                className="text-slate-400 hover:text-slate-600 p-1"
-                              >
-                                ⋯
-                              </button>
-                              {shareOpenFor === nominee.id && (
-                                <div className="absolute right-0 top-8 z-10 w-40 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
-                                  <button
-                                    onClick={() => handleShare("whatsapp", nominee, category)}
-                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                                  >
-                                    📱 WhatsApp
-                                  </button>
-                                  <button
-                                    onClick={() => handleShare("twitter", nominee, category)}
-                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                                  >
-                                    🐦 Twitter
-                                  </button>
-                                  <button
-                                    onClick={() => handleShare("copy", nominee, category)}
-                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                                  >
-                                    {copiedId === nominee.id ? "✅ Copied!" : "📋 Copy Link"}
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => openVoteModal(nominee, category)}
-                            disabled={votingClosed}
-                            className={`mt-3 w-full rounded-xl py-2 text-xs font-bold text-white transition-colors ${
-                              votingClosed
-                                ? "bg-slate-300 cursor-not-allowed"
-                                : "bg-amber-500 hover:bg-amber-600 cursor-pointer"
-                            }`}
-                          >
-                            {votingClosed ? "Voting Closed" : `Vote — ₦${category.vote_price}`}
-                          </button>
+                <div
+                  className="bg-white overflow-hidden transition-all duration-200 active:scale-[0.99]"
+                  style={{
+                    borderRadius: "20px",
+                    border: "1px solid #E2E8F0",
+                    boxShadow: isExpanded ? "0 8px 24px rgba(11,19,43,0.10)" : "0 2px 8px rgba(11,19,43,0.05)"
+                  }}
+                >
+                  <button
+                    onClick={() => setExpandedCategory(isExpanded ? null : category.id)}
+                    className="w-full text-left px-5 py-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <span className="text-xl leading-none mt-0.5">{categoryIcon(category.name)}</span>
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-base leading-snug truncate" style={{ color: "#0B132B" }}>
+                            {category.category_number ? `${category.category_number}. ` : ""}{category.name}
+                          </h3>
+                          <p className="text-xs mt-0.5" style={{ color: "#64748B" }}>
+                            ₦{category.vote_price} per vote · {category.minimum_votes} minimum votes
+                          </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <span
+                        className="shrink-0 text-sm font-bold transition-transform duration-200"
+                        style={{ color: "#D4AF37", transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}
+                      >
+                        ›
+                      </span>
+                    </div>
+
+                    <div className="mt-3">
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#E5E7EB" }}>
+                        <div
+                          className="h-full rounded-full transition-all duration-700 ease-out"
+                          style={{ width: `${progressPct}%`, backgroundColor: "#D4AF37" }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-[11px] font-bold" style={{ color: minReached ? "#15803D" : "#64748B" }}>
+                          {minReached ? `✅ Qualified · ${totalVotes} votes` : `${totalVotes}/${category.minimum_votes} votes`}
+                        </span>
+                        <span className="text-[11px] font-semibold" style={{ color: "#64748B" }}>
+                          {noms.length > 0 ? `${noms.length} nominee${noms.length !== 1 ? "s" : ""}` : ""}
+                        </span>
+                      </div>
+                    </div>
+
+                    {noms.length === 0 && (
+                      <span
+                        className="inline-block mt-3 text-[11px] font-bold px-2.5 py-1 rounded-full"
+                        style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}
+                      >
+                        Nominees opening soon
+                      </span>
+                    )}
+
+                    {noms.length > 0 && (
+                      <span
+                        className="inline-block mt-3 text-[11px] font-black px-3 py-1.5 rounded-full"
+                        style={{ backgroundColor: isExpanded ? "#0B132B" : "#F8F9FC", color: isExpanded ? "#D4AF37" : "#0B132B", border: isExpanded ? "none" : "1px solid #E2E8F0" }}
+                      >
+                        {isExpanded ? "Hide Nominees" : "View Nominees →"}
+                      </span>
+                    )}
+                  </button>
+
+                  {isExpanded && noms.length > 0 && (
+                    <div className="px-5 pb-5 pt-1 grid gap-3 sm:grid-cols-2" style={{ borderTop: "1px solid #E2E8F0" }}>
+                      {noms.map((nominee) => (
+                        <div key={nominee.id} className="rounded-2xl overflow-hidden relative mt-4" style={{ border: "1px solid #E2E8F0" }}>
+                          <div className="relative w-full h-32" style={{ backgroundColor: "#F8F9FC" }}>
+                            {nominee.photo_url ? (
+                              <Image
+                                src={nominee.photo_url}
+                                alt={nominee.name}
+                                fill
+                                sizes="(max-width: 640px) 100vw, 50vw"
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-sm font-medium" style={{ color: "#94A3B8" }}>No Photo</div>
+                            )}
+                          </div>
+                          <div className="p-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="font-bold text-sm truncate" style={{ color: "#1E293B" }}>
+                                  {nominee.nominee_number ? `#${nominee.nominee_number} · ` : ""}{nominee.name}
+                                </p>
+                                <p className="text-[11px] mt-0.5" style={{ color: "#64748B" }}>🗳️ {nominee.votes || 0} votes</p>
+                              </div>
+                              <div className="relative shrink-0">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setShareOpenFor(shareOpenFor === nominee.id ? null : nominee.id); }}
+                                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs"
+                                  style={{ backgroundColor: "#F8F9FC" }}
+                                  aria-label="Share"
+                                >
+                                  🔗
+                                </button>
+                                {shareOpenFor === nominee.id && (
+                                  <div className="absolute right-0 top-8 z-10 w-40 rounded-xl bg-white shadow-lg py-1.5 overflow-hidden" style={{ border: "1px solid #E2E8F0" }}>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleShare("whatsapp", nominee, category); }}
+                                      className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-50 flex items-center gap-2"
+                                      style={{ color: "#1E293B" }}
+                                    >
+                                      💬 WhatsApp
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleShare("twitter", nominee, category); }}
+                                      className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-50 flex items-center gap-2"
+                                      style={{ color: "#1E293B" }}
+                                    >
+                                      𝕏 Twitter
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleShare("copy", nominee, category); }}
+                                      className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-50 flex items-center gap-2"
+                                      style={{ color: "#1E293B" }}
+                                    >
+                                      {copiedId === nominee.id ? "✅ Copied!" : "📋 Copy Link"}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openVoteModal(nominee, category); }}
+                              disabled={votingClosed}
+                              className="mt-2.5 w-full rounded-full py-2 text-xs font-black transition-all active:scale-95"
+                              style={{
+                                backgroundColor: votingClosed ? "#E5E7EB" : "#D4AF37",
+                                color: votingClosed ? "#94A3B8" : "#0B132B",
+                                cursor: votingClosed ? "not-allowed" : "pointer"
+                              }}
+                            >
+                              {votingClosed ? "Voting Closed" : `Vote — ₦${category.vote_price}`}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -277,38 +353,43 @@ export function AwardsExperience({
       </main>
 
       {votingFor && selectedCategory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
-            <div className="bg-amber-500 px-6 py-4 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg">Cast Your Vote</h3>
-              <button onClick={closeModal} className="text-white bg-amber-600/50 w-7 h-7 rounded-full flex items-center justify-center font-bold">✕</button>
+            <div className="px-6 py-4 flex justify-between items-center" style={{ backgroundColor: "#0B132B" }}>
+              <h3 className="font-bold text-lg" style={{ color: "#D4AF37" }}>Cast Your Vote</h3>
+              <button onClick={closeModal} className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-white" style={{ backgroundColor: "rgba(212,175,55,0.2)" }}>✕</button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <p className="text-sm font-bold text-slate-900">Voting for: {votingFor.name}</p>
-                <p className="text-xs text-slate-500">{selectedCategory.name}</p>
+                <p className="text-xs uppercase tracking-wider" style={{ color: "#64748B" }}>Voting For</p>
+                <p className="font-bold" style={{ color: "#1E293B" }}>{votingFor.name}</p>
+                <p className="text-xs font-semibold" style={{ color: "#D4AF37" }}>{selectedCategory.name}</p>
+              </div>
+              <hr style={{ borderColor: "#E2E8F0" }} />
+              <div>
+                <label className="block text-xs font-bold mb-1" style={{ color: "#1E293B" }}>Your Full Name</label>
+                <input type="text" required placeholder="John Doe" value={payerName} onChange={(e) => setPayerName(e.target.value)} className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none" style={{ border: "1px solid #E2E8F0" }} />
               </div>
               <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Your Name</label>
-                <input required value={payerName} onChange={(e) => setPayerName(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
+                <label className="block text-xs font-bold mb-1" style={{ color: "#1E293B" }}>Email Address</label>
+                <input type="email" required placeholder="johndoe@gmail.com" value={payerEmail} onChange={(e) => setPayerEmail(e.target.value)} className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none" style={{ border: "1px solid #E2E8F0" }} />
               </div>
               <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Email</label>
-                <input required type="email" value={payerEmail} onChange={(e) => setPayerEmail(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
+                <label className="block text-xs font-bold mb-1" style={{ color: "#1E293B" }}>Phone Number</label>
+                <input type="tel" required placeholder="08012345678" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none" style={{ border: "1px solid #E2E8F0" }} />
               </div>
               <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Phone</label>
-                <input required value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
+                <label className="block text-xs font-bold mb-2" style={{ color: "#1E293B" }}>Number of Votes</label>
+                <div className="flex items-center space-x-4">
+                  <button type="button" onClick={() => setVoteQuantity(Math.max(1, voteQuantity - 1))} className="flex h-10 w-10 items-center justify-center rounded-xl text-lg font-bold" style={{ backgroundColor: "#F8F9FC" }}>-</button>
+                  <span className="text-base font-black w-8 text-center" style={{ color: "#1E293B" }}>{voteQuantity}</span>
+                  <button type="button" onClick={() => setVoteQuantity(Math.min(1000, voteQuantity + 1))} className="flex h-10 w-10 items-center justify-center rounded-xl text-lg font-bold" style={{ backgroundColor: "#F8F9FC" }}>+</button>
+                </div>
+                <p className="text-xs mt-1" style={{ color: "#64748B" }}>Total: ₦{voteQuantity * selectedCategory.vote_price}</p>
               </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Number of Votes</label>
-                <input required type="number" min={1} value={voteQuantity} onChange={(e) => setVoteQuantity(Number(e.target.value))} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-amber-500" />
-              </div>
-              <div className="text-sm font-bold text-slate-900">
-                Total: ₦{(selectedCategory.vote_price * voteQuantity).toLocaleString()}
-              </div>
-              <button type="submit" disabled={processing} className="w-full rounded-xl bg-amber-500 py-3 text-sm font-black text-white hover:bg-amber-600 disabled:opacity-50">
-                {processing ? "Processing..." : "Proceed to Payment"}
+              <p className="text-xs text-center" style={{ color: "#94A3B8" }}>Protected by reCAPTCHA</p>
+              <button type="submit" disabled={processing} className="w-full rounded-full py-3 text-sm font-black transition-all active:scale-95" style={{ backgroundColor: processing ? "#E5E7EB" : "#D4AF37", color: processing ? "#94A3B8" : "#0B132B" }}>
+                {processing ? "Processing..." : "Proceed to Pay"}
               </button>
             </form>
           </div>
