@@ -10,6 +10,10 @@ const config: Config = {
         navy: "#0f172a",
         accent: "#eab308"
       },
+      fontFamily: {
+        sans: ["var(--font-manrope)", "sans-serif"],
+        serif: ["var(--font-cinzel)", "serif"]
+      },
       boxShadow: {
         premium: "0 24px 70px rgba(15, 23, 42, 0.12)"
       }
