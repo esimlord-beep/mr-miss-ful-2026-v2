@@ -122,8 +122,8 @@ export function VotingExperience({
 
       {/* Live Leaderboard */}
       {topContestants.length > 0 && (
-        <section className="bg-slate-50 py-14 px-4 sm:px-6">
-          <div className="mx-auto max-w-3xl bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+        <section className="bg-slate-50 pb-14 px-4 sm:px-6 -mt-16 relative z-10">
+          <div className="mx-auto max-w-3xl bg-white p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-900/5">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-black text-slate-800 tracking-tight">Live Leaderboard</h2>
               <p className="text-xs text-slate-400 font-medium">Currently leading the ranks</p>
