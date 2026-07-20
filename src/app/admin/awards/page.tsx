@@ -55,8 +55,13 @@ async function deleteCategory(formData: FormData) {
  "use server";
  if (!adminSupabase) return;
  const id = String(formData.get("id"));
- await adminSupabase.from("award_categories").delete().eq("id", id);
+ const { error } = await adminSupabase.from("award_categories").delete().eq("id", id);
+ if (error) {
+   console.error("deleteCategory failed:", error.message, error.details, error.hint);
+   redirect(`/admin/awards?error=${encodeURIComponent(error.message)}`);
+ }
  revalidatePath("/admin/awards");
+ redirect("/admin/awards?saved=1");
 }
 
 async function addNominee(formData: FormData) {
@@ -104,8 +109,13 @@ async function deleteNominee(formData: FormData) {
  "use server";
  if (!adminSupabase) return;
  const id = String(formData.get("id"));
- await adminSupabase.from("award_nominees").delete().eq("id", id);
+ const { error } = await adminSupabase.from("award_nominees").delete().eq("id", id);
+ if (error) {
+   console.error("deleteNominee failed:", error.message, error.details, error.hint);
+   redirect(`/admin/awards?error=${encodeURIComponent(error.message)}`);
+ }
  revalidatePath("/admin/awards");
+ redirect("/admin/awards?saved=1");
 }
 
 export default async function AwardsAdminPage({
