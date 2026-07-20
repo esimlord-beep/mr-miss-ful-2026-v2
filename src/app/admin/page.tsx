@@ -46,21 +46,28 @@ export default async function AdminPage({
               <h1 className="mt-1 text-2xl font-black text-slate-900">Mr & Miss FUL 2026</h1>
 
               {/* REPLACED BUTTON GROUP */}
-              <div className="flex flex-wrap gap-2 mt-2">
-                <a
-                  href="/admin/awards"
-                  className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-black text-white hover:bg-amber-600"
-                >
-                  🏆 Manage Awards
-                </a>
+    <div className="flex flex-wrap gap-2 mt-2">
+  <a
+    href="/admin/awards"
+    className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-black text-white hover:bg-amber-600"
+  >
+    🏆 Manage Awards
+  </a>
 
-                <a
-                  href="/admin/support"
-                  className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-4 py-1.5 text-xs font-black text-white hover:bg-blue-900"
-                >
-                  📨 Support Inbox
-                </a>
-              </div>
+  <a
+    href="/admin/nominations"
+    className="inline-flex items-center gap-2 rounded-full bg-purple-600 px-4 py-1.5 text-xs font-black text-white hover:bg-purple-700"
+  >
+    📝 Review Nominations
+  </a>
+
+  <a
+    href="/admin/support"
+    className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-4 py-1.5 text-xs font-black text-white hover:bg-blue-900"
+  >
+    📨 Support Inbox
+  </a>
+</div>
             </div>
 
             <form action="/api/admin/logout" method="POST">
