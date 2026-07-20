@@ -63,6 +63,20 @@ export function VotingExperience({
     return categories.size;
   }, [initialContestants]);
 
+  const votesCast = useMemo(() => {
+    return initialContestants.reduce((sum, c) => sum + (c.votes || 0), 0);
+  }, [initialContestants]);
+
+  const prizePoolAmount = useMemo(() => {
+    const raw = siteSettings?.prize_pool_amount;
+    if (typeof raw === "number") return raw;
+    if (typeof raw === "string" && raw.trim() !== "") {
+      const parsed = Number(raw.replace(/[^0-9.]/g, ""));
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+    return 1000000;
+  }, [siteSettings]);
+
   const openVoteModal = (contestant: any) => {
     if (votingClosed) return;
     setVotingFor(contestant);
@@ -126,7 +140,8 @@ export function VotingExperience({
       <StatsBar
         contestantCount={initialContestants.length}
         categoryCount={categoryCount || 1}
-        prizePool={siteSettings?.prize_pool || "₦1,000,000"}
+        votesCast={votesCast}
+        prizePoolAmount={prizePoolAmount}
       />
 
       {votingClosed && (
@@ -135,47 +150,11 @@ export function VotingExperience({
         </div>
       )}
 
-      {topContestants.length > 0 && (
-        <section className="bg-slate-50 py-14 px-4 sm:px-6">
-          <div className="mx-auto max-w-3xl bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight">Live Leaderboard</h2>
-              <p className="text-xs text-slate-400 font-medium">Currently leading the ranks</p>
-            </div>
-            <Podium contestants={topContestants} />
-          </div>
-        </section>
-      )}
-
-      {/* Award Categories teaser */}
-      <section className="bg-[#0B132B] py-14 px-4 sm:px-6">
-        <div className="mx-auto max-w-2xl text-center">
-          <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-[#D4AF37]/10">
-            <Trophy size={20} strokeWidth={1.75} className="text-[#D4AF37]" />
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            FUL Awards 2026
-          </h2>
-          <p className="mt-2 text-white/60 text-sm sm:text-base max-w-md mx-auto">
-            Best Dressed, Most Popular, and more — vote across every category.
-          </p>
-          <a
-            href="/awards"
-            className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 px-6 py-3 text-sm font-semibold text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors"
-          >
-            Explore Award Categories
-            <ArrowRight size={16} strokeWidth={2.25} />
-          </a>
-        </div>
-      </section>
-
-      <Sponsors sponsors={siteSettings?.sponsors} />
-      
       <main ref={contestantsRef} className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-16">
 
         <div>
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-slate-800">All Contestants</h2>
+            <h2 className="text-xl font-bold text-slate-800">Featured Contestants</h2>
           </div>
 
           {filteredContestants.length === 0 ? (
@@ -254,6 +233,42 @@ export function VotingExperience({
           )}
         </div>
       </main>
+
+      {topContestants.length > 0 && (
+        <section className="bg-slate-50 py-14 px-4 sm:px-6">
+          <div className="mx-auto max-w-3xl bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight">Live Leaderboard</h2>
+              <p className="text-xs text-slate-400 font-medium">Currently leading the ranks</p>
+            </div>
+            <Podium contestants={topContestants} />
+          </div>
+        </section>
+      )}
+
+      {/* Award Categories teaser */}
+      <section className="bg-[#0B132B] py-14 px-4 sm:px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-[#D4AF37]/10">
+            <Trophy size={20} strokeWidth={1.75} className="text-[#D4AF37]" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            FUL Awards 2026
+          </h2>
+          <p className="mt-2 text-white/60 text-sm sm:text-base max-w-md mx-auto">
+            Best Dressed, Most Popular, and more — vote across every category.
+          </p>
+          <a
+            href="/awards"
+            className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 px-6 py-3 text-sm font-semibold text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors"
+          >
+            Explore Award Categories
+            <ArrowRight size={16} strokeWidth={2.25} />
+          </a>
+        </div>
+      </section>
+
+      <Sponsors sponsors={siteSettings?.sponsors} />
 
       {votingFor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
