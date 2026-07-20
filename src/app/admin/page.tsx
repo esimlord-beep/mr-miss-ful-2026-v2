@@ -246,6 +246,23 @@ export default async function AdminPage({
               </div>
             </div>
 
+            <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t border-slate-100">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">University Logo</label>
+                {settings.primary_logo && (
+                  <img src={settings.primary_logo} alt="Current logo" className="h-12 w-12 object-contain rounded-full border border-slate-200 mb-2" />
+                )}
+                <input type="file" name="logo" accept="image/*" className="w-full text-sm font-semibold" />
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Secondary Logo (optional)</label>
+                {settings.secondary_logo && (
+                  <img src={settings.secondary_logo} alt="Current secondary logo" className="h-12 w-12 object-contain rounded-full border border-slate-200 mb-2" />
+                )}
+                <input type="file" name="logo_secondary" accept="image/*" className="w-full text-sm font-semibold" />
+              </div>
+            </div>
+
             <button type="submit" className="rounded-full bg-blue-700 px-6 py-3 text-sm font-black text-white hover:bg-blue-900">
               Save Settings
             </button>
