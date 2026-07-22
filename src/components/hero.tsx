@@ -103,7 +103,7 @@ export function Hero({
         />
 
         <div
-          className="relative mx-auto max-w-2xl px-6 pt-2 pb-11 sm:pt-3 sm:pb-14 text-center"
+          className="relative mx-auto max-w-2xl px-6 pt-2 pb-11 sm:pt-3 sm:pb-14 text-left"
           style={{
             opacity,
             transform: `translateY(${translateY}px) scale(${scale})`,
@@ -138,7 +138,7 @@ export function Hero({
             {tagline}
           </p>
 
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
+          <div className="mt-8 flex flex-col sm:flex-row items-center sm:items-start justify-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
             <button
               onClick={onVote}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#D4AF37] px-8 py-3.5 text-sm font-semibold text-[#0B132B] shadow-lg shadow-[#D4AF37]/25 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#D4AF37]/30 active:translate-y-0"
