@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, Crown, ArrowUpRight } from "lucide-react";
+import { Menu, X, Crown } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/awards", label: "FUL Awards 2026" },
@@ -16,62 +16,56 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  // Prevent background scrolling when menu is open
+  // Prevent page scrolling while menu is open
   useEffect(() => {
-    if (open) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
+    if (!open) return;
 
-      return () => {
-        document.body.style.overflow = prev;
-      };
-    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, [open]);
 
   // Close menu with Escape key
   useEffect(() => {
     if (!open) return;
 
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
         setOpen(false);
       }
     };
 
-    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [open]);
 
   return (
     <>
       {/* =========================
-          NAVBAR
+          MAIN NAVBAR
       ========================== */}
       <nav className="relative z-50 bg-[#FAF9F6] border-b border-[#0B132B]/[0.06] px-4 py-3 sm:px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          
-          {/* Logo / Branding */}
+
+          {/* Branding */}
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30">
               <Crown
-                size={17}
+                size={15}
                 strokeWidth={1.8}
                 className="text-[#D4AF37]"
               />
             </div>
 
-            <div className="flex flex-col">
-              <span className="text-[#0B132B] font-semibold text-[13px] tracking-[0.08em] uppercase leading-none">
-                FUL 2026
-              </span>
-
-              <span className="mt-1 text-[#0B132B]/45 text-[9px] tracking-[0.12em] uppercase">
-                Official Platform
-              </span>
-            </div>
+            <p className="text-[#0B132B]/80 font-medium text-[13px] tracking-[0.06em] uppercase">
+              FUL 2026
+            </p>
           </div>
 
           {/* Menu Button */}
@@ -81,45 +75,41 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
             aria-label="Open menu"
             aria-expanded={open}
             className="
-              flex items-center justify-center
-              h-11
-              px-6
+              flex items-center gap-2
               rounded-full
               bg-[#0B132B]
+              px-5 py-2.5
               text-[#FAF9F6]
-              text-[13px]
+              text-[12px]
               font-medium
-              tracking-[0.02em]
-              shadow-sm
               transition-all
               duration-200
               hover:bg-[#0B132B]/90
               active:scale-[0.97]
             "
           >
-            <span className="hidden sm:block mr-3">
-              Explore
-            </span>
+            <span>Menu</span>
 
             <Menu
-              size={19}
+              size={17}
               strokeWidth={1.7}
             />
           </button>
+
         </div>
       </nav>
 
 
       {/* =========================
-          MENU OVERLAY
+          BACKDROP
       ========================== */}
       <div
-        aria-hidden={!open}
         onClick={() => setOpen(false)}
+        aria-hidden={!open}
         className={`
           fixed inset-0 z-[60]
           bg-[#0B132B]/20
-          backdrop-blur-[3px]
+          backdrop-blur-[2px]
           transition-opacity duration-300
           ${
             open
@@ -131,7 +121,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
 
 
       {/* =========================
-          FULL MENU
+          FULL SCREEN MENU
       ========================== */}
       <div
         role="dialog"
@@ -141,11 +131,13 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
           fixed inset-0 z-[70]
           bg-[#FAF9F6]
           overflow-y-auto
-          transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
+          transition-all
+          duration-400
+          ease-out
           ${
             open
               ? "translate-y-0 opacity-100"
-              : "-translate-y-5 opacity-0 pointer-events-none"
+              : "-translate-y-3 opacity-0 pointer-events-none"
           }
         `}
       >
@@ -153,28 +145,22 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
         {/* =========================
             MENU HEADER
         ========================== */}
-        <div className="px-5 py-5 sm:px-8 sm:py-6">
+        <div className="px-5 py-4 sm:px-8 sm:py-5">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
 
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30">
+            {/* Branding */}
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30">
                 <Crown
-                  size={20}
-                  strokeWidth={1.7}
+                  size={15}
+                  strokeWidth={1.8}
                   className="text-[#D4AF37]"
                 />
               </div>
 
-              <div>
-                <p className="text-[#0B132B] text-[13px] font-semibold tracking-[0.08em] uppercase">
-                  FUL 2026
-                </p>
-
-                <p className="text-[#0B132B]/45 text-[10px] tracking-[0.12em] uppercase mt-1">
-                  Official Platform
-                </p>
-              </div>
+              <p className="text-[#0B132B]/80 font-medium text-[13px] tracking-[0.06em] uppercase">
+                FUL 2026
+              </p>
             </div>
 
 
@@ -184,11 +170,8 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
               onClick={() => setOpen(false)}
               aria-label="Close menu"
               className="
-                flex
-                items-center
-                justify-center
-                w-12
-                h-12
+                flex items-center justify-center
+                w-10 h-10
                 rounded-full
                 bg-[#0B132B]
                 text-[#FAF9F6]
@@ -199,8 +182,8 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
               "
             >
               <X
-                size={22}
-                strokeWidth={1.6}
+                size={19}
+                strokeWidth={1.7}
               />
             </button>
 
@@ -215,13 +198,14 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
 
 
         {/* =========================
-            NAVIGATION LINKS
+            MENU ITEMS
         ========================== */}
-        <div className="px-5 sm:px-8 pt-12 pb-16">
+        <div className="px-5 sm:px-8 pt-8 sm:pt-12 pb-12">
           <div className="max-w-7xl mx-auto">
 
             <div className="flex flex-col">
-              {NAV_ITEMS.map((item, index) => {
+
+              {NAV_ITEMS.map((item) => {
                 const active = pathname === item.href;
 
                 return (
@@ -231,16 +215,16 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
                     onClick={() => setOpen(false)}
                     className={`
                       group
-                      relative
                       flex
                       items-center
                       justify-between
-                      py-6
-                      sm:py-8
+                      gap-6
+                      py-5
+                      sm:py-6
                       border-b
                       border-[#0B132B]/[0.08]
                       transition-all
-                      duration-300
+                      duration-200
                       ${
                         active
                           ? "text-[#9C7A1A]"
@@ -249,82 +233,49 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
                     `}
                   >
 
-                    {/* Left side */}
-                    <div className="flex items-center gap-4 sm:gap-6">
-
-                      {/* Number */}
-                      <span
-                        className={`
-                          text-[10px]
-                          sm:text-[11px]
-                          font-medium
-                          tracking-[0.12em]
-                          transition-colors
-                          duration-300
-                          ${
-                            active
-                              ? "text-[#D4AF37]"
-                              : "text-[#0B132B]/30"
-                          }
-                        `}
-                      >
-                        0{index + 1}
-                      </span>
-
-                      {/* Label */}
-                      <span
-                        className="
-                          text-[30px]
-                          leading-none
-                          tracking-[-0.035em]
-                          font-normal
-                          sm:text-[48px]
-                          md:text-[56px]
-                          transition-transform
-                          duration-300
-                          group-hover:translate-x-2
-                        "
-                      >
-                        {item.label}
-                      </span>
-
-                    </div>
+                    {/* Menu Label */}
+                    <span
+                      className="
+                        text-[24px]
+                        sm:text-[32px]
+                        md:text-[38px]
+                        leading-tight
+                        tracking-[-0.025em]
+                        font-normal
+                        transition-transform
+                        duration-200
+                        group-hover:translate-x-1
+                      "
+                    >
+                      {item.label}
+                    </span>
 
 
-                    {/* Arrow */}
-                    <div
+                    {/* Simple Arrow */}
+                    <span
                       className={`
-                        flex
-                        items-center
-                        justify-center
-                        w-10
-                        h-10
-                        sm:w-12
-                        sm:h-12
-                        rounded-full
-                        border
+                        flex-shrink-0
+                        text-[24px]
+                        sm:text-[28px]
+                        font-light
                         transition-all
-                        duration-300
+                        duration-200
                         ${
                           active
-                            ? "border-[#D4AF37] text-[#9C7A1A]"
-                            : "border-[#0B132B]/20 text-[#0B132B]/60"
+                            ? "text-[#D4AF37]"
+                            : "text-[#0B132B]/40"
                         }
-                        group-hover:bg-[#D4AF37]
-                        group-hover:border-[#D4AF37]
-                        group-hover:text-white
+                        group-hover:text-[#D4AF37]
                         group-hover:translate-x-1
                       `}
                     >
-                      <ArrowUpRight
-                        size={20}
-                        strokeWidth={1.5}
-                      />
-                    </div>
+                      →
+                    </span>
 
                   </a>
                 );
               })}
+
             </div>
 
           </div>
@@ -332,17 +283,17 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
 
 
         {/* =========================
-            FOOTER
+            MENU FOOTER
         ========================== */}
         <div className="px-5 sm:px-8 pb-8">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
 
-            <p className="text-[10px] sm:text-[11px] text-[#0B132B]/40 tracking-[0.1em] uppercase">
+            <p className="text-[10px] text-[#0B132B]/40 tracking-[0.1em] uppercase">
               Federal University Lokoja
             </p>
 
-            <p className="text-[10px] sm:text-[11px] text-[#0B132B]/40 tracking-[0.1em] uppercase">
-              © 2026 FUL
+            <p className="text-[10px] text-[#0B132B]/40 tracking-[0.1em] uppercase">
+              © 2026
             </p>
 
           </div>
