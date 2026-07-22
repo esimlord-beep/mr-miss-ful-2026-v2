@@ -18,44 +18,52 @@ export function Hero({
   const logo = siteSettings?.primary_logo || siteSettings?.secondary_logo;
 
   const heroRef = useRef<HTMLElement>(null);
-  const [tilt, setTilt] = useState(0);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
       if (!heroRef.current) return;
       const rect = heroRef.current.getBoundingClientRect();
-      const progress = Math.min(Math.max(-rect.top / (rect.height || 1), 0), 1);
-      setTilt(progress);
+      const heroHeight = rect.height || 1;
+      const raw = -rect.top / heroHeight;
+      const clamped = Math.min(Math.max(raw, 0), 1);
+      setProgress(clamped);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const opacity = 1 - Math.min(progress * 1.8, 1);
+  const scale = 1 - progress * 0.15;
+  const translateY = progress * -60;
+
   return (
     <section ref={heroRef} className="relative overflow-hidden bg-[#FAF9F6]">
-      {/* Ambient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#FAF9F6] via-[#FAF9F6] to-[#F5F3EE]" />
-      <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[420px] w-[420px] rounded-full bg-[#D4AF37]/[0.10] blur-3xl" />
-      <div className="absolute top-1/3 -right-20 h-72 w-72 rounded-full bg-[#D4AF37]/[0.08] blur-3xl" />
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-[#FAF9F6] via-[#FAF9F6] to-[#F5F3EE]"
+        style={{ opacity: 1 - progress * 0.6 }}
+      />
+      <div
+        className="absolute -top-40 left-1/2 -translate-x-1/2 h-[420px] w-[420px] rounded-full bg-[#D4AF37]/[0.10] blur-3xl"
+        style={{ opacity: 1 - progress }}
+      />
+      <div
+        className="absolute top-1/3 -right-20 h-72 w-72 rounded-full bg-[#D4AF37]/[0.08] blur-3xl"
+        style={{ opacity: 1 - progress }}
+      />
 
       <div
         className="relative mx-auto max-w-2xl px-6 pt-10 pb-11 sm:pt-12 sm:pb-14 text-center"
         style={{
-          transform: `perspective(1000px) rotateX(${tilt * 6}deg) scale(${1 - tilt * 0.04})`,
-          transformOrigin: "top center",
-          transition: "transform 0.05s linear",
+          opacity,
+          transform: `translateY(${translateY}px) scale(${scale})`,
+          transition: "opacity 0.05s linear, transform 0.05s linear",
+          willChange: "transform, opacity",
         }}
       >
-        {/* Logo */}
         {logo && (
-          <div
-            className="mb-5 flex justify-center animate-in fade-in duration-700"
-            style={{
-              transform: `translateY(${tilt * -12}px) rotateY(${tilt * 10}deg)`,
-              transition: "transform 0.05s linear",
-            }}
-          >
+          <div className="mb-5 flex justify-center animate-in fade-in duration-700">
             <img
               src={logo}
               alt="Federal University Lokoja"
@@ -64,7 +72,6 @@ export function Hero({
           </div>
         )}
 
-        {/* Branding — plain typography, no container */}
         <div className="animate-in fade-in slide-in-from-top-1 duration-700 delay-75">
           <p className="text-[13px] sm:text-sm font-medium tracking-[0.08em] text-[#0B132B]/70">
             Federal University Lokoja
@@ -74,7 +81,6 @@ export function Hero({
           </p>
         </div>
 
-        {/* Headline */}
         <h1 className="mt-6 font-serif text-[2.15rem] leading-[1.12] sm:text-5xl font-bold tracking-tight text-[#0B132B] animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100">
           Who wears the{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C9A227] to-[#D4AF37]">
@@ -83,12 +89,10 @@ export function Hero({
           this year?
         </h1>
 
-        {/* Tagline */}
         <p className="mt-3 text-[15px] sm:text-lg text-[#0B132B]/55 font-medium animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150">
           {tagline}
         </p>
 
-        {/* CTAs */}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
           <button
             onClick={onVote}
@@ -107,7 +111,6 @@ export function Hero({
         </div>
       </div>
 
-      {/* Bottom fade into page body */}
       <div className="h-16 bg-gradient-to-b from-transparent to-slate-50" />
     </section>
   );
