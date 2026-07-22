@@ -119,30 +119,33 @@ export function Hero({
             willChange: "transform, opacity",
           }}
         >
-          <div className="font-rounded animate-in fade-in slide-in-from-top-1 duration-700 delay-75">
-            <p className="text-[13px] sm:text-sm font-bold tracking-[0.08em] text-[#0B132B]/70">
-              Federal University Lokoja
-            </p>
-            <p className="mt-0.5 text-[11px] sm:text-xs font-bold tracking-[0.14em] text-[#0B132B]/40 uppercase">
-              Student Union Government
-            </p>
-            <p className="mt-3 text-[11px] sm:text-xs font-bold tracking-[0.14em] text-[#0B132B]/40 uppercase">
-              Presents
-            </p>
-            <p className="mt-1 text-[15px] sm:text-lg font-bold tracking-[0.1em] text-[#0B132B] uppercase">
-              Mr &amp; Miss FUL 26
-            </p>
-          </div>
-
-          <h1 className="mt-5 font-rounded text-[2rem] leading-[1.15] sm:text-[2.75rem] font-bold tracking-tight text-[#0B132B] animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100">
+          <h1
+            className="font-rounded text-[2.5rem] leading-[1.1] sm:text-[3.5rem] font-extrabold tracking-tight text-[#0B132B] animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100"
+            style={{
+              textShadow:
+                "0 1px 0 #e8dfc8, 0 2px 0 #ddd0a8, 0 3px 0 #d2c088, 0 4px 6px rgba(11,19,43,0.25), 0 8px 16px rgba(11,19,43,0.15)",
+            }}
+          >
             Who wears the{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C9A227] to-[#D4AF37]">
+            <span
+              className="text-transparent bg-clip-text bg-gradient-to-b from-[#F4D976] via-[#D4AF37] to-[#9C7A1E]"
+              style={{
+                filter:
+                  "drop-shadow(0 2px 0 #7a5f17) drop-shadow(0 4px 6px rgba(11,19,43,0.3))",
+              }}
+            >
               crown
             </span>{" "}
             this year?
           </h1>
 
-          <p className="mt-3 text-[15px] sm:text-lg text-[#0B132B]/55 font-medium animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150">
+          <p
+            className="mt-4 inline-block text-[15px] sm:text-lg font-semibold text-[#0B132B] bg-white/70 backdrop-blur-sm border border-white/80 rounded-2xl px-5 py-3 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150"
+            style={{
+              boxShadow:
+                "0 1px 0 rgba(255,255,255,0.9) inset, 0 1px 2px rgba(11,19,43,0.06), 0 8px 20px rgba(11,19,43,0.10), 0 2px 4px rgba(11,19,43,0.08)",
+            }}
+          >
             {tagline}
           </p>
 
