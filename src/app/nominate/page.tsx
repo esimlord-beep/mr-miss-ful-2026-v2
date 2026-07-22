@@ -1,5 +1,6 @@
 import { browserSupabase } from "@/lib/supabase";
 import { submitNomination } from "@/app/nominate/actions";
+import { SubmitButton } from "./submit-button";
 import { CheckCircle2, Trophy } from "lucide-react";
 
 async function getActiveCategories() {
@@ -173,12 +174,7 @@ export default async function NominatePage({
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="w-full rounded-full bg-[#D4AF37] py-3.5 text-sm font-bold text-[#0B132B] shadow-lg shadow-[#D4AF37]/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#D4AF37]/25 transition-all"
-            >
-              Submit Nomination
-            </button>
+            <SubmitButton />
           </form>
         )}
       </div>
