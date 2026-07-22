@@ -71,7 +71,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
         aria-modal="true"
         aria-label="Site menu"
         className={`fixed top-0 right-0 z-50 h-auto max-h-full w-[78%] max-w-xs
-          bg-white/30
+          bg-white/55 backdrop-blur-md
           border-l border-white/40
           shadow-[0_8px_40px_rgba(11,19,43,0.18)]
           rounded-l-[20px]
