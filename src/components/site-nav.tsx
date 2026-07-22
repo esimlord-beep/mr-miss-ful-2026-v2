@@ -60,7 +60,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
       <div
         onClick={() => setOpen(false)}
         aria-hidden={!open}
-        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-40 bg-black/30 transition-opacity duration-300 ${
           open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       />
@@ -71,7 +71,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
         aria-modal="true"
         aria-label="Site menu"
         className={`fixed top-0 right-0 z-50 h-auto max-h-full w-[78%] max-w-xs
-          bg-white/70 backdrop-blur-xl backdrop-saturate-150
+          bg-white/30
           border-l border-white/40
           shadow-[0_8px_40px_rgba(11,19,43,0.18)]
           rounded-l-[20px]
