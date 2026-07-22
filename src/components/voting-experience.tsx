@@ -6,6 +6,7 @@ import { Hero } from "@/components/hero";
 import { Podium } from "@/components/podium";
 import { ProfileOverlay } from "@/components/profile-overlay";
 import { Sponsors } from "@/components/sponsors";
+import { RevealOnScroll } from "@/components/reveal-on-scroll";
 
 declare global {
   interface Window {
@@ -122,24 +123,26 @@ export function VotingExperience({
 
       {/* Live Leaderboard */}
       {topContestants.length > 0 && (
-        <section className="bg-slate-50 pb-14 px-4 sm:px-6 -mt-16 relative z-10">
-          <div className="mx-auto max-w-3xl bg-white p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-900/5">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight">Live Leaderboard</h2>
-              <p className="text-xs text-slate-400 font-medium">Currently leading the ranks</p>
+        <RevealOnScroll>
+          <section className="bg-slate-50 pb-14 px-4 sm:px-6 -mt-16 relative z-10">
+            <div className="mx-auto max-w-3xl bg-white p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-900/5">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Live Leaderboard</h2>
+                <p className="text-xs text-slate-400 font-medium">Currently leading the ranks</p>
+              </div>
+              <Podium contestants={topContestants} />
             </div>
-            <Podium contestants={topContestants} />
-          </div>
-        </section>
+          </section>
+        </RevealOnScroll>
       )}
 
       {/* Featured Contestants */}
       <main ref={contestantsRef} className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 space-y-16">
 
         <div>
-          <div className="mb-6">
+          <RevealOnScroll className="mb-6">
             <h2 className="text-xl font-bold text-slate-800">Featured Contestants</h2>
-          </div>
+          </RevealOnScroll>
 
           {filteredContestants.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-2xl border border-slate-100 shadow-sm max-w-md mx-auto">
@@ -147,9 +150,9 @@ export function VotingExperience({
             </div>
           ) : (
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredContestants.map((contestant) => (
+              {filteredContestants.map((contestant, index) => (
+                <RevealOnScroll key={contestant.id} delay={(index % 3) * 80}>
                 <div 
-                  key={contestant.id} 
                   className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
                 >
                   <div className="aspect-[4/5] w-full bg-slate-100 relative">
@@ -212,6 +215,7 @@ export function VotingExperience({
                     </div>
                   </div>
                 </div>
+                </RevealOnScroll>
               ))}
             </div>
           )}
@@ -219,7 +223,9 @@ export function VotingExperience({
       </main>
 
       {/* Sponsors & Partners */}
-      <Sponsors sponsors={siteSettings?.sponsors} />
+      <RevealOnScroll>
+        <Sponsors sponsors={siteSettings?.sponsors} />
+      </RevealOnScroll>
 
       {votingFor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
