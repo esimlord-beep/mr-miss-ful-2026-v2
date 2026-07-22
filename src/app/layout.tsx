@@ -74,6 +74,7 @@ export default async function RootLayout({
             <div className="flex flex-wrap justify-center gap-4 text-xs font-bold text-slate-500">
               <a href="/" className="hover:text-amber-600">Home</a>
               <a href="/awards" className="hover:text-amber-600">Awards</a>
+              <a href="/nominate" className="hover:text-amber-600">Nominate</a>
               <a href="/contact" className="hover:text-amber-600">Contact & Support</a>
               <a href="/terms" className="hover:text-amber-600">Terms & Privacy</a>
             </div>
