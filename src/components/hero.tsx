@@ -76,23 +76,23 @@ export function Hero({
             willChange: "transform, opacity",
           }}
         >
-          <div className="max-w-sm mx-auto flex items-center justify-between rounded-full bg-[#FAF9F6] border border-[#0B132B]/[0.06] shadow-lg shadow-[#0B132B]/[0.06] px-4 py-2 sm:px-5 sm:py-2.5">
+          <div className="max-w-7xl mx-auto flex items-center justify-between rounded-full bg-[#FAF9F6] border border-[#0B132B]/[0.06] shadow-lg shadow-[#0B132B]/[0.06] px-5 py-3 sm:px-7 sm:py-4">
             {logo && (
               <img
                 src={logo}
                 alt="FUL Logo"
-                className="h-7 w-auto object-contain"
+                className="h-10 w-auto object-contain"
               />
             )}
             <button
               type="button"
               onClick={() => setOpen(true)}
               aria-label="Open menu"
-              className="flex flex-col justify-center gap-[4px] w-7 h-7 p-1 text-[#0B132B] transition-opacity duration-200 hover:opacity-60 active:scale-95"
+              className="flex flex-col justify-center gap-[5px] w-10 h-10 p-2 text-[#0B132B] transition-opacity duration-200 hover:opacity-60 active:scale-95"
             >
-              <span className="block w-5 h-[1.5px] bg-current rounded-full" />
-              <span className="block w-5 h-[1.5px] bg-current rounded-full" />
-              <span className="block w-5 h-[1.5px] bg-current rounded-full" />
+              <span className="block w-7 h-[2px] bg-current rounded-full" />
+              <span className="block w-7 h-[2px] bg-current rounded-full" />
+              <span className="block w-7 h-[2px] bg-current rounded-full" />
             </button>
           </div>
         </nav>
