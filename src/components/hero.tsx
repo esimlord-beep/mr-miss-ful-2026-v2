@@ -23,7 +23,6 @@ export function Hero({
 }) {
   const tagline = siteSettings?.hero_tagline || "Cast your vote. Crown your favorite.";
   const logo = siteSettings?.primary_logo || siteSettings?.secondary_logo;
-  const siteTitle = siteSettings?.site_title || "Mr & Miss FUL 2026";
 
   const heroRef = useRef<HTMLElement>(null);
   const [progress, setProgress] = useState(0);
@@ -70,19 +69,13 @@ export function Hero({
         {/* NAV inside hero */}
         <nav className="relative z-50 px-5 py-4 sm:px-8">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center">
-              {logo ? (
-                <img
-                  src={logo}
-                  alt="FUL Logo"
-                  className="h-8 w-auto object-contain"
-                />
-              ) : (
-                <div className="h-10 w-10 rounded-full bg-[#D4AF37]/10 flex items-center justify-center">
-                  <span className="text-[#D4AF37] text-xs font-black">FUL</span>
-                </div>
-              )}
-            </div>
+            {logo && (
+              <img
+                src={logo}
+                alt="FUL Logo"
+                className="h-7 w-auto object-contain"
+              />
+            )}
             <button
               type="button"
               onClick={() => setOpen(true)}
@@ -176,19 +169,13 @@ export function Hero({
       >
         <div className="px-5 py-4 sm:px-8 sm:py-5">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center">
-              {logo ? (
-                <img
-                  src={logo}
-                  alt="FUL Logo"
-                  className="h-8 w-auto object-contain"
-                />
-              ) : (
-                <div className="h-9 w-9 rounded-full bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30 flex items-center justify-center">
-                  <span className="text-[#D4AF37] text-xs font-black">FUL</span>
-                </div>
-              )}
-            </div>
+            {logo && (
+              <img
+                src={logo}
+                alt="FUL Logo"
+                className="h-7 w-auto object-contain"
+              />
+            )}
             <button
               type="button"
               onClick={() => setOpen(false)}
