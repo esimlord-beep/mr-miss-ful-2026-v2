@@ -21,7 +21,7 @@ export function Hero({
   onVote: () => void;
   siteSettings: any;
 }) {
-  const tagline = siteSettings?.hero_tagline || "Cast your vote. Crown your favorite.";
+  const tagline = siteSettings?.hero_tagline || "Vote for your favorite contestant.";
   const logo = siteSettings?.primary_logo || siteSettings?.secondary_logo;
 
   const heroRef = useRef<HTMLElement>(null);
@@ -103,7 +103,7 @@ export function Hero({
         />
 
         <div
-          className="relative mx-auto max-w-2xl px-6 pt-6 pb-11 sm:pt-8 sm:pb-14 text-center"
+          className="relative mx-auto max-w-2xl px-6 pt-2 pb-11 sm:pt-3 sm:pb-14 text-center"
           style={{
             opacity,
             transform: `translateY(${translateY}px) scale(${scale})`,
@@ -111,12 +111,18 @@ export function Hero({
             willChange: "transform, opacity",
           }}
         >
-          <div className="animate-in fade-in slide-in-from-top-1 duration-700 delay-75">
+          <div className="font-rounded animate-in fade-in slide-in-from-top-1 duration-700 delay-75">
             <p className="text-[13px] sm:text-sm font-medium tracking-[0.08em] text-[#0B132B]/70">
               Federal University Lokoja
             </p>
             <p className="mt-0.5 text-[11px] sm:text-xs font-medium tracking-[0.14em] text-[#0B132B]/40 uppercase">
               Student Union Government
+            </p>
+            <p className="mt-3 text-[11px] sm:text-xs font-medium tracking-[0.14em] text-[#0B132B]/40 uppercase">
+              Presents
+            </p>
+            <p className="mt-1 text-[15px] sm:text-lg font-bold tracking-[0.1em] text-[#0B132B] uppercase">
+              Mr &amp; Miss FUL 26
             </p>
           </div>
 
