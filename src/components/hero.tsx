@@ -110,15 +110,16 @@ export function Hero({
           style={{ opacity: 1 - progress }}
         />
 
-        <div
-          className="relative mx-auto max-w-2xl px-6 pt-2 pb-11 sm:pt-3 sm:pb-14 text-left"
-          style={{
-            opacity,
-            transform: `translateY(${translateY}px) scale(${scale})`,
-            transition: "opacity 0.05s linear, transform 0.05s linear",
-            willChange: "transform, opacity",
-          }}
-        >
+      <div
+  className="relative mx-auto max-w-2xl px-6 pt-12 pb-11 sm:pt-16 sm:pb-14 text-left"
+  style={{
+    opacity,
+    transform: `translateY(${translateY}px) scale(${scale})`,
+    transition: "opacity 0.05s linear, transform 0.05s linear",
+    willChange: "transform, opacity",
+  }}
+>
+
           <h1
             className="font-rounded text-[2.5rem] leading-[1.1] sm:text-[3.5rem] font-extrabold tracking-tight text-[#0B132B] animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100"
             style={{
