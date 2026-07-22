@@ -25,16 +25,16 @@ export default async function NominatePage({
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <section className="relative overflow-hidden bg-[#0B132B] py-12 px-5 text-center">
-        <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-80 w-80 rounded-full bg-[#D4AF37]/[0.08] blur-3xl" />
+      <section className="relative overflow-hidden bg-[#FAF9F6] py-12 px-5 text-center">
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-80 w-80 rounded-full bg-[#D4AF37]/[0.12] blur-3xl" />
         <div className="relative mx-auto max-w-lg">
           <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-[#D4AF37]/10">
-            <Trophy size={20} strokeWidth={1.75} className="text-[#D4AF37]" />
+            <Trophy size={20} strokeWidth={1.75} className="text-[#B8901F]" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#0B132B] tracking-tight">
             Nominate for FUL Awards 2026
           </h1>
-          <p className="mt-2 text-sm text-white/60">
+          <p className="mt-2 text-sm text-[#0B132B]/60">
             Know someone who deserves recognition? Submit their name below. Approved nominations
             will appear on the official awards page for voting.
           </p>
