@@ -142,19 +142,19 @@ export function AwardsExperience({
     }
   };
 
-  return (
+    return (
     <div className="min-h-screen" style={{ backgroundColor: "#F8F9FC" }}>
-      <div className="relative overflow-hidden py-7 px-4 text-center" style={{ background: "linear-gradient(180deg, #050912 0%, #0B132B 100%)" }}>
+      <div className="relative overflow-hidden py-7 px-4 text-center" style={{ backgroundColor: "#FAF9F6" }}>
         <div
-          className="absolute inset-0 opacity-40 pointer-events-none"
+          className="absolute inset-0 opacity-70 pointer-events-none"
           style={{
-            backgroundImage: "radial-gradient(circle at 15% 20%, rgba(212,175,55,0.12) 0%, transparent 35%), radial-gradient(circle at 85% 75%, rgba(212,175,55,0.10) 0%, transparent 40%)"
+            backgroundImage: "radial-gradient(circle at 15% 20%, rgba(212,175,55,0.14) 0%, transparent 35%), radial-gradient(circle at 85% 75%, rgba(212,175,55,0.12) 0%, transparent 40%)"
           }}
         />
         <div className="relative">
-          <p className="text-[11px] font-black uppercase tracking-widest mb-1.5" style={{ color: "#D4AF37" }}>Federal University Lokoja SUG</p>
-          <h1 className="text-2xl font-black text-white">{settings.awards_title || "Awards Categories"}</h1>
-          <p className="mt-2 text-xs max-w-xs mx-auto" style={{ color: "#94A3B8" }}>{settings.awards_description || "Celebrate excellence. Vote for your favourite nominees."}</p>
+          <p className="text-[11px] font-black uppercase tracking-widest mb-1.5" style={{ color: "#B8901F" }}>Federal University Lokoja SUG</p>
+          <h1 className="text-2xl font-black" style={{ color: "#0B132B" }}>{settings.awards_title || "Awards Categories"}</h1>
+          <p className="mt-2 text-xs max-w-xs mx-auto" style={{ color: "#0B132B99" }}>{settings.awards_description || "Celebrate excellence. Vote for your favourite nominees."}</p>
           <a
             href="#categories"
             className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full text-xs font-black transition-transform active:scale-95"
@@ -166,6 +166,7 @@ export function AwardsExperience({
       </div>
 
       {votingClosed && (
+
         <div className="bg-amber-50 border-b border-amber-200 py-3 text-center">
           <p className="text-sm font-bold" style={{ color: "#92400E" }}>🔒 Voting is currently closed.</p>
         </div>
