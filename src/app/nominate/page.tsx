@@ -9,7 +9,6 @@ async function getActiveCategories() {
   const { data } = await browserSupabase
     .from("award_categories")
     .select("id, name, group_name")
-    .eq("is_active", true)
     .order("group_name", { ascending: true })
     .order("category_number", { ascending: true });
   return data || [];
