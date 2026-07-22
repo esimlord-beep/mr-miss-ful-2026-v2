@@ -71,7 +71,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
         aria-modal="true"
         aria-label="Site menu"
         className={`fixed top-0 right-0 z-50 h-auto max-h-full w-[78%] max-w-xs
-          bg-[#0B132B] shadow-2xl
+          bg-[#FAF9F6] shadow-2xl
           rounded-l-[20px]
           transition-transform duration-300 ease-out
           ${open ? "translate-x-0" : "translate-x-full"}`}
@@ -79,13 +79,13 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
         {/* Branding block */}
         <div className="flex items-start justify-between px-6 pt-7 pb-5">
           <div>
-            <p className="text-[10px] font-semibold tracking-[0.16em] text-white/40 uppercase">
+            <p className="text-[10px] font-semibold tracking-[0.16em] text-[#0B132B]/40 uppercase">
               Federal University Lokoja
             </p>
-            <p className="mt-1.5 text-[17px] font-semibold text-white tracking-tight leading-tight">
+            <p className="mt-1.5 text-[17px] font-semibold text-[#0B132B] tracking-tight leading-tight">
               FUL Awards 2026
             </p>
-            <p className="mt-0.5 text-[12px] text-[#D4AF37]/90 font-medium">
+            <p className="mt-0.5 text-[12px] text-[#B4901F] font-medium">
               Official Voting Platform
             </p>
           </div>
@@ -94,7 +94,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
             onClick={() => setOpen(false)}
             aria-label="Close menu"
             className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full
-              bg-white/[0.06] text-white/70 hover:bg-white/[0.12] hover:text-white
+              bg-[#0B132B]/[0.05] text-[#0B132B]/60 hover:bg-[#0B132B]/[0.1] hover:text-[#0B132B]
               transition-colors active:scale-95 duration-150"
           >
             <X size={16} strokeWidth={2} />
@@ -116,13 +116,13 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
                 onClick={() => setOpen(false)}
                 className={`group flex items-center gap-3.5 px-3 py-[13px] rounded-xl text-[14.5px] font-medium
                   transition-colors duration-150
-                  ${active ? "text-[#D4AF37]" : "text-white/85 hover:text-white active:bg-white/[0.05]"}`}
+                  ${active ? "text-[#B4901F]" : "text-[#0B132B]/80 hover:text-[#0B132B] active:bg-[#0B132B]/[0.04]"}`}
               >
                 <Icon
                   size={20}
                   strokeWidth={1.6}
                   className={`flex-shrink-0 transition-transform duration-150 group-active:scale-95 ${
-                    active ? "text-[#D4AF37]" : "text-white/45 group-hover:text-white/70"
+                    active ? "text-[#B4901F]" : "text-[#0B132B]/40 group-hover:text-[#0B132B]/60"
                   }`}
                 />
                 <span className="leading-none">{item.label}</span>
