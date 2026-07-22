@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { RevealOnScroll } from "@/components/reveal-on-scroll";
 
 declare global {
   interface Window {
@@ -173,6 +174,7 @@ export function AwardsExperience({
       )}
 
       <div id="categories" className="max-w-2xl mx-auto px-4 pt-8 scroll-mt-4">
+        <RevealOnScroll>
         <div className="relative">
           <input
             type="text"
@@ -187,6 +189,7 @@ export function AwardsExperience({
             <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
           </svg>
         </div>
+        </RevealOnScroll>
       </div>
 
       <main className="max-w-2xl mx-auto px-4 py-10">
@@ -210,7 +213,8 @@ export function AwardsExperience({
             const progressPct = Math.min((leaderVotes / category.minimum_votes) * 100, 100);
 
             return (
-              <div key={category.id} className="mb-3 last:mb-0 transition-opacity duration-500 opacity-100">
+              <RevealOnScroll key={category.id} delay={(index % 4) * 60} className="mb-3 last:mb-0">
+              <div className="transition-opacity duration-500 opacity-100">
                 {showGroupHeader && (
                   <div className="mb-4 mt-8 first:mt-0 overflow-hidden" style={{ borderRadius: "16px" }}>
                     <div
@@ -389,6 +393,7 @@ export function AwardsExperience({
                   )}
                 </div>
               </div>
+              </RevealOnScroll>
             );
           })
         )}
