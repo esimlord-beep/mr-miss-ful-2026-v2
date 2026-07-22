@@ -2,6 +2,7 @@ import { browserSupabase } from "@/lib/supabase";
 import { submitNomination } from "@/app/nominate/actions";
 import { SubmitButton } from "./submit-button";
 import { CheckCircle2, Trophy } from "lucide-react";
+import { RevealOnScroll } from "@/components/reveal-on-scroll";
 
 async function getActiveCategories() {
   if (!browserSupabase) return [];
@@ -25,6 +26,7 @@ export default async function NominatePage({
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
+      <RevealOnScroll>
       <section className="relative overflow-hidden bg-[#FAF9F6] py-12 px-5 text-center">
         <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-80 w-80 rounded-full bg-[#D4AF37]/[0.12] blur-3xl" />
         <div className="relative mx-auto max-w-lg">
@@ -40,6 +42,7 @@ export default async function NominatePage({
           </p>
         </div>
       </section>
+      </RevealOnScroll>
 
       <div className="mx-auto max-w-lg px-5 py-10">
         {params.submitted && (
@@ -61,12 +64,15 @@ export default async function NominatePage({
         )}
 
         {categories.length === 0 ? (
+          <RevealOnScroll>
           <div className="text-center py-12 bg-white rounded-2xl border border-slate-100 shadow-sm">
             <p className="text-slate-500 font-medium text-sm">
               Nominations are not open right now. Please check back later.
             </p>
           </div>
+          </RevealOnScroll>
         ) : (
+          <RevealOnScroll>
           <form
             action={submitNomination}
             encType="multipart/form-data"
@@ -176,6 +182,7 @@ export default async function NominatePage({
 
             <SubmitButton />
           </form>
+          </RevealOnScroll>
         )}
       </div>
     </div>
