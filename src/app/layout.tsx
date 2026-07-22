@@ -5,7 +5,7 @@ import { Cinzel, Manrope } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { adminSupabase } from "@/lib/supabase";
-import { SiteNav } from "@/components/site-nav";
+import { ConditionalNav } from "@/components/conditional-nav";
 import "./globals.css";
 
 const cinzel = Cinzel({
@@ -58,6 +58,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className="h-full scroll-smooth">
       <body className={`${manrope.variable} ${cinzel.variable} font-sans antialiased h-full text-slate-600 bg-slate-50/30`}>
+        <ConditionalNav siteTitle={siteTitle} />
         <div className="min-h-screen flex flex-col">
           <div className="flex-grow">
             {children}
