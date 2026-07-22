@@ -66,9 +66,17 @@ export function Hero({
     <>
       <section ref={heroRef} className="relative overflow-hidden bg-[#FAF9F6]">
 
-        {/* NAV inside hero */}
-        <nav className="relative z-50 px-5 py-4 sm:px-8">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
+        {/* NAV inside hero - floating card */}
+        <nav
+          className="relative z-50 px-4 pt-4 sm:px-6 sm:pt-6"
+          style={{
+            opacity,
+            transform: `translateY(${translateY}px)`,
+            transition: "opacity 0.05s linear, transform 0.05s linear",
+            willChange: "transform, opacity",
+          }}
+        >
+          <div className="max-w-7xl mx-auto flex items-center justify-between rounded-full bg-[#FAF9F6] border border-[#0B132B]/[0.06] shadow-lg shadow-[#0B132B]/[0.06] px-5 py-3 sm:px-7 sm:py-4">
             {logo && (
               <img
                 src={logo}
@@ -121,12 +129,12 @@ export function Hero({
             <p className="mt-3 text-[11px] sm:text-xs font-medium tracking-[0.14em] text-[#0B132B]/40 uppercase">
               Presents
             </p>
-            <p className="mt-1 text-[17px] sm:text-xl font-bold tracking-[0.1em] text-[#0B132B] uppercase">
+            <p className="mt-1 text-[15px] sm:text-lg font-bold tracking-[0.1em] text-[#0B132B] uppercase">
               Mr &amp; Miss FUL 26
             </p>
           </div>
 
-          <h1 className="mt-6 font-rounded text-[2.75rem] leading-[1.05] sm:text-6xl md:text-7xl font-extrabold tracking-tight text-[#0B132B] animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100">
+          <h1 className="mt-5 font-rounded text-[2rem] leading-[1.15] sm:text-[2.75rem] font-bold tracking-tight text-[#0B132B] animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100">
             Who wears the{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C9A227] to-[#D4AF37]">
               crown
