@@ -13,7 +13,13 @@ const NAV_ITEMS = [
   { href: "/terms", label: "Terms & Privacy" },
 ];
 
-export function SiteNav({ siteTitle, logo }: { siteTitle?: string; logo?: string }) {
+export function SiteNav({
+  siteTitle,
+  logo,
+}: {
+  siteTitle?: string;
+  logo?: string;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -33,6 +39,7 @@ export function SiteNav({ siteTitle, logo }: { siteTitle?: string; logo?: string
         setOpen(false);
       }
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
@@ -41,79 +48,56 @@ export function SiteNav({ siteTitle, logo }: { siteTitle?: string; logo?: string
 
   return (
     <>
-      {/* =========================
-          MAIN NAVBAR - floating pill, matches homepage hero
-      ========================== */}
-      <div className="relative z-50 bg-[#FAF9F6] px-4 pt-4 pb-2 sm:px-6 sm:pt-6">
-        <nav className="max-w-sm mx-auto flex items-center justify-between rounded-full bg-[#FAF9F6] border border-[#0B132B]/[0.06] shadow-lg shadow-[#0B132B]/[0.06] px-4 py-2 sm:px-5 sm:py-2.5">
+      {/* Floating Navigation */}
+      <div className="relative z-50 bg-[#FAF9F6] px-4 pt-4 sm:px-6 sm:pt-6">
+        <nav className="max-w-7xl mx-auto flex items-center justify-between rounded-full bg-[#FAF9F6] border border-[#0B132B]/[0.06] shadow-lg shadow-[#0B132B]/[0.06] px-5 py-3 sm:px-7 sm:py-4">
           {logo && (
             <img
               src={logo}
               alt={siteTitle || "FUL Logo"}
-              className="h-7 w-auto object-contain"
+              className="h-10 w-auto object-contain"
             />
           )}
 
-          {/* Simple Menu Icon */}
           <button
             type="button"
             onClick={() => setOpen(true)}
             aria-label="Open menu"
             aria-expanded={open}
-            className="flex flex-col justify-center gap-[4px] w-7 h-7 p-1 text-[#0B132B] transition-opacity duration-200 hover:opacity-60 active:scale-95"
+            className="flex flex-col justify-center gap-[5px] w-10 h-10 p-2 text-[#0B132B] transition-opacity duration-200 hover:opacity-60 active:scale-95"
           >
-            <span className="block w-5 h-[1.5px] bg-current rounded-full" />
-            <span className="block w-5 h-[1.5px] bg-current rounded-full" />
-            <span className="block w-5 h-[1.5px] bg-current rounded-full" />
+            <span className="block w-7 h-[2px] bg-current rounded-full" />
+            <span className="block w-7 h-[2px] bg-current rounded-full" />
+            <span className="block w-7 h-[2px] bg-current rounded-full" />
           </button>
         </nav>
       </div>
 
-      {/* =========================
-          BACKDROP
-      ========================== */}
+      {/* Backdrop */}
       <div
         onClick={() => setOpen(false)}
         aria-hidden={!open}
-        className={`
-          fixed inset-0 z-[60]
-          bg-[#0B132B]/20
-          backdrop-blur-[2px]
-          transition-opacity duration-300
-          ${
-            open
-              ? "opacity-100 pointer-events-auto"
-              : "opacity-0 pointer-events-none"
-          }
-        `}
+        className={`fixed inset-0 z-[60] bg-[#0B132B]/20 backdrop-blur-[2px] transition-opacity duration-300 ${
+          open
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
       />
 
-      {/* =========================
-          FULL SCREEN MENU
-      ========================== */}
+      {/* Full Screen Menu */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Site menu"
-        className={`
-          fixed inset-0 z-[70]
-          bg-[#FAF9F6]
-          overflow-y-auto
-          transition-all
-          duration-400
-          ease-out
-          ${
-            open
-              ? "translate-y-0 opacity-100"
-              : "-translate-y-3 opacity-0 pointer-events-none"
-          }
-        `}
+        className={`fixed inset-0 z-[70] bg-[#FAF9F6] overflow-y-auto transition-all duration-400 ease-out ${
+          open
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-3 opacity-0 pointer-events-none"
+        }`}
       >
-        {/* MENU HEADER */}
+        {/* Header */}
         <div className="px-5 py-3 sm:px-8 sm:py-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-
-            {/* Branding */}
             {logo && (
               <img
                 src={logo}
@@ -122,121 +106,59 @@ export function SiteNav({ siteTitle, logo }: { siteTitle?: string; logo?: string
               />
             )}
 
-            {/* Close Button */}
             <button
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Close menu"
-              className="
-                flex items-center justify-center
-                w-8 h-8
-                rounded-full
-                bg-[#0B132B]
-                text-[#FAF9F6]
-                transition-all
-                duration-200
-                hover:bg-[#0B132B]/90
-                active:scale-95
-              "
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-[#0B132B] text-[#FAF9F6] transition-all duration-200 hover:bg-[#0B132B]/90 active:scale-95"
             >
-              <X
-                size={15}
-                strokeWidth={1.7}
-              />
+              <X size={15} strokeWidth={1.7} />
             </button>
-
           </div>
         </div>
 
-        {/* Gold Divider */}
+        {/* Divider */}
         <div className="mx-5 sm:mx-8">
           <div className="max-w-7xl mx-auto h-px bg-gradient-to-r from-[#D4AF37]/60 via-[#D4AF37]/20 to-transparent" />
         </div>
 
-        {/* MENU ITEMS */}
+        {/* Menu Items */}
         <div className="px-5 sm:px-8 pt-5 sm:pt-8 pb-8">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto flex flex-col">
+            {NAV_ITEMS.map((item) => {
+              const active = pathname === item.href;
 
-            <div className="flex flex-col">
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={`group flex items-center justify-between gap-6 py-3.5 sm:py-4 border-b border-[#0B132B]/[0.08] transition-all duration-200 ${
+                    active ? "text-[#9C7A1A]" : "text-[#0B132B]"
+                  }`}
+                >
+                  <span className="text-[15px] sm:text-lg leading-tight tracking-[-0.01em] font-normal transition-transform duration-200 group-hover:translate-x-1">
+                    {item.label}
+                  </span>
 
-              {NAV_ITEMS.map((item) => {
-                const active = pathname === item.href;
-
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className={`
-                      group
-                      flex
-                      items-center
-                      justify-between
-                      gap-6
-                      py-3.5
-                      sm:py-4
-                      border-b
-                      border-[#0B132B]/[0.08]
-                      transition-all
-                      duration-200
-                      ${
-                        active
-                          ? "text-[#9C7A1A]"
-                          : "text-[#0B132B]"
-                      }
-                    `}
+                  <span
+                    className={`flex-shrink-0 text-[16px] sm:text-lg font-light transition-all duration-200 ${
+                      active
+                        ? "text-[#D4AF37]"
+                        : "text-[#0B132B]/40"
+                    } group-hover:text-[#D4AF37] group-hover:translate-x-1`}
                   >
-
-                    {/* Menu Label */}
-                    <span
-                      className="
-                        text-[15px]
-                        sm:text-lg
-                        leading-tight
-                        tracking-[-0.01em]
-                        font-normal
-                        transition-transform
-                        duration-200
-                        group-hover:translate-x-1
-                      "
-                    >
-                      {item.label}
-                    </span>
-
-                    {/* Simple Arrow */}
-                    <span
-                      className={`
-                        flex-shrink-0
-                        text-[16px]
-                        sm:text-lg
-                        font-light
-                        transition-all
-                        duration-200
-                        ${
-                          active
-                            ? "text-[#D4AF37]"
-                            : "text-[#0B132B]/40"
-                        }
-                        group-hover:text-[#D4AF37]
-                        group-hover:translate-x-1
-                      `}
-                    >
-                      →
-                    </span>
-
-                  </Link>
-                );
-              })}
-
-            </div>
-
+                    →
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
 
-        {/* MENU FOOTER */}
+        {/* Footer */}
         <div className="px-5 sm:px-8 pb-8">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-
             <p className="text-[10px] text-[#0B132B]/40 tracking-[0.1em] uppercase">
               Federal University Lokoja
             </p>
@@ -244,10 +166,8 @@ export function SiteNav({ siteTitle, logo }: { siteTitle?: string; logo?: string
             <p className="text-[10px] text-[#0B132B]/40 tracking-[0.1em] uppercase">
               © 2026
             </p>
-
           </div>
         </div>
-
       </div>
     </>
   );
