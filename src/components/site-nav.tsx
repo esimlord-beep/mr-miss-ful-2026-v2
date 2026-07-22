@@ -71,21 +71,26 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
         aria-modal="true"
         aria-label="Site menu"
         className={`fixed top-0 right-0 z-50 h-auto max-h-full w-[78%] max-w-xs
-          bg-[#FAF9F6] shadow-2xl
+          bg-white/70 backdrop-blur-xl backdrop-saturate-150
+          border-l border-white/40
+          shadow-[0_8px_40px_rgba(11,19,43,0.18)]
           rounded-l-[20px]
           transition-transform duration-300 ease-out
           ${open ? "translate-x-0" : "translate-x-full"}`}
       >
+        {/* Glass sheen */}
+        <div className="pointer-events-none absolute inset-0 rounded-l-[20px] bg-gradient-to-br from-white/40 via-transparent to-transparent" />
+
         {/* Branding block */}
-        <div className="flex items-start justify-between px-6 pt-7 pb-5">
+        <div className="relative flex items-start justify-between px-6 pt-7 pb-5">
           <div>
-            <p className="text-[10px] font-semibold tracking-[0.16em] text-[#0B132B]/40 uppercase">
+            <p className="text-[10px] font-semibold tracking-[0.16em] text-[#0B132B]/50 uppercase">
               Federal University Lokoja
             </p>
             <p className="mt-1.5 text-[17px] font-semibold text-[#0B132B] tracking-tight leading-tight">
               FUL Awards 2026
             </p>
-            <p className="mt-0.5 text-[12px] text-[#B4901F] font-medium">
+            <p className="mt-0.5 text-[12px] text-[#9C7A1A] font-semibold">
               Official Voting Platform
             </p>
           </div>
@@ -94,7 +99,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
             onClick={() => setOpen(false)}
             aria-label="Close menu"
             className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full
-              bg-[#0B132B]/[0.05] text-[#0B132B]/60 hover:bg-[#0B132B]/[0.1] hover:text-[#0B132B]
+              bg-[#0B132B]/[0.08] text-[#0B132B]/70 hover:bg-[#0B132B]/[0.14] hover:text-[#0B132B]
               transition-colors active:scale-95 duration-150"
           >
             <X size={16} strokeWidth={2} />
@@ -102,10 +107,10 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
         </div>
 
         {/* Gold divider */}
-        <div className="mx-6 h-px bg-gradient-to-r from-[#D4AF37]/70 via-[#D4AF37]/25 to-transparent" />
+        <div className="relative mx-6 h-px bg-gradient-to-r from-[#D4AF37]/70 via-[#D4AF37]/25 to-transparent" />
 
         {/* Nav items */}
-        <div className="px-4 py-3 flex flex-col">
+        <div className="relative px-4 py-3 flex flex-col">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
@@ -116,13 +121,13 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
                 onClick={() => setOpen(false)}
                 className={`group flex items-center gap-3.5 px-3 py-[13px] rounded-xl text-[14.5px] font-medium
                   transition-colors duration-150
-                  ${active ? "text-[#B4901F]" : "text-[#0B132B]/80 hover:text-[#0B132B] active:bg-[#0B132B]/[0.04]"}`}
+                  ${active ? "text-[#9C7A1A] bg-white/40" : "text-[#0B132B]/85 hover:text-[#0B132B] hover:bg-white/30 active:bg-white/50"}`}
               >
                 <Icon
                   size={20}
                   strokeWidth={1.6}
                   className={`flex-shrink-0 transition-transform duration-150 group-active:scale-95 ${
-                    active ? "text-[#B4901F]" : "text-[#0B132B]/40 group-hover:text-[#0B132B]/60"
+                    active ? "text-[#9C7A1A]" : "text-[#0B132B]/45 group-hover:text-[#0B132B]/65"
                   }`}
                 />
                 <span className="leading-none">{item.label}</span>
@@ -131,7 +136,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
           })}
         </div>
 
-        <div className="pb-6" />
+        <div className="relative pb-6" />
       </div>
     </nav>
   );
