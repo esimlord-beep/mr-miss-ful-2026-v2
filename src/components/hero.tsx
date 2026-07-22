@@ -121,12 +121,12 @@ export function Hero({
             <p className="mt-3 text-[11px] sm:text-xs font-medium tracking-[0.14em] text-[#0B132B]/40 uppercase">
               Presents
             </p>
-            <p className="mt-1 text-[15px] sm:text-lg font-bold tracking-[0.1em] text-[#0B132B] uppercase">
+            <p className="mt-1 text-[17px] sm:text-xl font-bold tracking-[0.1em] text-[#0B132B] uppercase">
               Mr &amp; Miss FUL 26
             </p>
           </div>
 
-          <h1 className="mt-6 font-serif text-[2.15rem] leading-[1.12] sm:text-5xl font-bold tracking-tight text-[#0B132B] animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100">
+          <h1 className="mt-6 font-rounded text-[2.75rem] leading-[1.05] sm:text-6xl md:text-7xl font-extrabold tracking-tight text-[#0B132B] animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100">
             Who wears the{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C9A227] to-[#D4AF37]">
               crown
