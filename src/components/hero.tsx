@@ -73,7 +73,7 @@ export function Hero({
               <img
                 src={logo}
                 alt="FUL Logo"
-                className="h-7 w-auto object-contain"
+                className="h-10 w-auto object-contain"
               />
             )}
             <button
@@ -173,7 +173,7 @@ export function Hero({
               <img
                 src={logo}
                 alt="FUL Logo"
-                className="h-7 w-auto object-contain"
+                className="h-10 w-auto object-contain"
               />
             )}
             <button
