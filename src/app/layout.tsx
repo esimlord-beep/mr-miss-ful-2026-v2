@@ -58,7 +58,6 @@ export default async function RootLayout({
   return (
     <html lang="en" className="h-full scroll-smooth">
       <body className={`${manrope.variable} ${cinzel.variable} font-sans antialiased h-full text-slate-600 bg-slate-50/30`}>
-        <SiteNav siteTitle={siteTitle} />
         <div className="min-h-screen flex flex-col">
           <div className="flex-grow">
             {children}
