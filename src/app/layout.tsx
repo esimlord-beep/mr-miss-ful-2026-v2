@@ -60,11 +60,12 @@ export default async function RootLayout({
 }) {
   const settings = await getSettings();
   const siteTitle = settings?.site_title ?? "Mr & Miss FUL 2026";
+  const logo = settings?.primary_logo || settings?.secondary_logo;
 
   return (
     <html lang="en" className="h-full scroll-smooth">
       <body className={`${manrope.variable} ${cinzel.variable} ${baloo.variable} font-sans antialiased h-full text-slate-600 bg-slate-50/30`}>
-        <ConditionalNav siteTitle={siteTitle} />
+        <ConditionalNav siteTitle={siteTitle} logo={logo} />
         <div className="min-h-screen flex flex-col">
           <div className="flex-grow">
             {children}
