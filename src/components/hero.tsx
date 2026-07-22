@@ -76,23 +76,23 @@ export function Hero({
             willChange: "transform, opacity",
           }}
         >
-          <div className="max-w-7xl mx-auto flex items-center justify-between rounded-full bg-[#FAF9F6] border border-[#0B132B]/[0.06] shadow-lg shadow-[#0B132B]/[0.06] px-5 py-3 sm:px-7 sm:py-4">
+          <div className="max-w-sm mx-auto flex items-center justify-between rounded-full bg-[#FAF9F6] border border-[#0B132B]/[0.06] shadow-lg shadow-[#0B132B]/[0.06] px-4 py-2 sm:px-5 sm:py-2.5">
             {logo && (
               <img
                 src={logo}
                 alt="FUL Logo"
-                className="h-10 w-auto object-contain"
+                className="h-7 w-auto object-contain"
               />
             )}
             <button
               type="button"
               onClick={() => setOpen(true)}
               aria-label="Open menu"
-              className="flex flex-col justify-center gap-[5px] w-10 h-10 p-2 text-[#0B132B] transition-opacity duration-200 hover:opacity-60 active:scale-95"
+              className="flex flex-col justify-center gap-[4px] w-7 h-7 p-1 text-[#0B132B] transition-opacity duration-200 hover:opacity-60 active:scale-95"
             >
-              <span className="block w-7 h-[2px] bg-current rounded-full" />
-              <span className="block w-7 h-[2px] bg-current rounded-full" />
-              <span className="block w-7 h-[2px] bg-current rounded-full" />
+              <span className="block w-5 h-[1.5px] bg-current rounded-full" />
+              <span className="block w-5 h-[1.5px] bg-current rounded-full" />
+              <span className="block w-5 h-[1.5px] bg-current rounded-full" />
             </button>
           </div>
         </nav>
@@ -120,13 +120,13 @@ export function Hero({
           }}
         >
           <div className="font-rounded animate-in fade-in slide-in-from-top-1 duration-700 delay-75">
-            <p className="text-[13px] sm:text-sm font-medium tracking-[0.08em] text-[#0B132B]/70">
+            <p className="text-[13px] sm:text-sm font-bold tracking-[0.08em] text-[#0B132B]/70">
               Federal University Lokoja
             </p>
-            <p className="mt-0.5 text-[11px] sm:text-xs font-medium tracking-[0.14em] text-[#0B132B]/40 uppercase">
+            <p className="mt-0.5 text-[11px] sm:text-xs font-bold tracking-[0.14em] text-[#0B132B]/40 uppercase">
               Student Union Government
             </p>
-            <p className="mt-3 text-[11px] sm:text-xs font-medium tracking-[0.14em] text-[#0B132B]/40 uppercase">
+            <p className="mt-3 text-[11px] sm:text-xs font-bold tracking-[0.14em] text-[#0B132B]/40 uppercase">
               Presents
             </p>
             <p className="mt-1 text-[15px] sm:text-lg font-bold tracking-[0.1em] text-[#0B132B] uppercase">
@@ -181,22 +181,22 @@ export function Hero({
         aria-label="Site menu"
         className={`fixed inset-0 z-[70] bg-[#FAF9F6] overflow-y-auto transition-all duration-400 ease-out ${open ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0 pointer-events-none"}`}
       >
-        <div className="px-5 py-4 sm:px-8 sm:py-5">
+        <div className="px-5 py-3 sm:px-8 sm:py-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             {logo && (
               <img
                 src={logo}
                 alt="FUL Logo"
-                className="h-10 w-auto object-contain"
+                className="h-7 w-auto object-contain"
               />
             )}
             <button
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Close menu"
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-[#0B132B] text-[#FAF9F6] transition-all duration-200 hover:bg-[#0B132B]/90 active:scale-95"
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-[#0B132B] text-[#FAF9F6] transition-all duration-200 hover:bg-[#0B132B]/90 active:scale-95"
             >
-              <X size={19} strokeWidth={1.7} />
+              <X size={15} strokeWidth={1.7} />
             </button>
           </div>
         </div>
@@ -205,19 +205,19 @@ export function Hero({
           <div className="max-w-7xl mx-auto h-px bg-gradient-to-r from-[#D4AF37]/60 via-[#D4AF37]/20 to-transparent" />
         </div>
 
-        <div className="px-5 sm:px-8 pt-8 sm:pt-12 pb-12">
+        <div className="px-5 sm:px-8 pt-5 sm:pt-8 pb-8">
           <div className="max-w-7xl mx-auto flex flex-col">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="group flex items-center justify-between gap-6 py-5 sm:py-6 border-b border-[#0B132B]/[0.08] text-[#0B132B] transition-all duration-200"
+                className="group flex items-center justify-between gap-6 py-3.5 sm:py-4 border-b border-[#0B132B]/[0.08] text-[#0B132B] transition-all duration-200"
               >
-                <span className="text-[20px] sm:text-[26px] md:text-[30px] leading-tight tracking-[-0.025em] font-normal transition-transform duration-200 group-hover:translate-x-1">
+                <span className="text-[15px] sm:text-lg leading-tight tracking-[-0.01em] font-normal transition-transform duration-200 group-hover:translate-x-1">
                   {item.label}
                 </span>
-                <span className="flex-shrink-0 text-[24px] sm:text-[28px] font-light text-[#0B132B]/40 transition-all duration-200 group-hover:text-[#D4AF37] group-hover:translate-x-1">
+                <span className="flex-shrink-0 text-[16px] sm:text-lg font-light text-[#0B132B]/40 transition-all duration-200 group-hover:text-[#D4AF37] group-hover:translate-x-1">
                   →
                 </span>
               </Link>
