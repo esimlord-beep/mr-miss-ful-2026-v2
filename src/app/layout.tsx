@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import type { Metadata } from "next";
-import { Cinzel, Manrope } from "next/font/google";
+import { Cinzel, Manrope, Baloo_2 } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { adminSupabase } from "@/lib/supabase";
@@ -17,6 +17,12 @@ const cinzel = Cinzel({
 const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-manrope",
+});
+
+const baloo = Baloo_2({
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-baloo",
 });
 
 async function getSettings() {
@@ -57,7 +63,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="h-full scroll-smooth">
-      <body className={`${manrope.variable} ${cinzel.variable} font-sans antialiased h-full text-slate-600 bg-slate-50/30`}>
+      <body className={`${manrope.variable} ${cinzel.variable} ${baloo.variable} font-sans antialiased h-full text-slate-600 bg-slate-50/30`}>
         <ConditionalNav siteTitle={siteTitle} />
         <div className="min-h-screen flex flex-col">
           <div className="flex-grow">
