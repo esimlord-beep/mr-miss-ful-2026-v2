@@ -3,6 +3,29 @@
 import { adminSupabase } from "@/lib/supabase";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import sharp from "sharp";
+
+const BUCKET = "contestants";
+const MAX_WIDTH = 1280;
+const MAX_HEIGHT = 1280;
+const JPEG_QUALITY = 75;
+
+async function compressImage(arrayBuffer: ArrayBuffer): Promise<{ buffer: Buffer; contentType: string; extension: string }> {
+  const inputBuffer = Buffer.from(arrayBuffer);
+
+  const outputBuffer = await sharp(inputBuffer)
+    .rotate()
+    .resize({
+      width: MAX_WIDTH,
+      height: MAX_HEIGHT,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: JPEG_QUALITY, mozjpeg: true })
+    .toBuffer();
+
+  return { buffer: outputBuffer, contentType: "image/jpeg", extension: "jpg" };
+}
 
 export async function submitNomination(formData: FormData) {
   if (!adminSupabase) {
@@ -24,21 +47,31 @@ export async function submitNomination(formData: FormData) {
 
   let photo_url: string | null = null;
   if (photo && photo.size > 0) {
-    const ext = photo.name.split(".").pop();
-    const filename = `${Date.now()}-nomination.${ext}`;
-    const { data, error: uploadError } = await adminSupabase.storage
-      .from("contestants")
-      .upload(filename, photo, { upsert: true });
+    try {
+      const arrayBuffer = await photo.arrayBuffer();
+      const { buffer, contentType, extension } = await compressImage(arrayBuffer);
 
-    if (uploadError) {
-      console.error("Nomination photo upload failed:", uploadError.message);
+      const safeBase = nominee_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+      const filename = `${Date.now()}-${safeBase}.${extension}`;
+
+      const { data, error: uploadError } = await adminSupabase.storage
+        .from(BUCKET)
+        .upload(filename, buffer, { contentType, upsert: false });
+
+      if (uploadError) {
+        console.error("Nomination photo upload failed:", uploadError.message);
+        redirect("/nominate?error=Photo upload failed. Please try again.");
+        return;
+      }
+
+      if (data) {
+        const { data: urlData } = adminSupabase.storage.from(BUCKET).getPublicUrl(filename);
+        photo_url = urlData.publicUrl;
+      }
+    } catch (err) {
+      console.error("Nomination photo compression/upload failed:", err);
       redirect("/nominate?error=Photo upload failed. Please try again.");
       return;
-    }
-
-    if (data) {
-      const { data: urlData } = adminSupabase.storage.from("contestants").getPublicUrl(filename);
-      photo_url = urlData.publicUrl;
     }
   }
 
