@@ -45,12 +45,12 @@ export function SiteNav({ siteTitle, logo }: { siteTitle?: string; logo?: string
           MAIN NAVBAR - floating pill, matches homepage hero
       ========================== */}
       <div className="relative z-50 bg-[#FAF9F6] px-4 pt-4 pb-2 sm:px-6 sm:pt-6">
-        <nav className="max-w-7xl mx-auto flex items-center justify-between rounded-full bg-[#FAF9F6] border border-[#0B132B]/[0.06] shadow-lg shadow-[#0B132B]/[0.06] px-5 py-3 sm:px-7 sm:py-4">
+        <nav className="max-w-sm mx-auto flex items-center justify-between rounded-full bg-[#FAF9F6] border border-[#0B132B]/[0.06] shadow-lg shadow-[#0B132B]/[0.06] px-4 py-2 sm:px-5 sm:py-2.5">
           {logo && (
             <img
               src={logo}
               alt={siteTitle || "FUL Logo"}
-              className="h-10 w-auto object-contain"
+              className="h-7 w-auto object-contain"
             />
           )}
 
@@ -60,11 +60,11 @@ export function SiteNav({ siteTitle, logo }: { siteTitle?: string; logo?: string
             onClick={() => setOpen(true)}
             aria-label="Open menu"
             aria-expanded={open}
-            className="flex flex-col justify-center gap-[5px] w-10 h-10 p-2 text-[#0B132B] transition-opacity duration-200 hover:opacity-60 active:scale-95"
+            className="flex flex-col justify-center gap-[4px] w-7 h-7 p-1 text-[#0B132B] transition-opacity duration-200 hover:opacity-60 active:scale-95"
           >
-            <span className="block w-7 h-[2px] bg-current rounded-full" />
-            <span className="block w-7 h-[2px] bg-current rounded-full" />
-            <span className="block w-7 h-[2px] bg-current rounded-full" />
+            <span className="block w-5 h-[1.5px] bg-current rounded-full" />
+            <span className="block w-5 h-[1.5px] bg-current rounded-full" />
+            <span className="block w-5 h-[1.5px] bg-current rounded-full" />
           </button>
         </nav>
       </div>
@@ -110,23 +110,26 @@ export function SiteNav({ siteTitle, logo }: { siteTitle?: string; logo?: string
         `}
       >
         {/* MENU HEADER */}
-        <div className="px-5 py-4 sm:px-8 sm:py-5">
+        <div className="px-5 py-3 sm:px-8 sm:py-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
+
+            {/* Branding */}
             {logo && (
               <img
                 src={logo}
                 alt={siteTitle || "FUL Logo"}
-                className="h-10 w-auto object-contain"
+                className="h-7 w-auto object-contain"
               />
             )}
 
+            {/* Close Button */}
             <button
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Close menu"
               className="
                 flex items-center justify-center
-                w-10 h-10
+                w-8 h-8
                 rounded-full
                 bg-[#0B132B]
                 text-[#FAF9F6]
@@ -136,21 +139,29 @@ export function SiteNav({ siteTitle, logo }: { siteTitle?: string; logo?: string
                 active:scale-95
               "
             >
-              <X size={19} strokeWidth={1.7} />
+              <X
+                size={15}
+                strokeWidth={1.7}
+              />
             </button>
+
           </div>
         </div>
 
+        {/* Gold Divider */}
         <div className="mx-5 sm:mx-8">
           <div className="max-w-7xl mx-auto h-px bg-gradient-to-r from-[#D4AF37]/60 via-[#D4AF37]/20 to-transparent" />
         </div>
 
         {/* MENU ITEMS */}
-        <div className="px-5 sm:px-8 pt-8 sm:pt-12 pb-12">
+        <div className="px-5 sm:px-8 pt-5 sm:pt-8 pb-8">
           <div className="max-w-7xl mx-auto">
+
             <div className="flex flex-col">
+
               {NAV_ITEMS.map((item) => {
                 const active = pathname === item.href;
+
                 return (
                   <Link
                     key={item.href}
@@ -162,22 +173,27 @@ export function SiteNav({ siteTitle, logo }: { siteTitle?: string; logo?: string
                       items-center
                       justify-between
                       gap-6
-                      py-5
-                      sm:py-6
+                      py-3.5
+                      sm:py-4
                       border-b
                       border-[#0B132B]/[0.08]
                       transition-all
                       duration-200
-                      ${active ? "text-[#9C7A1A]" : "text-[#0B132B]"}
+                      ${
+                        active
+                          ? "text-[#9C7A1A]"
+                          : "text-[#0B132B]"
+                      }
                     `}
                   >
+
+                    {/* Menu Label */}
                     <span
                       className="
-                        text-[20px]
-                        sm:text-[26px]
-                        md:text-[30px]
+                        text-[15px]
+                        sm:text-lg
                         leading-tight
-                        tracking-[-0.025em]
+                        tracking-[-0.01em]
                         font-normal
                         transition-transform
                         duration-200
@@ -187,39 +203,51 @@ export function SiteNav({ siteTitle, logo }: { siteTitle?: string; logo?: string
                       {item.label}
                     </span>
 
+                    {/* Simple Arrow */}
                     <span
                       className={`
                         flex-shrink-0
-                        text-[24px]
-                        sm:text-[28px]
+                        text-[16px]
+                        sm:text-lg
                         font-light
                         transition-all
                         duration-200
-                        ${active ? "text-[#D4AF37]" : "text-[#0B132B]/40"}
+                        ${
+                          active
+                            ? "text-[#D4AF37]"
+                            : "text-[#0B132B]/40"
+                        }
                         group-hover:text-[#D4AF37]
                         group-hover:translate-x-1
                       `}
                     >
                       →
                     </span>
+
                   </Link>
                 );
               })}
+
             </div>
+
           </div>
         </div>
 
         {/* MENU FOOTER */}
         <div className="px-5 sm:px-8 pb-8">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
+
             <p className="text-[10px] text-[#0B132B]/40 tracking-[0.1em] uppercase">
               Federal University Lokoja
             </p>
+
             <p className="text-[10px] text-[#0B132B]/40 tracking-[0.1em] uppercase">
               © 2026
             </p>
+
           </div>
         </div>
+
       </div>
     </>
   );
