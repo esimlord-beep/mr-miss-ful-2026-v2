@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, Crown } from "lucide-react";
+import Link from "next/link";
+import { X, Crown } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/awards", label: "FUL Awards 2026" },
@@ -12,7 +13,7 @@ const NAV_ITEMS = [
   { href: "/terms", label: "Terms & Privacy" },
 ];
 
-export function SiteNav({ siteTitle }: { siteTitle: string }) {
+export function SiteNav({ siteTitle }: { siteTitle?: string }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -50,50 +51,48 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
       {/* =========================
           MAIN NAVBAR
       ========================== */}
-      <nav className="relative z-50 bg-[#FAF9F6] border-b border-[#0B132B]/[0.06] px-4 py-3 sm:px-6">
+      <nav className="relative z-50 bg-[#FAF9F6] border-b border-[#0B132B]/[0.06] px-5 py-4 sm:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
 
           {/* Branding */}
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#D4AF37]/10">
               <Crown
-                size={15}
+                size={14}
                 strokeWidth={1.8}
                 className="text-[#D4AF37]"
               />
             </div>
 
-            <p className="text-[#0B132B]/80 font-medium text-[13px] tracking-[0.06em] uppercase">
-              FUL 2026
+            <p className="text-[#0B132B]/80 font-medium text-[12px] tracking-[0.06em] uppercase">
+              {siteTitle || "FUL 2026"}
             </p>
           </div>
 
-          {/* Menu Button */}
+          {/* Simple Menu Icon */}
           <button
             type="button"
             onClick={() => setOpen(true)}
             aria-label="Open menu"
             aria-expanded={open}
             className="
-              flex items-center gap-2
-              rounded-full
-              bg-[#0B132B]
-              px-5 py-2.5
-              text-[#FAF9F6]
-              text-[12px]
-              font-medium
-              transition-all
+              flex
+              flex-col
+              justify-center
+              gap-[5px]
+              w-10
+              h-10
+              p-2
+              text-[#0B132B]
+              transition-opacity
               duration-200
-              hover:bg-[#0B132B]/90
-              active:scale-[0.97]
+              hover:opacity-60
+              active:scale-95
             "
           >
-            <span>Menu</span>
-
-            <Menu
-              size={17}
-              strokeWidth={1.7}
-            />
+            <span className="block w-7 h-[2px] bg-current rounded-full" />
+            <span className="block w-7 h-[2px] bg-current rounded-full" />
+            <span className="block w-7 h-[2px] bg-current rounded-full" />
           </button>
 
         </div>
@@ -159,7 +158,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
               </div>
 
               <p className="text-[#0B132B]/80 font-medium text-[13px] tracking-[0.06em] uppercase">
-                FUL 2026
+                {siteTitle || "FUL 2026"}
               </p>
             </div>
 
@@ -209,7 +208,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
                 const active = pathname === item.href;
 
                 return (
-                  <a
+                  <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
@@ -236,9 +235,9 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
                     {/* Menu Label */}
                     <span
                       className="
-                        text-[24px]
-                        sm:text-[32px]
-                        md:text-[38px]
+                        text-[20px]
+                        sm:text-[26px]
+                        md:text-[30px]
                         leading-tight
                         tracking-[-0.025em]
                         font-normal
@@ -272,7 +271,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
                       →
                     </span>
 
-                  </a>
+                  </Link>
                 );
               })}
 
