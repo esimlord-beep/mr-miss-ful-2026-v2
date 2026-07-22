@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Users, X, Crown } from "lucide-react";
+import { ArrowRight, Users, X } from "lucide-react";
 import Link from "next/link";
 
 const NAV_ITEMS = [
@@ -70,13 +70,18 @@ export function Hero({
         {/* NAV inside hero */}
         <nav className="relative z-50 px-5 py-4 sm:px-8">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#D4AF37]/10">
-                <Crown size={14} strokeWidth={1.8} className="text-[#D4AF37]" />
-              </div>
-              <p className="text-[#0B132B]/80 font-medium text-[12px] tracking-[0.06em] uppercase">
-                {siteTitle}
-              </p>
+            <div className="flex items-center">
+              {logo ? (
+                <img
+                  src={logo}
+                  alt="FUL Logo"
+                  className="h-10 w-10 object-contain rounded-full"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-[#D4AF37]/10 flex items-center justify-center">
+                  <span className="text-[#D4AF37] text-xs font-black">FUL</span>
+                </div>
+              )}
             </div>
             <button
               type="button"
@@ -113,16 +118,6 @@ export function Hero({
             willChange: "transform, opacity",
           }}
         >
-          {logo && (
-            <div className="mb-5 flex justify-center animate-in fade-in duration-700">
-              <img
-                src={logo}
-                alt="Federal University Lokoja"
-                className="h-14 w-14 sm:h-16 sm:w-16 object-contain rounded-full ring-1 ring-[#0B132B]/10 shadow-md"
-              />
-            </div>
-          )}
-
           <div className="animate-in fade-in slide-in-from-top-1 duration-700 delay-75">
             <p className="text-[13px] sm:text-sm font-medium tracking-[0.08em] text-[#0B132B]/70">
               Federal University Lokoja
@@ -181,13 +176,18 @@ export function Hero({
       >
         <div className="px-5 py-4 sm:px-8 sm:py-5">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30">
-                <Crown size={15} strokeWidth={1.8} className="text-[#D4AF37]" />
-              </div>
-              <p className="text-[#0B132B]/80 font-medium text-[13px] tracking-[0.06em] uppercase">
-                {siteTitle}
-              </p>
+            <div className="flex items-center">
+              {logo ? (
+                <img
+                  src={logo}
+                  alt="FUL Logo"
+                  className="h-9 w-9 object-contain rounded-full"
+                />
+              ) : (
+                <div className="h-9 w-9 rounded-full bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30 flex items-center justify-center">
+                  <span className="text-[#D4AF37] text-xs font-black">FUL</span>
+                </div>
+              )}
             </div>
             <button
               type="button"
