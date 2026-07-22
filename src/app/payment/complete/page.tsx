@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { PartyPopper, XCircle, Loader2 } from "lucide-react";
 
 function PaymentCompleteContent() {
   const searchParams = useSearchParams();
@@ -38,23 +39,31 @@ function PaymentCompleteContent() {
   }, [reference]);
 
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-900 p-4">
-      <section className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-xl">
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-600 mb-2">Mr & Miss FUL 2026</p>
+    <main className="relative grid min-h-screen place-items-center overflow-hidden bg-[#FAF9F6] p-4">
+      <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[420px] w-[420px] rounded-full bg-[#D4AF37]/[0.10] blur-3xl" />
+      <div className="absolute top-1/3 -right-20 h-72 w-72 rounded-full bg-[#D4AF37]/[0.08] blur-3xl" />
+
+      <section className="relative w-full max-w-md rounded-3xl border border-[#0B132B]/[0.08] bg-white p-8 text-center shadow-xl shadow-[#0B132B]/[0.08]">
+        <p className="font-rounded text-xs font-bold uppercase tracking-[0.22em] text-[#B8901F] mb-2">Mr &amp; Miss FUL 2026</p>
 
         {status === "loading" && (
           <>
-            <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <h1 className="text-xl font-black text-slate-900">Verifying your payment...</h1>
+            <Loader2 size={40} strokeWidth={2} className="mx-auto mb-4 animate-spin text-[#D4AF37]" />
+            <h1 className="font-rounded text-xl font-bold text-[#0B132B]">Verifying your payment...</h1>
           </>
         )}
 
         {status === "success" && (
           <>
-            <div className="text-5xl mb-4">🎉</div>
-            <h1 className="text-2xl font-black text-slate-900">Vote Counted!</h1>
-            <p className="text-slate-500 mt-2 font-medium">{message}</p>
-            <Link href="/" className="mt-6 inline-block rounded-full bg-amber-500 px-6 py-3 text-sm font-black text-white hover:bg-amber-600">
+            <div
+              className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#D4AF37]/10"
+              style={{ filter: "drop-shadow(0 4px 10px rgba(212,175,55,0.25))" }}
+            >
+              <PartyPopper size={30} strokeWidth={1.75} className="text-[#B8901F]" />
+            </div>
+            <h1 className="font-rounded text-2xl font-extrabold text-[#0B132B]">Vote Counted!</h1>
+            <p className="text-[#0B132B]/55 mt-2 font-medium">{message}</p>
+            <Link href="/" className="mt-6 inline-flex items-center justify-center rounded-full bg-[#D4AF37] px-6 py-3 text-sm font-semibold text-[#0B132B] shadow-lg shadow-[#D4AF37]/25 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#D4AF37]/30">
               Back to Voting
             </Link>
           </>
@@ -62,10 +71,12 @@ function PaymentCompleteContent() {
 
         {status === "error" && (
           <>
-            <div className="text-5xl mb-4">❌</div>
-            <h1 className="text-2xl font-black text-slate-900">Something went wrong</h1>
-            <p className="text-slate-500 mt-2 font-medium">{message}</p>
-            <Link href="/" className="mt-6 inline-block rounded-full bg-slate-800 px-6 py-3 text-sm font-black text-white hover:bg-slate-900">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
+              <XCircle size={30} strokeWidth={1.75} className="text-red-500" />
+            </div>
+            <h1 className="font-rounded text-2xl font-extrabold text-[#0B132B]">Something went wrong</h1>
+            <p className="text-[#0B132B]/55 mt-2 font-medium">{message}</p>
+            <Link href="/" className="mt-6 inline-flex items-center justify-center rounded-full bg-[#0B132B] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#0B132B]/90">
               Back to Voting
             </Link>
           </>
