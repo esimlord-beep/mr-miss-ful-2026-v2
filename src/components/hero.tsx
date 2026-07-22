@@ -75,7 +75,7 @@ export function Hero({
                 <img
                   src={logo}
                   alt="FUL Logo"
-                  className="h-10 w-10 object-contain rounded-full"
+                  className="h-8 w-auto object-contain"
                 />
               ) : (
                 <div className="h-10 w-10 rounded-full bg-[#D4AF37]/10 flex items-center justify-center">
@@ -181,7 +181,7 @@ export function Hero({
                 <img
                   src={logo}
                   alt="FUL Logo"
-                  className="h-9 w-9 object-contain rounded-full"
+                  className="h-8 w-auto object-contain"
                 />
               ) : (
                 <div className="h-9 w-9 rounded-full bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30 flex items-center justify-center">
