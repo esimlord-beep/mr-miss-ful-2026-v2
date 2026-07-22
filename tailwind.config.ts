@@ -12,7 +12,8 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-manrope)", "sans-serif"],
-        serif: ["var(--font-cinzel)", "serif"]
+        serif: ["var(--font-cinzel)", "serif"],
+        rounded: ["var(--font-baloo)", "sans-serif"]
       },
       boxShadow: {
         premium: "0 24px 70px rgba(15, 23, 42, 0.12)"
