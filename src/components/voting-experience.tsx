@@ -2,6 +2,7 @@
 
 import { useState, useRef, useMemo, useEffect } from "react";
 import Image from "next/image";
+import { Lock, X, Eye } from "lucide-react";
 import { Hero } from "@/components/hero";
 import { Podium } from "@/components/podium";
 import { ProfileOverlay } from "@/components/profile-overlay";
@@ -108,7 +109,7 @@ export function VotingExperience({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-amber-200">
+    <div className="min-h-screen bg-[#F5F3EE] text-[#0B132B] selection:bg-[#D4AF37]/30">
       <Hero 
         onExplore={() => contestantsRef.current?.scrollIntoView({ behavior: "smooth" })} 
         onVote={() => contestantsRef.current?.scrollIntoView({ behavior: "smooth" })}
@@ -116,19 +117,20 @@ export function VotingExperience({
       />
 
       {votingClosed && (
-        <div className="bg-red-50 border-b border-red-200 py-3 text-center">
-          <p className="text-sm font-bold text-red-600">🔒 Voting is currently closed.</p>
+        <div className="border-b py-3 text-center flex items-center justify-center gap-1.5" style={{ backgroundColor: "#FEF2F2", borderColor: "#FECACA" }}>
+          <Lock size={13} strokeWidth={2.5} className="text-red-500" />
+          <p className="text-sm font-bold text-red-600">Voting is currently closed.</p>
         </div>
       )}
 
       {/* Live Leaderboard */}
       {topContestants.length > 0 && (
         <RevealOnScroll>
-          <section className="bg-slate-50 pb-14 px-4 sm:px-6 -mt-16 relative z-10">
-            <div className="mx-auto max-w-3xl bg-white p-8 rounded-3xl border border-slate-100 shadow-xl shadow-slate-900/5">
+          <section className="bg-[#F5F3EE] pb-14 px-4 sm:px-6 -mt-16 relative z-10">
+            <div className="mx-auto max-w-3xl bg-white p-8 rounded-3xl border border-[#0B132B]/[0.06] shadow-xl shadow-[#0B132B]/[0.06]">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Live Leaderboard</h2>
-                <p className="text-xs text-slate-400 font-medium">Currently leading the ranks</p>
+                <h2 className="font-rounded text-2xl font-extrabold tracking-tight text-[#0B132B]">Live Leaderboard</h2>
+                <p className="text-xs text-[#0B132B]/40 font-medium">Currently leading the ranks</p>
               </div>
               <Podium contestants={topContestants} />
             </div>
@@ -141,21 +143,21 @@ export function VotingExperience({
 
         <div>
           <RevealOnScroll className="mb-6">
-            <h2 className="text-xl font-bold text-slate-800">Featured Contestants</h2>
+            <h2 className="font-rounded text-xl font-bold text-[#0B132B]">Featured Contestants</h2>
           </RevealOnScroll>
 
           {filteredContestants.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl border border-slate-100 shadow-sm max-w-md mx-auto">
-              <p className="text-slate-500 font-medium">No contestants found in the system.</p>
+            <div className="text-center py-12 bg-white rounded-2xl border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04] max-w-md mx-auto">
+              <p className="text-[#0B132B]/50 font-medium">No contestants found in the system.</p>
             </div>
           ) : (
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {filteredContestants.map((contestant, index) => (
                 <RevealOnScroll key={contestant.id} delay={(index % 3) * 80}>
                 <div 
-                  className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                  className="overflow-hidden rounded-2xl border border-[#0B132B]/[0.06] bg-white shadow-sm shadow-[#0B132B]/[0.04] transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:shadow-[#0B132B]/[0.08]"
                 >
-                  <div className="aspect-[4/5] w-full bg-slate-100 relative">
+                  <div className="aspect-[4/5] w-full bg-[#F5F3EE] relative">
                     {contestant.photo_url ? (
                       <Image
                         src={contestant.photo_url}
@@ -165,48 +167,49 @@ export function VotingExperience({
                         className="object-cover"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-slate-400 font-medium">
+                      <div className="flex h-full w-full items-center justify-center text-[#0B132B]/40 font-medium">
                         No Image Available
                       </div>
                     )}
                   </div>
 
-                  <div className="p-6 text-slate-900">
-                    <h3 className="text-xl font-bold text-slate-900 mb-1">
+                  <div className="p-6 text-[#0B132B]">
+                    <h3 className="font-rounded text-xl font-bold text-[#0B132B] mb-1">
                       {contestant.full_name || contestant.name || "Unnamed Contestant"}
                     </h3>
-                    <p className="text-xs font-semibold text-amber-600 tracking-wider uppercase mb-3">
+                    <p className="text-xs font-semibold text-[#B8901F] tracking-wider uppercase mb-3">
                       {contestant.department || contestant.faculty || "General / Student"}
                     </p>
                     
                     {(contestant.bio || contestant.description) && (
-                      <p className="text-sm text-slate-600 line-clamp-2 mb-6">
+                      <p className="text-sm text-[#0B132B]/55 line-clamp-2 mb-6">
                         {contestant.bio || contestant.description}
                       </p>
                     )}
 
-                    <div className="flex flex-col space-y-3 border-t border-slate-100 pt-4">
+                    <div className="flex flex-col space-y-3 border-t border-[#0B132B]/[0.06] pt-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Total Votes</p>
-                          <p className="text-lg font-black text-slate-800">{contestant.votes ?? 0}</p>
+                          <p className="text-[10px] uppercase tracking-wider font-bold text-[#0B132B]/35">Total Votes</p>
+                          <p className="text-lg font-black text-[#0B132B]">{contestant.votes ?? 0}</p>
                         </div>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-2">
                         <button 
                           onClick={() => setViewingProfileOf(contestant)}
-                          className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer text-center"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#0B132B]/15 px-4 py-2 text-xs font-bold text-[#0B132B] hover:bg-[#0B132B]/[0.03] transition-colors cursor-pointer"
                         >
+                          <Eye size={13} strokeWidth={2} />
                           View Profile
                         </button>
                         <button 
                           onClick={() => openVoteModal(contestant)}
                           disabled={votingClosed}
-                          className={`rounded-xl px-4 py-2 text-xs font-bold text-white shadow-md transition-colors text-center ${
+                          className={`rounded-xl px-4 py-2 text-xs font-bold shadow-md transition-all text-center ${
                             votingClosed 
-                              ? "bg-slate-300 cursor-not-allowed" 
-                              : "bg-amber-500 shadow-amber-500/10 hover:bg-amber-600 cursor-pointer"
+                              ? "bg-[#0B132B]/10 text-[#0B132B]/35 cursor-not-allowed" 
+                              : "bg-[#D4AF37] text-[#0B132B] shadow-[#D4AF37]/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#D4AF37]/25 cursor-pointer"
                           }`}
                         >
                           {votingClosed ? "Voting Closed" : "Vote Now"}
@@ -228,41 +231,43 @@ export function VotingExperience({
       </RevealOnScroll>
 
       {votingFor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B132B]/60 backdrop-blur-sm p-4">
           <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="bg-amber-500 px-6 py-4 text-white flex justify-between items-center">
-              <h3 className="font-bold text-lg">Cast Your Vote</h3>
-              <button onClick={closeVoteModal} className="text-white hover:text-amber-100 font-bold text-sm bg-amber-600/50 w-7 h-7 rounded-full flex items-center justify-center">✕</button>
+            <div className="px-6 py-4 flex justify-between items-center" style={{ backgroundColor: "#0B132B" }}>
+              <h3 className="font-rounded font-bold text-lg" style={{ color: "#D4AF37" }}>Cast Your Vote</h3>
+              <button onClick={closeVoteModal} className="w-7 h-7 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: "rgba(212,175,55,0.2)" }}>
+                <X size={14} strokeWidth={2.5} />
+              </button>
             </div>
 
             <form onSubmit={handleFinalVoteSubmit} className="p-6 space-y-4">
               <div>
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Voting For</p>
-                <p className="font-bold text-slate-800 text-base">{votingFor.full_name || votingFor.name}</p>
+                <p className="text-xs font-medium text-[#0B132B]/40 uppercase tracking-wider mb-1">Voting For</p>
+                <p className="font-bold text-[#0B132B] text-base">{votingFor.full_name || votingFor.name}</p>
               </div>
-              <hr className="border-slate-100" />
+              <hr className="border-[#0B132B]/[0.08]" />
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Your Full Name</label>
-                <input type="text" required placeholder="John Doe" value={payerName} onChange={(e) => setPayerName(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-                <input type="email" required placeholder="johndoe@gmail.com" value={payerEmail} onChange={(e) => setPayerEmail(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
+                <label className="block text-xs font-bold text-[#0B132B]/70 mb-1">Your Full Name</label>
+                <input type="text" required placeholder="John Doe" value={payerName} onChange={(e) => setPayerName(e.target.value)} className="w-full rounded-xl border border-[#0B132B]/15 px-3 py-2 text-sm text-[#0B132B] outline-none focus:border-[#D4AF37] transition-colors" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
-                <input type="tel" required placeholder="08012345678" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none" />
+                <label className="block text-xs font-bold text-[#0B132B]/70 mb-1">Email Address</label>
+                <input type="email" required placeholder="johndoe@gmail.com" value={payerEmail} onChange={(e) => setPayerEmail(e.target.value)} className="w-full rounded-xl border border-[#0B132B]/15 px-3 py-2 text-sm text-[#0B132B] outline-none focus:border-[#D4AF37] transition-colors" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-2">Number of Votes</label>
+                <label className="block text-xs font-bold text-[#0B132B]/70 mb-1">Phone Number</label>
+                <input type="tel" required placeholder="08012345678" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} className="w-full rounded-xl border border-[#0B132B]/15 px-3 py-2 text-sm text-[#0B132B] outline-none focus:border-[#D4AF37] transition-colors" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#0B132B]/70 mb-2">Number of Votes</label>
                 <div className="flex items-center space-x-4">
-                  <button type="button" onClick={() => setVoteQuantity(Math.max(1, voteQuantity - 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-slate-600 hover:bg-slate-200">-</button>
-                  <span className="text-base font-black text-slate-800 w-8 text-center">{voteQuantity}</span>
-                  <button type="button" onClick={() => setVoteQuantity(Math.min(1000, voteQuantity + 1))} className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-slate-600 hover:bg-slate-200">+</button>
+                  <button type="button" onClick={() => setVoteQuantity(Math.max(1, voteQuantity - 1))} className="flex h-10 w-10 items-center justify-center rounded-xl text-lg font-bold text-[#0B132B]" style={{ backgroundColor: "#F5F3EE" }}>-</button>
+                  <span className="text-base font-black text-[#0B132B] w-8 text-center">{voteQuantity}</span>
+                  <button type="button" onClick={() => setVoteQuantity(Math.min(1000, voteQuantity + 1))} className="flex h-10 w-10 items-center justify-center rounded-xl text-lg font-bold text-[#0B132B]" style={{ backgroundColor: "#F5F3EE" }}>+</button>
                 </div>
               </div>
-              <p className="text-xs text-slate-400 text-center">Protected by reCAPTCHA</p>
-              <button type="submit" disabled={loading} className="w-full rounded-xl bg-amber-500 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/10 transition-colors hover:bg-amber-600 disabled:bg-slate-300">
+              <p className="text-xs text-[#0B132B]/40 text-center">Protected by reCAPTCHA</p>
+              <button type="submit" disabled={loading} className="w-full rounded-full py-3 text-sm font-semibold shadow-lg transition-all disabled:opacity-70" style={{ backgroundColor: loading ? "#0B132B1A" : "#D4AF37", color: loading ? "#0B132B66" : "#0B132B", boxShadow: loading ? "none" : "0 10px 20px rgba(212,175,55,0.25)" }}>
                 {loading ? "Processing Payment..." : "Proceed to Pay"}
               </button>
             </form>
