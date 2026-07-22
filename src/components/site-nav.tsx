@@ -2,16 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, Drama, Trophy, MessageCircle, FileText, PenSquare, Crown } from "lucide-react";
+import { Menu, X, Trophy, Drama, MessageCircle, FileText, Crown } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Mr & Miss FUL Voting", icon: Drama },
   { href: "/awards", label: "FUL Awards 2026", icon: Trophy },
-  { href: "/nominate", label: "Nominate for Awards", icon: PenSquare },
+  { href: "/", label: "Mr & Miss FUL Voting", icon: Drama },
   { href: "/contact", label: "Contact & Support", icon: MessageCircle },
   { href: "/terms", label: "Terms & Privacy", icon: FileText },
 ];
-
 
 export function SiteNav({ siteTitle }: { siteTitle: string }) {
   const [open, setOpen] = useState(false);
@@ -37,13 +35,13 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
   }, [open]);
 
   return (
-    <nav className="relative bg-[#0B132B] px-4 py-3 sm:px-6">
+    <nav className="relative bg-[#FAF9F6] border-b border-[#0B132B]/[0.06] px-4 py-3 sm:px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30">
             <Crown size={14} strokeWidth={2} className="text-[#D4AF37]" />
           </div>
-          <p className="text-white/90 font-medium text-[13px] tracking-[0.06em] uppercase">
+          <p className="text-[#0B132B]/80 font-medium text-[13px] tracking-[0.06em] uppercase">
             FUL 2026
           </p>
         </div>
@@ -51,7 +49,7 @@ export function SiteNav({ siteTitle }: { siteTitle: string }) {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open menu"
-          className="p-2 -mr-2 text-white/90 hover:text-white transition-colors"
+          className="p-2 -mr-2 text-[#0B132B]/70 hover:text-[#0B132B] transition-colors"
         >
           <Menu size={22} strokeWidth={1.75} />
         </button>
