@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { PartyPopper, XCircle, Loader2 } from "lucide-react";
 
 function AwardCompleteContent() {
   const searchParams = useSearchParams();
@@ -41,23 +42,28 @@ function AwardCompleteContent() {
   }, [reference]);
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-xl">
-        <p className="text-xs font-black uppercase tracking-widest text-amber-600 mb-2">FUL AWARDS 2026</p>
+    <div className="relative min-h-screen overflow-hidden bg-[#FAF9F6] flex items-center justify-center p-4">
+      <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[420px] w-[420px] rounded-full bg-[#D4AF37]/[0.10] blur-3xl" />
+      <div className="absolute top-1/3 -right-20 h-72 w-72 rounded-full bg-[#D4AF37]/[0.08] blur-3xl" />
+
+      <div className="relative bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-xl shadow-[#0B132B]/[0.08] border border-[#0B132B]/[0.08]">
+        <p className="font-rounded text-xs font-bold uppercase tracking-widest text-[#B8901F] mb-2">FUL Awards 2026</p>
 
         {status === "loading" && (
           <>
-            <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <h2 className="text-xl font-black text-slate-900">Verifying your vote...</h2>
+            <Loader2 size={40} strokeWidth={2} className="mx-auto mb-4 animate-spin text-[#D4AF37]" />
+            <h2 className="font-rounded text-xl font-bold text-[#0B132B]">Verifying your vote...</h2>
           </>
         )}
 
         {status === "success" && (
           <>
-            <div className="text-5xl mb-4">🎉</div>
-            <h2 className="text-2xl font-black text-slate-900">Vote Counted!</h2>
-            <p className="text-slate-500 mt-2 font-medium">{message}</p>
-            <a href="/awards" className="mt-6 inline-block rounded-full bg-amber-500 px-6 py-3 text-sm font-black text-white hover:bg-amber-600">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#D4AF37]/10">
+              <PartyPopper size={30} strokeWidth={1.75} className="text-[#B8901F]" />
+            </div>
+            <h2 className="font-rounded text-2xl font-extrabold text-[#0B132B]">Vote Counted!</h2>
+            <p className="text-[#0B132B]/55 mt-2 font-medium">{message}</p>
+            <a href="/awards" className="mt-6 inline-flex items-center justify-center rounded-full bg-[#D4AF37] px-6 py-3 text-sm font-semibold text-[#0B132B] shadow-lg shadow-[#D4AF37]/25 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#D4AF37]/30">
               Back to Awards
             </a>
           </>
@@ -65,10 +71,12 @@ function AwardCompleteContent() {
 
         {status === "error" && (
           <>
-            <div className="text-5xl mb-4">❌</div>
-            <h2 className="text-2xl font-black text-slate-900">Something went wrong</h2>
-            <p className="text-slate-500 mt-2 font-medium">{message}</p>
-            <a href="/awards" className="mt-6 inline-block rounded-full bg-slate-800 px-6 py-3 text-sm font-black text-white hover:bg-slate-900">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
+              <XCircle size={30} strokeWidth={1.75} className="text-red-500" />
+            </div>
+            <h2 className="font-rounded text-2xl font-extrabold text-[#0B132B]">Something went wrong</h2>
+            <p className="text-[#0B132B]/55 mt-2 font-medium">{message}</p>
+            <a href="/awards" className="mt-6 inline-flex items-center justify-center rounded-full bg-[#0B132B] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#0B132B]/90">
               Back to Awards
             </a>
           </>
