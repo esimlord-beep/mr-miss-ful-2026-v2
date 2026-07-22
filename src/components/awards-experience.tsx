@@ -3,6 +3,23 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { RevealOnScroll } from "@/components/reveal-on-scroll";
+import {
+  Crown,
+  GraduationCap,
+  Mic2,
+  Trophy as TrophyIcon,
+  Camera,
+  Sparkles,
+  Briefcase,
+  Search,
+  Lock,
+  CheckCircle2,
+  Share2,
+  MessageCircle,
+  Copy,
+  X,
+  ArrowRight,
+} from "lucide-react";
 
 declare global {
   interface Window {
@@ -40,14 +57,14 @@ export function AwardsExperience({
 
   const categoryIcon = (name: string) => {
     const n = name.toLowerCase();
-    if (n.includes("leadership") || n.includes("executive") || n.includes("president") || n.includes("secretary") || n.includes("treasurer") || n.includes("leader") || n.includes("pro ") || n.includes("director")) return "👑";
-    if (n.includes("academic") || n.includes("lecturer") || n.includes("course") || n.includes("tutor")) return "🎓";
-    if (n.includes("music") || n.includes("entertain") || n.includes("mc ") || n.includes("comedian")) return "🎤";
-    if (n.includes("sport") || n.includes("athlete")) return "⚽";
-    if (n.includes("photo")) return "📷";
-    if (n.includes("art") || n.includes("fashion") || n.includes("dressed") || n.includes("style")) return "🎭";
-    if (n.includes("business") || n.includes("entrepreneur") || n.includes("hustle")) return "💼";
-    return "🏆";
+    if (n.includes("leadership") || n.includes("executive") || n.includes("president") || n.includes("secretary") || n.includes("treasurer") || n.includes("leader") || n.includes("pro ") || n.includes("director")) return Crown;
+    if (n.includes("academic") || n.includes("lecturer") || n.includes("course") || n.includes("tutor")) return GraduationCap;
+    if (n.includes("music") || n.includes("entertain") || n.includes("mc ") || n.includes("comedian")) return Mic2;
+    if (n.includes("sport") || n.includes("athlete")) return TrophyIcon;
+    if (n.includes("photo")) return Camera;
+    if (n.includes("art") || n.includes("fashion") || n.includes("dressed") || n.includes("style")) return Sparkles;
+    if (n.includes("business") || n.includes("entrepreneur") || n.includes("hustle")) return Briefcase;
+    return TrophyIcon;
   };
 
   useEffect(() => {
@@ -144,8 +161,8 @@ export function AwardsExperience({
   };
 
     return (
-    <div className="min-h-screen" style={{ backgroundColor: "#F8F9FC" }}>
-      <div className="relative overflow-hidden py-7 px-4 text-center" style={{ backgroundColor: "#FAF9F6" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "#F5F3EE" }}>
+      <div className="relative overflow-hidden pt-14 pb-8 px-4 text-center" style={{ backgroundColor: "#FAF9F6" }}>
         <div
           className="absolute inset-0 opacity-70 pointer-events-none"
           style={{
@@ -153,23 +170,24 @@ export function AwardsExperience({
           }}
         />
         <div className="relative">
-          <p className="text-[11px] font-black uppercase tracking-widest mb-1.5" style={{ color: "#B8901F" }}>Federal University Lokoja SUG</p>
-          <h1 className="text-2xl font-black" style={{ color: "#0B132B" }}>{settings.awards_title || "Awards Categories"}</h1>
-          <p className="mt-2 text-xs max-w-xs mx-auto" style={{ color: "#0B132B99" }}>{settings.awards_description || "Celebrate excellence. Vote for your favourite nominees."}</p>
+          <p className="font-rounded text-[11px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "#B8901F" }}>Federal University Lokoja SUG</p>
+          <h1 className="font-rounded text-2xl sm:text-3xl font-extrabold tracking-tight" style={{ color: "#0B132B" }}>{settings.awards_title || "Awards Categories"}</h1>
+          <p className="mt-2 text-[13px] max-w-xs mx-auto font-medium" style={{ color: "#0B132B99" }}>{settings.awards_description || "Celebrate excellence. Vote for your favourite nominees."}</p>
           <a
             href="#categories"
-            className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-full text-xs font-black transition-transform active:scale-95"
+            className="inline-flex items-center gap-1.5 mt-4 px-5 py-2.5 rounded-full text-xs font-bold transition-all hover:-translate-y-0.5 active:scale-95"
             style={{ backgroundColor: "#D4AF37", color: "#0B132B" }}
           >
-            🏆 Start Voting
+            <TrophyIcon size={14} strokeWidth={2.25} />
+            Start Voting
           </a>
         </div>
       </div>
 
       {votingClosed && (
-
-        <div className="bg-amber-50 border-b border-amber-200 py-3 text-center">
-          <p className="text-sm font-bold" style={{ color: "#92400E" }}>🔒 Voting is currently closed.</p>
+        <div className="border-b py-3 text-center flex items-center justify-center gap-1.5" style={{ backgroundColor: "#FEF3C7", borderColor: "#FDE68A" }}>
+          <Lock size={13} strokeWidth={2.5} style={{ color: "#92400E" }} />
+          <p className="text-sm font-bold" style={{ color: "#92400E" }}>Voting is currently closed.</p>
         </div>
       )}
 
@@ -182,12 +200,9 @@ export function AwardsExperience({
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search award categories..."
             className="w-full rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold outline-none shadow-sm transition-shadow focus:shadow-md"
-            style={{ border: "1px solid #E2E8F0", color: "#1E293B" }}
+            style={{ border: "1px solid #0B132B14", color: "#1E293B" }}
           />
-          <svg className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "#D4AF37" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <circle cx="11" cy="11" r="7" />
-            <path d="M21 21l-4.35-4.35" strokeLinecap="round" />
-          </svg>
+          <Search size={16} strokeWidth={2.5} className="absolute right-5 top-1/2 -translate-y-1/2" style={{ color: "#D4AF37" }} />
         </div>
         </RevealOnScroll>
       </div>
@@ -195,7 +210,7 @@ export function AwardsExperience({
       <main className="max-w-2xl mx-auto px-4 py-10">
         {categories.length === 0 ? (
           <div className="text-center py-20">
-            <p className="font-medium text-lg" style={{ color: "#64748B" }}>Award categories coming soon! 👑</p>
+            <p className="font-medium text-lg" style={{ color: "#64748B" }}>Award categories coming soon!</p>
           </div>
         ) : filteredCategories.length === 0 ? (
           <div className="text-center py-20">
@@ -215,14 +230,16 @@ export function AwardsExperience({
             return (
               <RevealOnScroll key={category.id} delay={(index % 4) * 60} className="mb-3 last:mb-0">
               <div className="transition-opacity duration-500 opacity-100">
-                {showGroupHeader && (
+                {showGroupHeader && (() => {
+                  const GroupIcon = categoryIcon(groupName);
+                  return (
                   <div className="mb-4 mt-8 first:mt-0 overflow-hidden" style={{ borderRadius: "16px" }}>
                     <div
                       className="px-5 py-4"
                       style={{ background: "linear-gradient(135deg, #0B132B 0%, #1C2541 100%)" }}
                     >
-                      <p className="text-base font-black text-white flex items-center gap-2">
-                        <span>{categoryIcon(groupName)}</span>
+                      <p className="font-rounded text-base font-bold text-white flex items-center gap-2">
+                        <GroupIcon size={16} strokeWidth={2} style={{ color: "#D4AF37" }} />
                         {groupName}
                       </p>
                       <p className="text-xs mt-1" style={{ color: "#94A3B8" }}>
@@ -231,7 +248,8 @@ export function AwardsExperience({
                     </div>
                     <div style={{ height: "3px", background: "linear-gradient(90deg, #D4AF37, #F4E4A1, #D4AF37)" }} />
                   </div>
-                )}
+                  );
+                })()}
 
                 <div
                   className="bg-white overflow-hidden transition-all duration-200 active:scale-[0.99]"
@@ -247,7 +265,14 @@ export function AwardsExperience({
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="text-lg leading-none shrink-0">{categoryIcon(category.name)}</span>
+                        {(() => {
+                          const CatIcon = categoryIcon(category.name);
+                          return (
+                            <span className="flex h-8 w-8 items-center justify-center rounded-full shrink-0" style={{ backgroundColor: "#D4AF3714" }}>
+                              <CatIcon size={15} strokeWidth={2} style={{ color: "#B8901F" }} />
+                            </span>
+                          );
+                        })()}
                         <div className="min-w-0">
                           <h3 className="font-bold text-sm leading-snug truncate" style={{ color: "#0B132B" }}>
                             {category.category_number ? `${category.category_number}. ` : ""}{category.name}
@@ -261,7 +286,7 @@ export function AwardsExperience({
                         className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full font-bold transition-transform duration-200"
                         style={{ backgroundColor: "#D4AF37", color: "#0B132B", transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}
                       >
-                        ➜
+                        <ArrowRight size={14} strokeWidth={2.5} />
                       </span>
                     </div>
 
@@ -274,8 +299,9 @@ export function AwardsExperience({
                               style={{ width: `${progressPct}%`, backgroundColor: "#D4AF37" }}
                             />
                           </div>
-                          <span className="text-[11px] font-bold mt-1 block" style={{ color: anyQualified ? "#15803D" : "#64748B" }}>
-                            {anyQualified ? `✅ Nominee qualified` : `Leading nominee: ${leaderVotes}/${category.minimum_votes} votes`}
+                          <span className="text-[11px] font-bold mt-1 flex items-center gap-1" style={{ color: anyQualified ? "#15803D" : "#64748B" }}>
+                            {anyQualified && <CheckCircle2 size={11} strokeWidth={2.5} />}
+                            {anyQualified ? `Nominee qualified` : `Leading nominee: ${leaderVotes}/${category.minimum_votes} votes`}
                           </span>
                         </div>
                       ) : (
@@ -327,10 +353,11 @@ export function AwardsExperience({
                                 <p className="font-bold text-sm truncate" style={{ color: "#1E293B" }}>
                                   {nominee.nominee_number ? `#${nominee.nominee_number} · ` : ""}{nominee.name}
                                 </p>
-                                <p className="text-[11px] mt-0.5" style={{ color: "#64748B" }}>🗳️ {nominee.votes || 0} votes</p>
+                                <p className="text-[11px] mt-0.5" style={{ color: "#64748B" }}>{nominee.votes || 0} votes</p>
                                 {(nominee.votes || 0) >= category.minimum_votes ? (
-                                  <span className="inline-block mt-1 text-[10px] font-black px-2 py-0.5 rounded-full" style={{ backgroundColor: "#DCFCE7", color: "#15803D" }}>
-                                    ✅ Qualified
+                                  <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-black px-2 py-0.5 rounded-full" style={{ backgroundColor: "#DCFCE7", color: "#15803D" }}>
+                                    <CheckCircle2 size={10} strokeWidth={2.5} />
+                                    Qualified
                                   </span>
                                 ) : (
                                   <span className="inline-block mt-1 text-[10px] font-semibold" style={{ color: "#94A3B8" }}>
@@ -341,11 +368,11 @@ export function AwardsExperience({
                               <div className="relative shrink-0">
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setShareOpenFor(shareOpenFor === nominee.id ? null : nominee.id); }}
-                                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs"
+                                  className="flex h-7 w-7 items-center justify-center rounded-full"
                                   style={{ backgroundColor: "#F8F9FC" }}
                                   aria-label="Share"
                                 >
-                                  🔗
+                                  <Share2 size={13} strokeWidth={2} style={{ color: "#0B132B" }} />
                                 </button>
                                 {shareOpenFor === nominee.id && (
                                   <div className="absolute right-0 top-8 z-10 w-40 rounded-xl bg-white shadow-lg py-1.5 overflow-hidden" style={{ border: "1px solid #E2E8F0" }}>
@@ -354,21 +381,27 @@ export function AwardsExperience({
                                       className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-50 flex items-center gap-2"
                                       style={{ color: "#1E293B" }}
                                     >
-                                      💬 WhatsApp
+                                      <MessageCircle size={13} strokeWidth={2} />
+                                      WhatsApp
                                     </button>
                                     <button
                                       onClick={(e) => { e.stopPropagation(); handleShare("twitter", nominee, category); }}
                                       className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-50 flex items-center gap-2"
                                       style={{ color: "#1E293B" }}
                                     >
-                                      𝕏 Twitter
+                                      <X size={12} strokeWidth={2.5} />
+                                      Twitter / X
                                     </button>
                                     <button
                                       onClick={(e) => { e.stopPropagation(); handleShare("copy", nominee, category); }}
                                       className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-50 flex items-center gap-2"
                                       style={{ color: "#1E293B" }}
                                     >
-                                      {copiedId === nominee.id ? "✅ Copied!" : "📋 Copy Link"}
+                                      {copiedId === nominee.id ? (
+                                        <><CheckCircle2 size={13} strokeWidth={2} /> Copied!</>
+                                      ) : (
+                                        <><Copy size={13} strokeWidth={2} /> Copy Link</>
+                                      )}
                                     </button>
                                   </div>
                                 )}
@@ -403,8 +436,10 @@ export function AwardsExperience({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
             <div className="px-6 py-4 flex justify-between items-center" style={{ backgroundColor: "#0B132B" }}>
-              <h3 className="font-bold text-lg" style={{ color: "#D4AF37" }}>Cast Your Vote</h3>
-              <button onClick={closeModal} className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-white" style={{ backgroundColor: "rgba(212,175,55,0.2)" }}>✕</button>
+              <h3 className="font-rounded font-bold text-lg" style={{ color: "#D4AF37" }}>Cast Your Vote</h3>
+              <button onClick={closeModal} className="w-7 h-7 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: "rgba(212,175,55,0.2)" }}>
+                <X size={14} strokeWidth={2.5} />
+              </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
