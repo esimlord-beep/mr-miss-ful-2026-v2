@@ -110,16 +110,15 @@ export function Hero({
           style={{ opacity: 1 - progress }}
         />
 
-      <div
-  className="relative mx-auto max-w-2xl px-6 pt-12 pb-11 sm:pt-16 sm:pb-14 text-left"
-  style={{
-    opacity,
-    transform: `translateY(${translateY}px) scale(${scale})`,
-    transition: "opacity 0.05s linear, transform 0.05s linear",
-    willChange: "transform, opacity",
-  }}
->
-
+        <div
+          className="relative mx-auto max-w-2xl px-6 pt-12 pb-11 sm:pt-16 sm:pb-14 text-left"
+          style={{
+            opacity,
+            transform: `translateY(${translateY}px) scale(${scale})`,
+            transition: "opacity 0.05s linear, transform 0.05s linear",
+            willChange: "transform, opacity",
+          }}
+        >
           <h1
             className="font-rounded text-[2.5rem] leading-[1.1] sm:text-[3.5rem] font-extrabold tracking-tight text-[#0B132B] animate-in fade-in slide-in-from-bottom-3 duration-700 delay-100"
             style={{
@@ -140,15 +139,18 @@ export function Hero({
             this year?
           </h1>
 
-          <p
-            className="mt-4 inline-block text-[15px] sm:text-lg font-semibold text-[#0B132B] bg-white/70 backdrop-blur-sm border border-white/80 rounded-2xl px-5 py-3 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150"
+          <div
+            className="mt-4 inline-block text-[#0B132B] bg-white/70 backdrop-blur-sm border border-white/80 rounded-2xl px-5 py-4 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150"
             style={{
               boxShadow:
                 "0 1px 0 rgba(255,255,255,0.9) inset, 0 1px 2px rgba(11,19,43,0.06), 0 8px 20px rgba(11,19,43,0.10), 0 2px 4px rgba(11,19,43,0.08)",
             }}
           >
-            {tagline}
-          </p>
+            <p className="text-[15px] sm:text-lg font-semibold">{tagline}</p>
+            <p className="mt-1 text-[13px] sm:text-base font-medium text-[#0B132B]/60">
+              Every vote counts, so cast yours before polls close.
+            </p>
+          </div>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center sm:items-start justify-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-300">
             <button
