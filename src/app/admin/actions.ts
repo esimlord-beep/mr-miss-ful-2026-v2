@@ -51,6 +51,24 @@ async function uploadPhoto(photo: File, name: string): Promise<string> {
  return data.publicUrl;
 }
 
+// Deletes a previously-uploaded photo from storage given its public URL.
+// Safe to call with null/undefined/malformed URLs — silently no-ops instead
+// of throwing, since a failed cleanup should never block the main action
+// (saving a contestant, updating settings, etc).
+async function deletePhoto(publicUrl: string | null | undefined): Promise<void> {
+ if (!adminSupabase || !publicUrl) return;
+ try {
+   const marker = `/storage/v1/object/public/${BUCKET}/`;
+   const idx = publicUrl.indexOf(marker);
+   if (idx === -1) return;
+   const path = decodeURIComponent(publicUrl.slice(idx + marker.length));
+   if (!path) return;
+   await adminSupabase.storage.from(BUCKET).remove([path]);
+ } catch {
+   // Cleanup best-effort only — never let a storage error break the caller.
+ }
+}
+
 export async function addContestant(formData: FormData) {
  if (!adminSupabase) throw new Error("Supabase service role key is not configured.");
 
@@ -109,7 +127,17 @@ export async function editContestant(formData: FormData) {
  const updates: Record<string, string> = { name, category, department, faculty, bio: bio || "—" };
 
  if (photo && photo.size > 0) {
+   const { data: existingContestant } = await adminSupabase
+     .from("contestants")
+     .select("photo_url")
+     .eq("id", id)
+     .maybeSingle();
+
    updates.photo_url = await uploadPhoto(photo, name);
+
+   // Only delete the old photo after the new one uploaded successfully,
+   // so a failed upload never leaves the contestant with no photo at all.
+   await deletePhoto(existingContestant?.photo_url);
  }
 
  const { error } = await adminSupabase.from("contestants").update(updates).eq("id", id);
@@ -130,10 +158,18 @@ export async function deleteContestant(formData: FormData) {
    redirect("/admin?error=" + encodeURIComponent("Missing contestant id."));
  }
 
- const { error } = await adminSupabase.from("contestants").delete().eq("id", id);
+ const { data: existingContestant } = await adminSupabase!
+   .from("contestants")
+   .select("photo_url")
+   .eq("id", id)
+   .maybeSingle();
+
+ const { error } = await adminSupabase!.from("contestants").delete().eq("id", id);
  if (error) {
    redirect("/admin?error=" + encodeURIComponent(`Could not delete contestant: ${error.message}`));
  }
+
+ await deletePhoto(existingContestant?.photo_url);
 
  revalidatePath("/admin");
  revalidatePath("/");
@@ -166,20 +202,22 @@ export async function saveSettings(formData: FormData) {
  if (awardsDescription) updates.awards_description = awardsDescription;
  if (paymentProvider) updates.payment_provider = paymentProvider;
 
+ const { data: existingSettings } = await adminSupabase.from("settings").select("id, primary_logo, secondary_logo").limit(1).maybeSingle();
+
  const logo = formData.get("logo") as File | null;
  if (logo && logo.size > 0) {
    updates.primary_logo = await uploadPhoto(logo, "hero-banner");
+   await deletePhoto(existingSettings?.primary_logo);
  }
 
  const logoSecondary = formData.get("logo_secondary") as File | null;
  if (logoSecondary && logoSecondary.size > 0) {
    updates.secondary_logo = await uploadPhoto(logoSecondary, "secondary-logo");
+   await deletePhoto(existingSettings?.secondary_logo);
  }
 
- const { data: existing } = await adminSupabase.from("settings").select("id").limit(1).maybeSingle();
-
- if (existing?.id) {
-   const { error } = await adminSupabase.from("settings").update(updates).eq("id", existing.id);
+ if (existingSettings?.id) {
+   const { error } = await adminSupabase.from("settings").update(updates).eq("id", existingSettings.id);
    if (error) throw new Error(`Could not save settings: ${error.message}`);
  } else {
    const { error } = await adminSupabase.from("settings").insert(updates);
