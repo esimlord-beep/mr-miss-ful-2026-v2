@@ -2,6 +2,24 @@ import { adminSupabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+const BUCKET = "contestants";
+
+// Deletes a previously-uploaded photo from storage given its public URL.
+// Best-effort only — a failed cleanup should never block the main action.
+async function deletePhoto(publicUrl: string | null | undefined): Promise<void> {
+  if (!adminSupabase || !publicUrl) return;
+  try {
+    const marker = `/storage/v1/object/public/${BUCKET}/`;
+    const idx = publicUrl.indexOf(marker);
+    if (idx === -1) return;
+    const path = decodeURIComponent(publicUrl.slice(idx + marker.length));
+    if (!path) return;
+    await adminSupabase.storage.from(BUCKET).remove([path]);
+  } catch {
+    // ignore — cleanup is best-effort
+  }
+}
+
 async function getPendingNominations() {
   if (!adminSupabase) return [];
   const { data } = await adminSupabase
@@ -79,6 +97,12 @@ async function rejectNomination(formData: FormData) {
   if (!adminSupabase) return;
   const id = String(formData.get("id"));
 
+  const { data: submission } = await adminSupabase
+    .from("nomination_submissions")
+    .select("photo_url")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await adminSupabase
     .from("nomination_submissions")
     .update({ status: "rejected", reviewed_at: new Date().toISOString() })
@@ -88,6 +112,9 @@ async function rejectNomination(formData: FormData) {
     redirect(`/admin/nominations?error=${encodeURIComponent(error.message)}`);
     return;
   }
+
+  // Photo is no longer needed once rejected — free up the storage.
+  await deletePhoto(submission?.photo_url);
 
   revalidatePath("/admin/nominations");
   redirect("/admin/nominations?saved=1");
