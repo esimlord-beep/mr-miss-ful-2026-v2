@@ -133,51 +133,30 @@ export async function sendVoteConfirmationEmail({
               </p>
             </div>
 
-            <hr style="border:none;border-top:1px solid #e2e8f0;margin-bottom:16px;" />
+   <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;" />
 
-            <hr style="border:none;border-top:1px solid #e2e8f0;margin:28px 0 20px;" />
+<div style="text-align:center;padding:8px 0 0;">
 
-<div style="text-align:center;">
-
-  ${
-    logoUrl
-      ? `<img src="${logoUrl}" alt="${eventLabel}" style="height:40px;width:auto;margin-bottom:12px;" />`
-      : ""
-  }
-
-  <p style="margin:0;font-size:15px;font-weight:700;color:#0B132B;">
-    FUL SUG Night 2026
+  <p style="font-size:12px;color:#94a3b8;line-height:1.7;margin:0;">
+    This is an automated confirmation email. Please keep it for your records.
   </p>
 
-  <p style="margin:8px 0 18px;font-size:13px;color:#64748b;line-height:1.6;">
-    Official voting and nomination platform for Mr &amp; Miss FUL 2026 and FUL Awards 2026.
-  </p>
-
-  <div style="margin-bottom:18px;">
-    <a href="https://fulsugnight.online"
-      style="display:inline-block;padding:10px 22px;background:#D4AF37;color:#0B132B;text-decoration:none;border-radius:8px;font-weight:700;">
-      Visit Website
-    </a>
-  </div>
-
-  <p style="font-size:12px;color:#64748b;line-height:1.8;margin:0;">
-    🌐 <a href="https://fulsugnight.online" style="color:#B8901F;text-decoration:none;">fulsugnight.online</a><br>
-    📧 <a href="mailto:support@fulsugnight.online" style="color:#B8901F;text-decoration:none;">support@fulsugnight.online</a><br>
-    📱 <a href="https://wa.me/2348105789086" style="color:#B8901F;text-decoration:none;">WhatsApp Support</a>
-  </p>
-
-  <p style="margin-top:18px;font-size:11px;color:#94a3b8;line-height:1.6;">
-    This is an automated confirmation email. Please keep it for your records.<br>
+  <p style="font-size:12px;color:#94a3b8;line-height:1.7;margin:8px 0 0;">
     © 2026 Mr &amp; Miss FUL. All rights reserved.
   </p>
 
-  <p style="margin-top:12px;font-size:11px;color:#64748b;">
-    Designed with ❤️ by
+  <p style="font-size:13px;color:#64748b;margin:18px 0 0;">
+    Designed with
+    <span style="color:#ef4444;">❤️</span>
+    by
     <a href="https://instagram.com/esimwebstudio"
-      style="color:#B8901F;font-weight:700;text-decoration:none;">
+       target="_blank"
+       style="color:#D4AF37;font-weight:700;text-decoration:none;">
       Esim Web Studio
     </a>
   </p>
+
+</div>
 
 </div>
 
