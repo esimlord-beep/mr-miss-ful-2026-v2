@@ -91,7 +91,7 @@ export default async function NominatePage({
                 </option>
                 {categories.map((cat: any) => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.group_name ? `${cat.group_name} — ` : ""}
+                    {cat.group_name ? `${cat.group_name}: ` : ""}
                     {cat.name}
                   </option>
                 ))}
