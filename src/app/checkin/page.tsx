@@ -1,7 +1,14 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { CheckCircle, XCircle, Loader2, QrCode } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  CheckCircle,
+  XCircle,
+  Loader2,
+  QrCode,
+  Camera,
+  CameraOff,
+} from "lucide-react";
 
 type ScanResult = {
   success: boolean;
@@ -18,94 +25,283 @@ export default function CheckInPage() {
   const [token, setToken] = useState("");
   const [result, setResult] = useState<ScanResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [scanning, setScanning] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
+  const scannerRef = useRef<any>(null);
 
   async function handleScan(qrToken: string) {
-    if (!qrToken.trim()) return;
+    if (!qrToken.trim() || loading) return;
+
     setLoading(true);
     setResult(null);
 
-    const res = await fetch("/api/checkin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ qr_token: qrToken.trim() })
-    });
+    try {
+      const res = await fetch("/api/checkin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          qr_token: qrToken.trim(),
+        }),
+      });
 
-    const data = await res.json();
-    setResult(data);
-    setLoading(false);
-    setToken("");
-    inputRef.current?.focus();
+      const data = await res.json();
+
+      setResult(data);
+      setToken("");
+    } catch (error) {
+      setResult({
+        success: false,
+        message: "Unable to connect to the check-in server.",
+      });
+    } finally {
+      setLoading(false);
+
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
   }
+
+  async function startScanner() {
+    if (scanning) return;
+
+    try {
+      const { Html5Qrcode } = await import("html5-qrcode");
+
+      const scanner = new Html5Qrcode("qr-reader");
+
+      scannerRef.current = scanner;
+
+      setScanning(true);
+      setResult(null);
+
+      await scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: {
+            width: 250,
+            height: 250,
+          },
+        },
+        async (decodedText: string) => {
+          // Stop scanner immediately after detecting QR
+          await stopScanner();
+
+          // Automatically check in the ticket
+          await handleScan(decodedText);
+        },
+        () => {
+          // Ignore scanning errors while camera is searching
+        }
+      );
+    } catch (error) {
+      console.error("Camera error:", error);
+
+      setScanning(false);
+
+      setResult({
+        success: false,
+        message:
+          "Unable to access the camera. Please allow camera permission and try again.",
+      });
+    }
+  }
+
+  async function stopScanner() {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        await scannerRef.current.clear();
+      } catch (error) {
+        console.error("Error stopping scanner:", error);
+      }
+
+      scannerRef.current = null;
+    }
+
+    setScanning(false);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current
+          .stop()
+          .then(() => scannerRef.current?.clear())
+          .catch(() => {});
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0B132B] px-4 py-12 flex flex-col items-center">
       <div className="w-full max-w-sm">
+
+        {/* HEADER */}
         <div className="text-center mb-8">
-          <QrCode className="mx-auto text-[#D4AF37] mb-3" size={40} />
-          <h1 className="text-2xl font-black text-white">Gate Check-In</h1>
-          <p className="text-white/50 text-sm mt-1">Mr & Miss FUL Night 2026</p>
+          <QrCode
+            className="mx-auto text-[#D4AF37] mb-3"
+            size={40}
+          />
+
+          <h1 className="text-2xl font-black text-white">
+            Gate Check-In
+          </h1>
+
+          <p className="text-white/50 text-sm mt-1">
+            Mr & Miss FUL Night 2026
+          </p>
         </div>
 
+        {/* CAMERA SCANNER */}
+        {scanning && (
+          <div className="bg-white/10 rounded-2xl p-4 mb-6">
+            <div
+              id="qr-reader"
+              className="overflow-hidden rounded-xl"
+            />
+
+            <button
+              onClick={stopScanner}
+              className="w-full mt-4 rounded-full bg-white/10 border border-white/20 px-6 py-3 text-sm font-black text-white flex items-center justify-center gap-2"
+            >
+              <CameraOff size={18} />
+              Stop Camera
+            </button>
+          </div>
+        )}
+
+        {/* SCAN BUTTON */}
+        {!scanning && (
+          <button
+            onClick={startScanner}
+            disabled={loading}
+            className="w-full mb-4 rounded-full bg-[#D4AF37] px-6 py-4 text-sm font-black text-[#0B132B] flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <Camera size={20} />
+            Scan QR Code
+          </button>
+        )}
+
+        {/* MANUAL ENTRY */}
         <div className="bg-white/10 rounded-2xl p-6 mb-6">
           <label className="block text-xs font-black uppercase tracking-widest text-white/50 mb-2">
-            Scan or Enter QR Token
+            Enter QR Token Manually
           </label>
+
           <input
             ref={inputRef}
             value={token}
-            onChange={e => setToken(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && handleScan(token)}
-            placeholder="Scan QR code here..."
+            onChange={(e) => setToken(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === "Enter" && handleScan(token)
+            }
+            placeholder="Enter QR token..."
             autoFocus
             className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-white font-semibold outline-none focus:border-[#D4AF37] placeholder:text-white/30 mb-3"
           />
+
           <button
             onClick={() => handleScan(token)}
             disabled={loading || !token.trim()}
-            className="w-full rounded-full bg-[#D4AF37] px-6 py-3 text-sm font-black text-[#0B132B] disabled:opacity-50"
+            className="w-full rounded-full bg-white/10 border border-white/20 px-6 py-3 text-sm font-black text-white disabled:opacity-50"
           >
-            {loading ? <Loader2 className="animate-spin mx-auto" size={18} /> : "Check In"}
+            {loading ? (
+              <Loader2
+                className="animate-spin mx-auto"
+                size={18}
+              />
+            ) : (
+              "Check In Manually"
+            )}
           </button>
         </div>
 
+        {/* RESULT */}
         {result && (
-          <div className={`rounded-2xl p-6 ${
-            result.success
-              ? "bg-green-500/10 border border-green-500/30"
-              : result.already_checked_in
-              ? "bg-amber-500/10 border border-amber-500/30"
-              : "bg-rose-500/10 border border-rose-500/30"
-          }`}>
+          <div
+            className={`rounded-2xl p-6 ${
+              result.success
+                ? "bg-green-500/10 border border-green-500/30"
+                : result.already_checked_in
+                ? "bg-amber-500/10 border border-amber-500/30"
+                : "bg-rose-500/10 border border-rose-500/30"
+            }`}
+          >
             <div className="flex items-center gap-3 mb-4">
               {result.success ? (
-                <CheckCircle className="text-green-400 flex-shrink-0" size={28} />
+                <CheckCircle
+                  className="text-green-400 flex-shrink-0"
+                  size={28}
+                />
               ) : (
-                <XCircle className="text-rose-400 flex-shrink-0" size={28} />
+                <XCircle
+                  className={
+                    result.already_checked_in
+                      ? "text-amber-400 flex-shrink-0"
+                      : "text-rose-400 flex-shrink-0"
+                  }
+                  size={28}
+                />
               )}
-              <p className={`font-black text-lg ${
-                result.success ? "text-green-400" : result.already_checked_in ? "text-amber-400" : "text-rose-400"
-              }`}>
-                {result.success ? "Admitted!" : result.already_checked_in ? "Already Checked In" : "Denied"}
+
+              <p
+                className={`font-black text-lg ${
+                  result.success
+                    ? "text-green-400"
+                    : result.already_checked_in
+                    ? "text-amber-400"
+                    : "text-rose-400"
+                }`}
+              >
+                {result.success
+                  ? "Admitted!"
+                  : result.already_checked_in
+                  ? "Already Checked In"
+                  : "Denied"}
               </p>
             </div>
+
             {result.buyer_name && (
               <div className="space-y-2">
-                <p className="text-white font-black text-xl">{result.buyer_name}</p>
+                <p className="text-white font-black text-xl">
+                  {result.buyer_name}
+                </p>
+
                 {result.tier_name && (
-                  <p className="text-white/70 text-sm font-semibold">{result.tier_name} · {result.seats_covered} seat{(result.seats_covered ?? 1) > 1 ? "s" : ""}</p>
-                )}
-                {result.ticket_code && (
-                  <p className="text-white/50 text-xs font-mono">{result.ticket_code}</p>
-                )}
-                {result.already_checked_in && result.checked_in_at && (
-                  <p className="text-amber-400 text-sm font-semibold">
-                    Checked in at {new Date(result.checked_in_at).toLocaleTimeString("en-NG", { timeStyle: "short" })}
+                  <p className="text-white/70 text-sm font-semibold">
+                    {result.tier_name} · {result.seats_covered} seat
+                    {(result.seats_covered ?? 1) > 1 ? "s" : ""}
                   </p>
                 )}
+
+                {result.ticket_code && (
+                  <p className="text-white/50 text-xs font-mono">
+                    {result.ticket_code}
+                  </p>
+                )}
+
+                {result.already_checked_in &&
+                  result.checked_in_at && (
+                    <p className="text-amber-400 text-sm font-semibold">
+                      Checked in at{" "}
+                      {new Date(
+                        result.checked_in_at
+                      ).toLocaleTimeString("en-NG", {
+                        timeStyle: "short",
+                      })}
+                    </p>
+                  )}
               </div>
             )}
-            <p className="text-white/60 text-sm mt-3">{result.message}</p>
+
+            <p className="text-white/60 text-sm mt-3">
+              {result.message}
+            </p>
           </div>
         )}
       </div>
