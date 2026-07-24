@@ -20,6 +20,7 @@ export default function TicketsPage() {
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTier, setSelectedTier] = useState<Tier | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const [step, setStep] = useState<Step>("select");
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [error, setError] = useState("");
@@ -78,6 +79,7 @@ export default function TicketsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         tierId: selectedTier.id,
+        quantity,
         buyerName: form.name,
         buyerEmail: form.email,
         buyerPhone: form.phone
@@ -146,6 +148,7 @@ export default function TicketsPage() {
   }
 
   if (step === "details" && selectedTier) {
+    const maxQty = Math.min(10, remaining(selectedTier)); // cap at 10 per purchase or remaining stock, whichever is smaller
     return (
       <div className="min-h-screen bg-[#FAF9F6] px-4 py-12">
         <div className="max-w-sm mx-auto">
@@ -154,8 +157,37 @@ export default function TicketsPage() {
           </button>
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-4">
             <p className="text-xs font-black uppercase tracking-widest text-[#D4AF37] mb-1">{selectedTier.name}</p>
-            <p className="text-2xl font-black text-[#0B132B]">₦{selectedTier.price.toLocaleString()}</p>
-            <p className="text-sm text-slate-500 mt-1">{selectedTier.seats_covered} seat{selectedTier.seats_covered > 1 ? "s" : ""}</p>
+            <p className="text-2xl font-black text-[#0B132B]">₦{selectedTier.price.toLocaleString()} <span className="text-sm font-semibold text-slate-400">each</span></p>
+            <p className="text-sm text-slate-500 mt-1">{selectedTier.seats_covered} seat{selectedTier.seats_covered > 1 ? "s" : ""} per ticket</p>
+
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">How many tickets?</label>
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-[#0B132B]"
+                >
+                  −
+                </button>
+                <span className="text-lg font-black text-[#0B132B] w-8 text-center">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg font-bold text-[#0B132B]"
+                >
+                  +
+                </button>
+                {maxQty < 10 && (
+                  <span className="text-xs text-slate-400 font-semibold">{maxQty} left</span>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-500">Total</span>
+              <span className="text-xl font-black text-[#0B132B]">₦{(selectedTier.price * quantity).toLocaleString()}</span>
+            </div>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
             <h2 className="font-black text-[#0B132B]">Your Details</h2>
@@ -178,6 +210,9 @@ export default function TicketsPage() {
                 placeholder="your@email.com"
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-[#D4AF37]"
               />
+              <p className="mt-1 text-[11px] text-slate-400">
+                {quantity > 1 ? `All ${quantity} tickets will be sent to this email.` : "Your ticket will be sent to this email."}
+              </p>
             </div>
             <div>
               <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Phone</label>
@@ -193,7 +228,7 @@ export default function TicketsPage() {
               onClick={handlePurchase}
               className="w-full rounded-full bg-[#D4AF37] px-6 py-3 text-sm font-black text-[#0B132B] hover:bg-[#C9A227]"
             >
-              Pay ₦{selectedTier.price.toLocaleString()}
+              Pay ₦{(selectedTier.price * quantity).toLocaleString()}
             </button>
           </div>
         </div>
@@ -232,7 +267,7 @@ export default function TicketsPage() {
                       ? "border-slate-100 opacity-60"
                       : "border-slate-200 hover:border-[#D4AF37]/50 cursor-pointer"
                   }`}
-                  onClick={() => !soldOut(tier) && (setSelectedTier(tier), setStep("details"))}
+                  onClick={() => !soldOut(tier) && (setSelectedTier(tier), setQuantity(1), setStep("details"))}
                 >
                   <div className="flex items-center justify-between">
                     <div>
