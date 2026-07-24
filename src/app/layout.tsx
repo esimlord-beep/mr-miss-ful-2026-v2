@@ -93,6 +93,13 @@ export default async function RootLayout({
               </a>
 
               <a
+                href="/tickets"
+                className="hover:text-amber-600 transition-colors"
+              >
+                Tickets
+              </a>
+
+              <a
                 href="/nominate"
                 className="hover:text-amber-600 transition-colors"
               >
