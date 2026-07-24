@@ -103,6 +103,7 @@ export async function POST(request: Request) {
       email: parsed.data.buyerEmail,
       amount: tier.price,
       reference,
+      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/tickets/complete`,
       metadata: {
         type: "ticket",
         tierId: tier.id,
