@@ -3,7 +3,7 @@ import { z } from "zod";
 import { verifyPaystackReference } from "@/lib/paystack";
 import { verifyFlutterwaveReference } from "@/lib/flutterwave";
 import { adminSupabase } from "@/lib/supabase";
-import { generateQrCodeDataUrl } from "@/lib/qr";
+import { generateTicketsPdf } from "@/lib/ticket-pdf";
 
 const schema = z.object({
   reference: z.string().min(6)
@@ -28,6 +28,14 @@ async function getActiveProvider(): Promise<"paystack" | "flutterwave"> {
   return data?.payment_provider === "flutterwave" ? "flutterwave" : "paystack";
 }
 
+function generateTicketCode(): string {
+  return `FUL-TCK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+}
+
+function generateQrToken(): string {
+  return crypto.randomUUID() + crypto.randomUUID();
+}
+
 export async function POST(request: Request) {
   if (!adminSupabase) {
     return NextResponse.json({ error: "Supabase service role is not configured." }, { status: 500 });
@@ -40,14 +48,19 @@ export async function POST(request: Request) {
 
   const reference = parsed.data.reference;
 
-  const { data: existing } = await adminSupabase
+  // A purchase of quantity N produces N ticket rows sharing this reference.
+  const { data: existingTickets } = await adminSupabase
     .from("tickets")
-    .select("id, verified")
-    .eq("transaction_reference", reference)
-    .maybeSingle();
+    .select("id, verified, ticket_code")
+    .eq("transaction_reference", reference);
 
-  if (existing?.verified) {
-    return NextResponse.json({ processed: true, message: "Ticket already verified." });
+  if (existingTickets && existingTickets.length > 0 && existingTickets.every((t) => t.verified)) {
+    return NextResponse.json({
+      processed: true,
+      message: "Tickets already verified.",
+      ticket_code: existingTickets[0].ticket_code,
+      quantity: existingTickets.length
+    });
   }
 
   try {
@@ -66,6 +79,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Ticket record is missing tier information." }, { status: 500 });
     }
 
+    const quantity = Math.max(1, Math.min(10, Number(metadata.quantity) || 1));
     const amountPaid = Number(verification.data.amount) / (provider === "flutterwave" ? 1 : 100);
 
     const { data: tier } = await adminSupabase
@@ -78,120 +92,177 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Ticket tier not found." }, { status: 404 });
     }
 
-    if (amountPaid < tier.price) {
+    const expectedAmount = Number(tier.price) * quantity;
+    if (amountPaid < expectedAmount) {
       return NextResponse.json({ error: "Paid amount does not match ticket price." }, { status: 400 });
     }
 
-    let ticket = existing;
+    let tickets = existingTickets ?? [];
 
-    if (!ticket) {
-      const ticketCode = `FUL-TCK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-      const qrToken = crypto.randomUUID() + crypto.randomUUID();
+    if (tickets.length === 0) {
+      const rowsToInsert = Array.from({ length: quantity }, () => ({
+        tier_id: metadata.tierId,
+        ticket_code: generateTicketCode(),
+        qr_token: generateQrToken(),
+        buyer_name: metadata.buyerName,
+        buyer_email: metadata.buyerEmail,
+        buyer_phone: metadata.buyerPhone,
+        seats_covered: tier.seats_covered,
+        transaction_reference: reference,
+        amount_paid: amountPaid / quantity, // split evenly across tickets for accounting
+        payment_provider: provider,
+        verified: false
+      }));
 
-      const { data: createdTicket, error: ticketError } = await adminSupabase
+      const { data: createdTickets, error: ticketError } = await adminSupabase
         .from("tickets")
-        .insert({
-          tier_id: metadata.tierId,
-          ticket_code: ticketCode,
-          qr_token: qrToken,
-          buyer_name: metadata.buyerName,
-          buyer_email: metadata.buyerEmail,
-          buyer_phone: metadata.buyerPhone,
-          seats_covered: tier.seats_covered,
-          transaction_reference: reference,
-          amount_paid: amountPaid,
-          payment_provider: provider,
-          verified: false
-        })
-        .select("id, verified")
-        .single();
+        .insert(rowsToInsert)
+        .select("id, verified, ticket_code");
 
       if (ticketError) {
-        console.error("Failed to insert ticket row", ticketError);
+        console.error("Failed to insert ticket rows", ticketError);
         throw ticketError;
       }
-      ticket = createdTicket;
+      tickets = createdTickets ?? [];
     }
 
     const { error: rpcError } = await adminSupabase.rpc("process_verified_ticket_purchase", {
-      p_ticket_id: ticket.id
+      p_ticket_ids: tickets.map((t) => t.id)
     });
 
     if (rpcError) {
       console.error("process_verified_ticket_purchase RPC failed", {
         rpcError,
-        ticketId: ticket.id
+        ticketIds: tickets.map((t) => t.id)
       });
       throw rpcError;
     }
 
-    const { data: fullTicket } = await adminSupabase
+    const { data: fullTickets } = await adminSupabase
       .from("tickets")
       .select("*, ticket_tiers(name)")
-      .eq("id", ticket.id)
-      .maybeSingle();
+      .in("id", tickets.map((t) => t.id));
 
-    try {
-      const apiKey = process.env.RESEND_API_KEY;
-      if (apiKey && fullTicket) {
-        const { data: settings } = await adminSupabase.from("settings").select("primary_logo").maybeSingle();
-        const logoUrl = settings?.primary_logo ?? null;
-
-        // Gate Check-In looks up tickets by qr_token (see /api/checkin), so the
-        // QR image sent to the buyer must encode qr_token, not ticket_code.
-        const qrCodeDataUrl = await generateQrCodeDataUrl(fullTicket.qr_token);
-        const qrCodeBase64 = qrCodeDataUrl.split(",")[1];
-
-        const emailResponse = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            from: "Mr & Miss FUL 2026 <tickets@fulsugnight.online>",
-            to: [fullTicket.buyer_email],
-            subject: `Your Ticket — ${fullTicket.ticket_code}`,
-            attachments: [
-              {
-                filename: "ticket-qr-code.png",
-                content: qrCodeBase64,
-                content_id: "ticket-qr-code"
-              }
-            ],
-            html: `
-              <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#FAF9F6;">
-                ${logoUrl ? `<img src="${logoUrl}" alt="FUL 2026" style="height:40px;margin-bottom:24px;" />` : ""}
-                <h2 style="color:#0B132B;margin:0 0 8px;">Your ticket is confirmed! 🎉</h2>
-                <p style="color:#555;margin:0 0 24px;">Hi ${fullTicket.buyer_name}, here's your ticket for the FUL Night 2026.</p>
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:24px;">
-                  <div style="text-align:center;margin-bottom:20px;">
-                    <img src="cid:ticket-qr-code" alt="Ticket QR Code" style="width:220px;height:220px;" />
-                    <p style="color:#888;font-size:12px;margin:8px 0 0;">Scan this at the gate</p>
-                  </div>
-                  <p style="margin:0 0 8px;"><strong>Ticket Code:</strong> ${fullTicket.ticket_code}</p>
-                  <p style="margin:0 0 8px;"><strong>Tier:</strong> ${fullTicket.ticket_tiers?.name}</p>
-                  <p style="margin:0 0 8px;"><strong>Seats:</strong> ${fullTicket.seats_covered}</p>
-                  <p style="margin:0 0 8px;"><strong>Amount Paid:</strong> ₦${Number(fullTicket.amount_paid).toLocaleString()}</p>
-                  <p style="margin:0;"><strong>Reference:</strong> ${reference}</p>
-                </div>
-                <p style="color:#555;font-size:13px;">Present the QR code above at the gate for check-in. See you there!</p>
-              </div>
-            `
-          })
-        });
-
-        if (!emailResponse.ok) {
-          console.error("Resend ticket email failed", await emailResponse.text());
-        }
+    if (fullTickets && fullTickets.length > 0) {
+      try {
+        await sendTicketsEmail(fullTickets, reference);
+      } catch (emailError) {
+        console.error("Ticket confirmation email failed to send", emailError);
       }
-    } catch (emailError) {
-      console.error("Ticket confirmation email failed to send", emailError);
     }
 
-    return NextResponse.json({ processed: true, ticket_code: fullTicket?.ticket_code });
+    return NextResponse.json({
+      processed: true,
+      ticket_code: fullTickets?.[0]?.ticket_code,
+      quantity: tickets.length
+    });
   } catch (error) {
     console.error("Ticket verification error", error);
     return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
+  }
+}
+
+async function sendTicketsEmail(fullTickets: any[], reference: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey || !adminSupabase) return;
+
+  const first = fullTickets[0];
+  const { data: settings } = await adminSupabase.from("settings").select("primary_logo").maybeSingle();
+  const logoUrl = settings?.primary_logo ?? null;
+
+  const pdfBuffer = await generateTicketsPdf(
+    fullTickets.map((t) => ({
+      ticketCode: t.ticket_code,
+      qrToken: t.qr_token,
+      tierName: t.ticket_tiers?.name ?? "Ticket",
+      seatsCovered: t.seats_covered,
+      buyerName: t.buyer_name
+    }))
+  );
+  const pdfBase64 = pdfBuffer.toString("base64");
+
+  const totalPaid = fullTickets.reduce((sum, t) => sum + Number(t.amount_paid), 0);
+  const quantity = fullTickets.length;
+  const ticketCodesList = fullTickets.map((t) => t.ticket_code).join(", ");
+
+  const emailResponse = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: "Mr & Miss FUL 2026 <tickets@fulsugnight.online>",
+      to: [first.buyer_email],
+      subject: quantity > 1 ? `Your ${quantity} Tickets — FUL Award Night 2026` : `Your Ticket — ${first.ticket_code}`,
+      attachments: [
+        {
+          filename: quantity > 1 ? "ful-tickets.pdf" : "ful-ticket.pdf",
+          content: pdfBase64
+        }
+      ],
+      html: `
+        <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:520px;margin:0 auto;background:#FAF9F6;">
+          <div style="background:#FAF9F6;padding:28px 24px;text-align:center;border-bottom:3px solid #D4AF37;">
+            ${logoUrl ? `<img src="${logoUrl}" alt="FUL Award Night 2026" style="height:44px;width:auto;margin-bottom:10px;" />` : ""}
+            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#B8901F;margin:0;">
+              FUL Award Night 2026
+            </p>
+          </div>
+          <div style="padding:28px 24px;">
+            <h1 style="font-size:20px;font-weight:800;margin:0 0 16px;color:#0B132B;">
+              ${quantity > 1 ? `Your ${quantity} tickets are confirmed` : "Your ticket is confirmed"}
+            </h1>
+            <p style="margin:0 0 16px;color:#0B132B;font-size:14px;">Hi ${first.buyer_name},</p>
+            <p style="margin:0 0 24px;color:#334155;font-size:14px;line-height:1.6;">
+              Thank you for your purchase. ${quantity > 1 ? `Your ${quantity} tickets are` : "Your ticket is"} attached to this email as a PDF — please present the QR code on each ticket at the entrance. Each ticket admits entry once only.
+            </p>
+            <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;">
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:10px 0;color:#64748b;">Ticket type</td>
+                <td style="padding:10px 0;font-weight:700;text-align:right;color:#0B132B;">${first.ticket_tiers?.name ?? "Ticket"}</td>
+              </tr>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:10px 0;color:#64748b;">Quantity</td>
+                <td style="padding:10px 0;font-weight:700;text-align:right;color:#0B132B;">${quantity}</td>
+              </tr>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:10px 0;color:#64748b;">Ticket codes</td>
+                <td style="padding:10px 0;font-weight:700;text-align:right;font-size:11px;color:#0B132B;">${ticketCodesList}</td>
+              </tr>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:10px 0;color:#64748b;">Amount paid</td>
+                <td style="padding:10px 0;font-weight:700;text-align:right;color:#0B132B;">₦${totalPaid.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0;color:#64748b;">Reference</td>
+                <td style="padding:10px 0;font-weight:700;text-align:right;font-size:11px;color:#0B132B;">${reference}</td>
+              </tr>
+            </table>
+            <div style="background:#F5F3EE;border-radius:12px;padding:16px;margin-bottom:24px;">
+              <p style="font-size:13px;font-weight:700;color:#0B132B;margin:0 0 6px;">Questions about this order?</p>
+              <p style="font-size:13px;color:#64748b;margin:0 0 8px;line-height:1.5;">
+                Reply to this email or reach our support team directly, and please include your reference number above.
+              </p>
+              <p style="font-size:13px;margin:0;">
+                <a href="mailto:support@fulsugnight.online" style="color:#B8901F;font-weight:700;text-decoration:none;">support@fulsugnight.online</a>
+                &nbsp;·&nbsp;
+                <a href="https://wa.me/2348105789086" style="color:#B8901F;font-weight:700;text-decoration:none;">WhatsApp support</a>
+              </p>
+            </div>
+            <hr style="border:none;border-top:1px solid #e2e8f0;margin-bottom:16px;" />
+            <p style="font-size:11px;color:#94a3b8;text-align:center;margin:0;line-height:1.6;">
+              This is an automated ticket receipt from FUL SUG Night. Replies go to our support team.<br/>
+              © 2026 Mr &amp; Miss FUL. All rights reserved.<br/>
+              Designed with ❤️ by Esim Web Studio
+            </p>
+          </div>
+        </div>
+      `
+    })
+  });
+
+  if (!emailResponse.ok) {
+    console.error("Resend ticket email failed", await emailResponse.text());
   }
 }
