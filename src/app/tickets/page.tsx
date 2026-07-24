@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Ticket, Users, CheckCircle, Loader2 } from "lucide-react";
+import { Ticket, CheckCircle, Loader2 } from "lucide-react";
 
 type Tier = {
   id: string;
@@ -238,18 +238,11 @@ export default function TicketsPage() {
                     <div>
                       <p className="font-black text-[#0B132B] text-lg">{tier.name}</p>
                       {tier.description && <p className="text-sm text-slate-500 mt-0.5">{tier.description}</p>}
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="flex items-center gap-1 text-xs font-semibold text-slate-400">
-                          <Users size={12} />
-                          {tier.seats_covered} seat{tier.seats_covered > 1 ? "s" : ""}
-                        </span>
-                        {!soldOut(tier) && (
-                          <span className="text-xs font-semibold text-slate-400">{remaining(tier)} left</span>
-                        )}
-                        {soldOut(tier) && (
+                      {soldOut(tier) && (
+                        <div className="mt-2">
                           <span className="text-xs font-black text-rose-500">SOLD OUT</span>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-black text-[#0B132B]">₦{tier.price.toLocaleString()}</p>
