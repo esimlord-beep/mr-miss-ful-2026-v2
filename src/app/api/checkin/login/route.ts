@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false }, { status: 401 });
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.set("checkin_auth", "true", {
     httpOnly: true,
     secure: true,
