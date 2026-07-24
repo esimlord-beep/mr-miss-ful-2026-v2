@@ -8,6 +8,7 @@ import { X } from "lucide-react";
 const NAV_ITEMS = [
   { href: "/awards", label: "FUL Awards 2026" },
   { href: "/", label: "Mr & Miss FUL Voting" },
+  { href: "/tickets", label: "Get Tickets" },
   { href: "/nominate", label: "Nominate for Awards" },
   { href: "/contact", label: "Contact & Support" },
   { href: "/terms", label: "Terms & Privacy" },
