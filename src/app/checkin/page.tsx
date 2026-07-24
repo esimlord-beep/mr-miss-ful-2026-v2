@@ -26,6 +26,7 @@ export default function CheckInPage() {
   const [result, setResult] = useState<ScanResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const scannerRef = useRef<any>(null);
@@ -65,71 +66,24 @@ export default function CheckInPage() {
     }
   }
 
-  async function startScanner() {
+  // Just flips the flag on — the actual camera/scanner setup happens in the
+  // effect below, once React has confirmed #qr-reader is in the DOM.
+  function startScanner() {
     if (scanning) return;
-
-    try {
-      const { Html5Qrcode } = await import("html5-qrcode");
-
-      const scanner = new Html5Qrcode("qr-reader");
-
-      scannerRef.current = scanner;
-
-      setScanning(true);
-      setResult(null);
-
-      await scanner.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: {
-            width: 250,
-            height: 250,
-          },
-        },
-        async (decodedText: string) => {
-          // Stop scanner immediately after detecting QR
-          await stopScanner();
-
-          // Automatically check in the ticket
-          await handleScan(decodedText);
-        },
-        () => {
-          // Ignore scanning errors while camera is searching
-        }
-      );
-    } catch (error) {
-      console.error("Camera error:", error);
-
-      setScanning(false);
-
-      const errName = error instanceof Error ? error.name : "";
-      const errMessage = error instanceof Error ? error.message : String(error);
-
-      let friendlyMessage = "Unable to access the camera. Please allow camera permission and try again.";
-      if (errName === "NotAllowedError") {
-        friendlyMessage = "Camera permission was denied. Go to Settings and allow camera access for this site.";
-      } else if (errName === "NotFoundError") {
-        friendlyMessage = "No camera was found on this device.";
-      } else if (errName === "NotReadableError") {
-        friendlyMessage = "Camera is already in use by another app. Close other apps using the camera and try again.";
-      } else if (errName === "OverconstrainedError") {
-        friendlyMessage = "This device doesn't support the requested camera mode.";
-      } else if (location.protocol !== "https:") {
-        friendlyMessage = "Camera access requires a secure (https) connection.";
-      }
-
-      setResult({
-        success: false,
-        message: `${friendlyMessage} (${errName || "Unknown"}: ${errMessage})`,
-      });
-    }
+    setResult(null);
+    setCameraError(null);
+    setScanning(true);
   }
 
   async function stopScanner() {
     if (scannerRef.current) {
       try {
-        await scannerRef.current.stop();
+        const state = scannerRef.current.getState?.();
+        // Only call stop() if the scanner is actually running — calling it
+        // on an already-stopped/never-started instance throws.
+        if (state === 2 /* Html5QrcodeScannerState.SCANNING */) {
+          await scannerRef.current.stop();
+        }
         await scannerRef.current.clear();
       } catch (error) {
         console.error("Error stopping scanner:", error);
@@ -140,6 +94,76 @@ export default function CheckInPage() {
 
     setScanning(false);
   }
+
+  // Runs AFTER React has rendered the #qr-reader div (because it only runs
+  // when `scanning` changes to true, which happens on the render after
+  // setScanning(true) is called). This is what fixes the "element not
+  // found" error — the previous version tried to start the scanner in the
+  // same synchronous call that set scanning to true, before the div existed.
+  useEffect(() => {
+    if (!scanning) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { Html5Qrcode } = await import("html5-qrcode");
+
+        if (cancelled) return;
+
+        const el = document.getElementById("qr-reader");
+        if (!el) {
+          throw new Error("Scanner container not found in the page.");
+        }
+
+        const scanner = new Html5Qrcode("qr-reader");
+        scannerRef.current = scanner;
+
+        await scanner.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+          },
+          async (decodedText: string) => {
+            await stopScanner();
+            await handleScan(decodedText);
+          },
+          () => {
+            // Ignore per-frame scan misses while camera is searching
+          }
+        );
+      } catch (error) {
+        console.error("Camera error:", error);
+
+        if (cancelled) return;
+
+        setScanning(false);
+
+        const errName = error instanceof Error ? error.name : "";
+        const errMessage = error instanceof Error ? error.message : String(error);
+
+        let friendlyMessage = "Unable to access the camera. Please allow camera permission and try again.";
+        if (errName === "NotAllowedError") {
+          friendlyMessage = "Camera permission was denied. Go to Settings and allow camera access for this site.";
+        } else if (errName === "NotFoundError") {
+          friendlyMessage = "No camera was found on this device.";
+        } else if (errName === "NotReadableError") {
+          friendlyMessage = "Camera is already in use by another app. Close other apps using the camera and try again.";
+        } else if (errName === "OverconstrainedError") {
+          friendlyMessage = "This device doesn't support the requested camera mode.";
+        } else if (location.protocol !== "https:") {
+          friendlyMessage = "Camera access requires a secure (https) connection.";
+        }
+
+        setCameraError(`${friendlyMessage} (${errName || "Unknown"}: ${errMessage})`);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [scanning]);
 
   useEffect(() => {
     return () => {
@@ -200,6 +224,12 @@ export default function CheckInPage() {
             <Camera size={20} />
             Scan QR Code
           </button>
+        )}
+
+        {cameraError && !scanning && (
+          <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300 font-semibold">
+            {cameraError}
+          </div>
         )}
 
         {/* MANUAL ENTRY */}
