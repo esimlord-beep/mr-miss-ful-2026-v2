@@ -3,6 +3,7 @@ import { z } from "zod";
 import { verifyPaystackReference } from "@/lib/paystack";
 import { verifyFlutterwaveReference } from "@/lib/flutterwave";
 import { adminSupabase } from "@/lib/supabase";
+import { generateQrCodeDataUrl } from "@/lib/qr";
 
 const schema = z.object({
   reference: z.string().min(6)
@@ -136,6 +137,11 @@ export async function POST(request: Request) {
         const { data: settings } = await adminSupabase.from("settings").select("primary_logo").maybeSingle();
         const logoUrl = settings?.primary_logo ?? null;
 
+        // Gate Check-In looks up tickets by qr_token (see /api/checkin), so the
+        // QR image sent to the buyer must encode qr_token, not ticket_code.
+        const qrCodeDataUrl = await generateQrCodeDataUrl(fullTicket.qr_token);
+        const qrCodeBase64 = qrCodeDataUrl.split(",")[1];
+
         const emailResponse = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
@@ -146,19 +152,30 @@ export async function POST(request: Request) {
             from: "Mr & Miss FUL 2026 <tickets@fulsugnight.online>",
             to: [fullTicket.buyer_email],
             subject: `Your Ticket — ${fullTicket.ticket_code}`,
+            attachments: [
+              {
+                filename: "ticket-qr-code.png",
+                content: qrCodeBase64,
+                content_id: "ticket-qr-code"
+              }
+            ],
             html: `
               <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#FAF9F6;">
                 ${logoUrl ? `<img src="${logoUrl}" alt="FUL 2026" style="height:40px;margin-bottom:24px;" />` : ""}
                 <h2 style="color:#0B132B;margin:0 0 8px;">Your ticket is confirmed! 🎉</h2>
                 <p style="color:#555;margin:0 0 24px;">Hi ${fullTicket.buyer_name}, here's your ticket for the FUL Night 2026.</p>
                 <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:24px;">
+                  <div style="text-align:center;margin-bottom:20px;">
+                    <img src="cid:ticket-qr-code" alt="Ticket QR Code" style="width:220px;height:220px;" />
+                    <p style="color:#888;font-size:12px;margin:8px 0 0;">Scan this at the gate</p>
+                  </div>
                   <p style="margin:0 0 8px;"><strong>Ticket Code:</strong> ${fullTicket.ticket_code}</p>
                   <p style="margin:0 0 8px;"><strong>Tier:</strong> ${fullTicket.ticket_tiers?.name}</p>
                   <p style="margin:0 0 8px;"><strong>Seats:</strong> ${fullTicket.seats_covered}</p>
                   <p style="margin:0 0 8px;"><strong>Amount Paid:</strong> ₦${Number(fullTicket.amount_paid).toLocaleString()}</p>
                   <p style="margin:0;"><strong>Reference:</strong> ${reference}</p>
                 </div>
-                <p style="color:#555;font-size:13px;">Present your ticket code at the gate. See you there!</p>
+                <p style="color:#555;font-size:13px;">Present the QR code above at the gate for check-in. See you there!</p>
               </div>
             `
           })
