@@ -83,13 +83,30 @@ export async function POST(request: Request) {
       );
     }
 
-    const metadata = verification.data.metadata;
+    // Paystack normally returns metadata as a parsed object, but some
+    // payment channels (observed with bank_transfer / OPay) return it as a
+    // raw JSON string instead. Handle both so candidateId isn't silently
+    // lost just because of the channel used.
+    let metadata: any = verification.data.metadata;
+    if (typeof metadata === "string") {
+      try {
+        metadata = JSON.parse(metadata);
+      } catch (parseError) {
+        console.error("Failed to parse string metadata from Paystack", {
+          reference,
+          rawMetadata: metadata,
+          parseError
+        });
+        metadata = null;
+      }
+    }
 
     if (!metadata?.candidateId) {
       console.error("Missing candidateId in payment metadata", {
         reference,
         provider,
-        metadata
+        rawMetadata: verification.data.metadata,
+        parsedMetadata: metadata
       });
       return NextResponse.json(
         { error: "Payment record is missing candidate information." },
