@@ -103,10 +103,25 @@ export default function CheckInPage() {
 
       setScanning(false);
 
+      const errName = error instanceof Error ? error.name : "";
+      const errMessage = error instanceof Error ? error.message : String(error);
+
+      let friendlyMessage = "Unable to access the camera. Please allow camera permission and try again.";
+      if (errName === "NotAllowedError") {
+        friendlyMessage = "Camera permission was denied. Go to Settings and allow camera access for this site.";
+      } else if (errName === "NotFoundError") {
+        friendlyMessage = "No camera was found on this device.";
+      } else if (errName === "NotReadableError") {
+        friendlyMessage = "Camera is already in use by another app. Close other apps using the camera and try again.";
+      } else if (errName === "OverconstrainedError") {
+        friendlyMessage = "This device doesn't support the requested camera mode.";
+      } else if (location.protocol !== "https:") {
+        friendlyMessage = "Camera access requires a secure (https) connection.";
+      }
+
       setResult({
         success: false,
-        message:
-          "Unable to access the camera. Please allow camera permission and try again.",
+        message: `${friendlyMessage} (${errName || "Unknown"}: ${errMessage})`,
       });
     }
   }
