@@ -6,6 +6,7 @@ import { adminSupabase } from "@/lib/supabase";
 
 const schema = z.object({
   tierId: z.string().min(1),
+  quantity: z.number().int().min(1).max(10).default(1),
   buyerName: z.string().min(2),
   buyerEmail: z.string().email(),
   buyerPhone: z.string().min(7),
@@ -89,8 +90,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Selected ticket tier was not found." }, { status: 404 });
   }
 
-  if (tier.quantity_sold >= tier.quantity_available) {
-    return NextResponse.json({ error: "This ticket tier is sold out." }, { status: 409 });
+  const remaining = tier.quantity_available - tier.quantity_sold;
+  if (remaining < parsed.data.quantity) {
+    return NextResponse.json({
+      error: remaining <= 0
+        ? "This ticket tier is sold out."
+        : `Only ${remaining} ticket(s) left in this tier.`
+    }, { status: 409 });
   }
 
   const reference = `FUL2026-TICKET-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
@@ -101,12 +107,13 @@ export async function POST(request: Request) {
 
     const result = await initializeFn({
       email: parsed.data.buyerEmail,
-      amount: tier.price,
+      amount: tier.price * parsed.data.quantity,
       reference,
       callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/tickets/complete`,
       metadata: {
         type: "ticket",
         tierId: tier.id,
+        quantity: parsed.data.quantity,
         buyerName: parsed.data.buyerName,
         buyerEmail: parsed.data.buyerEmail,
         buyerPhone: parsed.data.buyerPhone
