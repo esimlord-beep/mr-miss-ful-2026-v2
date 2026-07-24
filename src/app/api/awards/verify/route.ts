@@ -8,6 +8,19 @@ const schema = z.object({
   reference: z.string().min(6)
 });
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof (error as { message: unknown }).message === "string"
+  ) {
+    return (error as { message: string }).message;
+  }
+  return "Verification failed.";
+}
+
 async function getActiveProvider(): Promise<"paystack" | "flutterwave"> {
   if (!adminSupabase) return "paystack";
   const { data } = await adminSupabase.from("settings").select("payment_provider").maybeSingle();
@@ -42,6 +55,16 @@ export async function POST(request: Request) {
     }
 
     const metadata = verification.data.metadata;
+
+    if (!metadata?.categoryId || !metadata?.nomineeId) {
+      console.error("Missing categoryId/nomineeId in award payment metadata", {
+        reference,
+        provider,
+        metadata
+      });
+      return NextResponse.json({ error: "Payment record is missing category or nominee information." }, { status: 500 });
+    }
+
     const voteQuantity = Number(metadata.voteQuantity);
     const amountPaid = Number(verification.data.amount) / (provider === "flutterwave" ? 1 : 100);
 
@@ -77,7 +100,10 @@ export async function POST(request: Request) {
         .select("id, processed")
         .single();
 
-      if (paymentError) throw paymentError;
+      if (paymentError) {
+        console.error("Failed to insert award_payments row", paymentError);
+        throw paymentError;
+      }
       payment = createdPayment;
     }
 
@@ -88,10 +114,20 @@ export async function POST(request: Request) {
       p_votes_added: voteQuantity
     });
 
-    if (rpcError) throw rpcError;
+    if (rpcError) {
+      console.error("process_award_vote RPC failed", {
+        rpcError,
+        nomineeId: metadata.nomineeId,
+        categoryId: metadata.categoryId,
+        paymentId: payment.id,
+        voteQuantity
+      });
+      throw rpcError;
+    }
 
     return NextResponse.json({ processed: true, votes_added: voteQuantity });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Verification failed." }, { status: 500 });
+    console.error("Award verification error", error);
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
   }
 }
