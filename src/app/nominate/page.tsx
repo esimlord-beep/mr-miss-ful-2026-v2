@@ -1,4 +1,4 @@
-import { supabaseServer } from "@/lib/supabase/server";
+import { browserSupabase } from "@/lib/supabase";
 import { submitNomination } from "@/app/nominate/actions";
 import { SubmitButton } from "./submit-button";
 import { CheckCircle2, Trophy } from "lucide-react";
@@ -15,10 +15,9 @@ interface Settings {
 }
 
 async function getActiveCategories(): Promise<Category[]> {
-  const supabase = await supabaseServer();
-  if (!supabase) return [];
+  if (!browserSupabase) return [];
 
-  const { data } = await supabase
+  const { data } = await browserSupabase
     .from("award_categories")
     .select("id, name, group_name")
     .order("group_name", { ascending: true })
@@ -28,10 +27,9 @@ async function getActiveCategories(): Promise<Category[]> {
 }
 
 async function getSettings(): Promise<Settings> {
-  const supabase = await supabaseServer();
-  if (!supabase) return {};
+  if (!browserSupabase) return {};
 
-  const { data } = await supabase
+  const { data } = await browserSupabase
     .from("settings")
     .select("nomination_status")
     .maybeSingle();
