@@ -215,7 +215,7 @@ async function sendTicketsEmail(fullTickets: any[], reference: string) {
     body: JSON.stringify({
       from: "Mr & Miss FUL 2026 <tickets@fulsugnight.online>",
       to: [first.buyer_email],
-      subject: quantity > 1 ? `Your ${quantity} Tickets — FUL Award Night 2026` : `Your Ticket — ${first.ticket_code}`,
+      subject: quantity > 1 ? `Your ${quantity} Tickets for FUL Award Night 2026` : `Your Ticket: ${first.ticket_code}`,
       attachments: [
         {
           filename: quantity > 1 ? "ful-tickets.pdf" : "ful-ticket.pdf",
@@ -236,7 +236,7 @@ async function sendTicketsEmail(fullTickets: any[], reference: string) {
             </h1>
             <p style="margin:0 0 16px;color:#0B132B;font-size:14px;">Hi ${first.buyer_name},</p>
             <p style="margin:0 0 24px;color:#334155;font-size:14px;line-height:1.6;">
-              Thank you for your purchase. ${quantity > 1 ? `Your ${quantity} tickets are` : "Your ticket is"} attached to this email as a PDF — please present the QR code on each ticket at the entrance. Each ticket admits entry once only.
+              Thank you for your purchase. ${quantity > 1 ? `Your ${quantity} tickets are` : "Your ticket is"} attached to this email as a PDF. Please present the QR code on each ticket at the entrance. Each ticket admits entry once only.
             </p>
             <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;">
               <tr style="border-bottom:1px solid #e2e8f0;">
