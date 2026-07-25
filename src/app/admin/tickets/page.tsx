@@ -70,15 +70,17 @@ export default async function TicketsAdminPage({
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white rounded-2xl border border-[#0B132B]/[0.08] p-4 shadow-sm shadow-[#0B132B]/[0.04]">
+          <div className="bg-white rounded-2xl border border-[#0B132B]/[0.08] p-4 shadow-sm shadow-[#0B132B]/[0.04] min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#0B132B]/40">Tickets Sold</p>
             <p className="text-2xl font-black text-[#0B132B] mt-1">{stats.totalSold}</p>
           </div>
-          <div className="bg-white rounded-2xl border border-[#0B132B]/[0.08] p-4 shadow-sm shadow-[#0B132B]/[0.04]">
+          <div className="bg-white rounded-2xl border border-[#0B132B]/[0.08] p-4 shadow-sm shadow-[#0B132B]/[0.04] min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#0B132B]/40">Revenue</p>
-            <p className="text-2xl font-black text-[#0B132B] mt-1">₦{stats.totalRevenue.toLocaleString()}</p>
+            <p className="text-lg sm:text-2xl font-black text-[#0B132B] mt-1 truncate" title={`₦${stats.totalRevenue.toLocaleString()}`}>
+              ₦{stats.totalRevenue.toLocaleString()}
+            </p>
           </div>
-          <div className="bg-white rounded-2xl border border-[#0B132B]/[0.08] p-4 shadow-sm shadow-[#0B132B]/[0.04]">
+          <div className="bg-white rounded-2xl border border-[#0B132B]/[0.08] p-4 shadow-sm shadow-[#0B132B]/[0.04] min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#0B132B]/40">Checked In</p>
             <p className="text-2xl font-black text-[#0B132B] mt-1">{stats.totalCheckedIn}</p>
           </div>
