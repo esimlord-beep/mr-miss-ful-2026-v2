@@ -247,6 +247,13 @@ export default async function AdminPage({
                 </select>
               </div>
               <div>
+                <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Nomination Status</label>
+                <select name="nomination_status" defaultValue={settings.nomination_status ?? "open"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
+                  <option value="open">Open — accepting nominations</option>
+                  <option value="closed">Closed — no longer accepting nominations</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Payment Gateway</label>
                 <select name="payment_provider" defaultValue={settings.payment_provider ?? "paystack"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
                   <option value="paystack">Paystack</option>
