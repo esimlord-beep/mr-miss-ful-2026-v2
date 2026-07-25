@@ -14,13 +14,20 @@ async function getActiveCategories() {
   return data || [];
 }
 
+async function getSettings() {
+  if (!browserSupabase) return {};
+  const { data } = await browserSupabase.from("settings").select("nomination_status").maybeSingle();
+  return data ?? {};
+}
+
 export default async function NominatePage({
   searchParams,
 }: {
   searchParams: Promise<{ submitted?: string; error?: string }>;
 }) {
   const params = await searchParams;
-  const categories = await getActiveCategories();
+  const [categories, settings] = await Promise.all([getActiveCategories(), getSettings()]);
+  const nominationsClosed = settings?.nomination_status === "closed";
 
   return (
     <div className="min-h-screen bg-[#FAF9F6]">
@@ -62,7 +69,17 @@ export default async function NominatePage({
           </div>
         )}
 
-        {categories.length === 0 ? (
+        {nominationsClosed ? (
+          <RevealOnScroll>
+          <div className="text-center py-12 bg-white rounded-2xl border border-[#0B132B]/[0.08] shadow-sm shadow-[#0B132B]/[0.04]">
+            <Trophy size={28} strokeWidth={1.5} className="mx-auto mb-3 text-[#0B132B]/20" />
+            <p className="font-bold text-[#0B132B]">Nominations are closed</p>
+            <p className="mt-1 text-[#0B132B]/50 font-medium text-sm px-6">
+              We're no longer accepting nominations for FUL Awards 2026. Thank you to everyone who submitted one.
+            </p>
+          </div>
+          </RevealOnScroll>
+        ) : categories.length === 0 ? (
           <RevealOnScroll>
           <div className="text-center py-12 bg-white rounded-2xl border border-[#0B132B]/[0.08] shadow-sm shadow-[#0B132B]/[0.04]">
             <p className="text-[#0B132B]/50 font-medium text-sm">
