@@ -33,6 +33,12 @@ export async function submitNomination(formData: FormData) {
     return;
   }
 
+  const { data: settings } = await adminSupabase.from("settings").select("nomination_status").maybeSingle();
+  if (settings?.nomination_status === "closed") {
+    redirect("/nominate?error=Nominations are closed.");
+    return;
+  }
+
   const category_id = String(formData.get("category_id") ?? "").trim();
   const nominee_name = String(formData.get("nominee_name") ?? "").trim();
   const nominator_name = String(formData.get("nominator_name") ?? "").trim();
