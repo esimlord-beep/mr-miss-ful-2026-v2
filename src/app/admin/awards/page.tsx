@@ -1,6 +1,7 @@
 import { adminSupabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Trophy, Wallet, Users, LayoutGrid } from "lucide-react";
 
 async function getAwardCategories() {
  if (!adminSupabase) return [];
@@ -17,6 +18,21 @@ async function getAwardCategories() {
    }
  }
  return data || [];
+}
+
+async function getAwardStats() {
+  if (!adminSupabase) return { totalRevenue: 0, totalVotesPaid: 0 };
+  const { data } = await adminSupabase
+    .from("award_payments")
+    .select("amount_paid, vote_quantity")
+    .eq("processed", true);
+
+  if (!data) return { totalRevenue: 0, totalVotesPaid: 0 };
+
+  return {
+    totalRevenue: data.reduce((sum, p) => sum + Number(p.amount_paid), 0),
+    totalVotesPaid: data.reduce((sum, p) => sum + Number(p.vote_quantity), 0),
+  };
 }
 
 async function addCategory(formData: FormData) {
@@ -124,7 +140,12 @@ export default async function AwardsAdminPage({
  searchParams: Promise<{ saved?: string; error?: string }>;
 }) {
  const params = await searchParams;
- const categories = await getAwardCategories();
+ const [categories, stats] = await Promise.all([getAwardCategories(), getAwardStats()]);
+
+ const totalNominees = categories.reduce(
+   (sum: number, cat: any) => sum + (cat.award_nominees?.length || 0),
+   0
+ );
 
  return (
    <main className="min-h-screen bg-slate-50 p-4">
@@ -150,6 +171,21 @@ export default async function AwardsAdminPage({
          <a href="/admin" className="rounded-full border border-slate-200 px-4 py-2 text-sm font-black text-slate-600 hover:bg-slate-50">
            ← Back to Admin
          </a>
+       </div>
+
+       <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+         {[
+           { label: "Revenue", value: `₦${stats.totalRevenue.toLocaleString()}`, Icon: Wallet },
+           { label: "Votes Paid For", value: stats.totalVotesPaid.toLocaleString(), Icon: Trophy },
+           { label: "Categories", value: categories.length.toString(), Icon: LayoutGrid },
+           { label: "Nominees", value: totalNominees.toString(), Icon: Users },
+         ].map(({ label, value, Icon }) => (
+           <article key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+             <Icon className="text-amber-500" size={20} />
+             <p className="mt-3 text-xs font-bold text-slate-500">{label}</p>
+             <p className="mt-1 text-2xl font-black text-slate-900">{value}</p>
+           </article>
+         ))}
        </div>
 
        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
