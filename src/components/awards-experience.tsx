@@ -1,3 +1,7 @@
+That’s exactly the case my fix already covers — this isn’t a separate bug, just the exact scenario the wording fix was meant for. Once you deploy the change, that same situation (nominees exist, 0 votes each) will show “No votes yet — be the first!” instead of “Voting opens soon” — accurate wording, same underlying condition. You don’t need anything further for this.
+
+Here’s the full file with both fixes (the wording fix and the photo-cropping fix) applied, ready to paste as-is:
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -306,7 +310,7 @@ export function AwardsExperience({
                         </div>
                       ) : (
                         <span className="text-[11px] font-semibold italic" style={{ color: "#94A3B8" }}>
-                          Voting opens soon
+                          {votingClosed ? "Voting closed" : "No votes yet — be the first!"}
                         </span>
                       )}
                     </div>
@@ -334,14 +338,14 @@ export function AwardsExperience({
                     <div className="px-4 pb-4 pt-1 grid gap-3 sm:grid-cols-2" style={{ borderTop: "1px solid #E2E8F0" }}>
                       {noms.map((nominee) => (
                         <div key={nominee.id} className="overflow-hidden relative mt-4" style={{ border: "1px solid #E2E8F0", borderRadius: "14px" }}>
-                          <div className="relative w-full h-32" style={{ backgroundColor: "#F8F9FC" }}>
+                          <div className="relative w-full aspect-[3/4]" style={{ backgroundColor: "#F8F9FC" }}>
                             {nominee.photo_url ? (
                               <Image
                                 src={nominee.photo_url}
                                 alt={nominee.name}
                                 fill
                                 sizes="(max-width: 640px) 100vw, 50vw"
-                                className="object-cover"
+                                className="object-cover object-top"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-sm font-medium" style={{ color: "#94A3B8" }}>No Photo</div>
