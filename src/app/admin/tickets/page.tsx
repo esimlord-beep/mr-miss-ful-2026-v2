@@ -76,7 +76,7 @@ export default async function TicketsAdminPage({
           </div>
           <div className="bg-white rounded-2xl border border-[#0B132B]/[0.08] p-4 shadow-sm shadow-[#0B132B]/[0.04] min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-[#0B132B]/40">Revenue</p>
-            <p className="text-lg sm:text-2xl font-black text-[#0B132B] mt-1 truncate" title={`₦${stats.totalRevenue.toLocaleString()}`}>
+            <p className="text-[15px] sm:text-2xl font-black text-[#0B132B] mt-1 whitespace-nowrap">
               ₦{stats.totalRevenue.toLocaleString()}
             </p>
           </div>
