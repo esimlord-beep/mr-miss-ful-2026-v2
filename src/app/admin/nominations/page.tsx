@@ -91,7 +91,7 @@ async function bulkApproveNominations(formData: FormData) {
       continue; // don't let one bad row stop the whole batch
     }
 
-    nextNumberCache.set(submission.category_id, nextNumber + 1);
+    nextNumberCache.set(submission.category_id, (nextNumber as number) + 1);
 
     await adminSupabase
       .from("nomination_submissions")
