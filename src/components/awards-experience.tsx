@@ -1,7 +1,3 @@
-That’s exactly the case my fix already covers — this isn’t a separate bug, just the exact scenario the wording fix was meant for. Once you deploy the change, that same situation (nominees exist, 0 votes each) will show “No votes yet — be the first!” instead of “Voting opens soon” — accurate wording, same underlying condition. You don’t need anything further for this.
-
-Here’s the full file with both fixes (the wording fix and the photo-cropping fix) applied, ready to paste as-is:
-
 "use client";
 
 import { useEffect, useState } from "react";
