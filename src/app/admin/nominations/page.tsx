@@ -1,6 +1,7 @@
 import { adminSupabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { PendingNominationsList } from "./pending-list";
 
 const BUCKET = "contestants";
 
@@ -41,50 +42,62 @@ async function getReviewedNominations() {
   return data || [];
 }
 
-async function approveNomination(formData: FormData) {
+async function bulkApproveNominations(formData: FormData) {
   "use server";
   if (!adminSupabase) return;
-  const id = String(formData.get("id"));
 
-  const { data: submission, error: fetchError } = await adminSupabase
-    .from("nomination_submissions")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (fetchError || !submission) {
-    redirect(`/admin/nominations?error=${encodeURIComponent(fetchError?.message ?? "Submission not found")}`);
+  const ids = formData.getAll("selected_ids").map(String).filter(Boolean);
+  if (ids.length === 0) {
+    redirect("/admin/nominations?error=" + encodeURIComponent("No nominations selected."));
     return;
   }
 
-  const { data: existing } = await adminSupabase
-    .from("award_nominees")
-    .select("nominee_number")
-    .eq("category_id", submission.category_id)
-    .order("nominee_number", { ascending: false })
-    .limit(1);
+  // Cache next-available nominee_number per category so we don't
+  // re-query for every row in the same category within this batch.
+  const nextNumberCache = new Map<string, number>();
 
-  const nextNumber = existing && existing.length > 0 && existing[0].nominee_number
-    ? existing[0].nominee_number + 1
-    : 1;
+  for (const id of ids) {
+    const { data: submission } = await adminSupabase
+      .from("nomination_submissions")
+      .select("*")
+      .eq("id", id)
+      .eq("status", "pending") // skip anything already reviewed since this batch started
+      .maybeSingle();
 
-  const { error: insertError } = await adminSupabase.from("award_nominees").insert({
-    category_id: submission.category_id,
-    name: submission.nominee_name,
-    photo_url: submission.photo_url,
-    nominee_number: nextNumber,
-  });
+    if (!submission) continue;
 
-  if (insertError) {
-    console.error("Promote nomination failed:", insertError.message);
-    redirect(`/admin/nominations?error=${encodeURIComponent(insertError.message)}`);
-    return;
+    let nextNumber = nextNumberCache.get(submission.category_id);
+    if (nextNumber === undefined) {
+      const { data: existing } = await adminSupabase
+        .from("award_nominees")
+        .select("nominee_number")
+        .eq("category_id", submission.category_id)
+        .order("nominee_number", { ascending: false })
+        .limit(1);
+      nextNumber = existing && existing.length > 0 && existing[0].nominee_number
+        ? existing[0].nominee_number + 1
+        : 1;
+    }
+
+    const { error: insertError } = await adminSupabase.from("award_nominees").insert({
+      category_id: submission.category_id,
+      name: submission.nominee_name,
+      photo_url: submission.photo_url,
+      nominee_number: nextNumber,
+    });
+
+    if (insertError) {
+      console.error("Bulk approve failed for", id, insertError.message);
+      continue; // don't let one bad row stop the whole batch
+    }
+
+    nextNumberCache.set(submission.category_id, nextNumber + 1);
+
+    await adminSupabase
+      .from("nomination_submissions")
+      .update({ status: "approved", reviewed_at: new Date().toISOString() })
+      .eq("id", id);
   }
-
-  await adminSupabase
-    .from("nomination_submissions")
-    .update({ status: "approved", reviewed_at: new Date().toISOString() })
-    .eq("id", id);
 
   revalidatePath("/admin/nominations");
   revalidatePath("/admin/awards");
@@ -167,52 +180,11 @@ export default async function NominationsAdminPage({
           <div className="bg-slate-900 px-6 py-4">
             <h2 className="font-black text-white">Pending Review</h2>
           </div>
-          {pending.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-slate-400 font-medium text-sm">No pending nominations right now.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {pending.map((nom: any) => (
-                <div key={nom.id} className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-4">
-                    {nom.photo_url ? (
-                      <img src={nom.photo_url} alt={nom.nominee_name} className="w-14 h-14 rounded-xl object-cover shrink-0" />
-                    ) : (
-                      <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 text-xs shrink-0">
-                        No photo
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">
-                        {nom.award_categories?.group_name ? `${nom.award_categories.group_name} · ` : ""}
-                        {nom.award_categories?.name ?? "Unknown category"}
-                      </p>
-                      <p className="font-black text-slate-900">{nom.nominee_name}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        Nominated by {nom.nominator_name} · {nom.nominator_email}
-                        {nom.nominator_phone ? ` · ${nom.nominator_phone}` : ""}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    <form action={approveNomination}>
-                      <input type="hidden" name="id" value={nom.id} />
-                      <button type="submit" className="rounded-full bg-green-600 px-4 py-2 text-xs font-black text-white hover:bg-green-700">
-                        Approve
-                      </button>
-                    </form>
-                    <form action={rejectNomination}>
-                      <input type="hidden" name="id" value={nom.id} />
-                      <button type="submit" className="rounded-full border border-red-200 px-4 py-2 text-xs font-black text-red-600 hover:bg-red-50">
-                        Reject
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <PendingNominationsList
+            pending={pending as any}
+            bulkApproveAction={bulkApproveNominations}
+            rejectAction={rejectNomination}
+          />
         </section>
 
         {reviewed.length > 0 && (
