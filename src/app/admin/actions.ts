@@ -184,6 +184,7 @@ export async function saveSettings(formData: FormData) {
  const votePrice = String(formData.get("vote_price") ?? "").trim();
  const votingStatus = String(formData.get("voting_status") ?? "").trim();
  const awardsVotingStatus = String(formData.get("awards_voting_status") ?? "").trim();
+ const nominationStatus = String(formData.get("nomination_status") ?? "").trim();
  const votingEnd = String(formData.get("voting_end") ?? "").trim();
  const heroDescription = String(formData.get("hero_description") ?? "").trim();
  const footerText = String(formData.get("footer_text") ?? "").trim();
@@ -195,6 +196,7 @@ export async function saveSettings(formData: FormData) {
  if (votePrice) updates.vote_price = Number(votePrice);
  if (votingStatus) updates.voting_status = votingStatus;
  if (awardsVotingStatus) updates.awards_voting_status = awardsVotingStatus;
+ if (nominationStatus) updates.nomination_status = nominationStatus;
  if (votingEnd) updates.voting_end_date = votingEnd;
  if (heroDescription) updates.hero_description = heroDescription;
  if (footerText) updates.footer_text = footerText;
