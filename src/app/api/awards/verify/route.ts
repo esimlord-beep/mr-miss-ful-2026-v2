@@ -54,13 +54,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Payment was not successful." }, { status: 400 });
     }
 
-    const metadata = verification.data.metadata;
+    // Paystack normally returns metadata as a parsed object, but some
+    // payment channels (observed with bank_transfer / OPay) return it as a
+    // raw JSON string instead. Handle both so categoryId/nomineeId aren't
+    // silently lost just because of the channel used.
+    let metadata: any = verification.data.metadata;
+    if (typeof metadata === "string") {
+      try {
+        metadata = JSON.parse(metadata);
+      } catch (parseError) {
+        console.error("Failed to parse string metadata from Paystack (award)", {
+          reference,
+          rawMetadata: metadata,
+          parseError
+        });
+        metadata = null;
+      }
+    }
 
     if (!metadata?.categoryId || !metadata?.nomineeId) {
       console.error("Missing categoryId/nomineeId in award payment metadata", {
         reference,
         provider,
-        metadata
+        rawMetadata: verification.data.metadata,
+        parsedMetadata: metadata
       });
       return NextResponse.json({ error: "Payment record is missing category or nominee information." }, { status: 500 });
     }
