@@ -72,10 +72,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Payment was not successful." }, { status: 400 });
     }
 
-    const metadata = verification.data.metadata;
+    // Paystack normally returns metadata as a parsed object, but some
+    // payment channels (observed with bank_transfer / OPay) return it as a
+    // raw JSON string instead. Handle both so tierId isn't silently lost
+    // just because of the channel used.
+    let metadata: any = verification.data.metadata;
+    if (typeof metadata === "string") {
+      try {
+        metadata = JSON.parse(metadata);
+      } catch (parseError) {
+        console.error("Failed to parse string metadata from Paystack (ticket)", {
+          reference,
+          rawMetadata: metadata,
+          parseError
+        });
+        metadata = null;
+      }
+    }
 
     if (!metadata?.tierId) {
-      console.error("Missing tierId in ticket payment metadata", { reference, provider, metadata });
+      console.error("Missing tierId in ticket payment metadata", {
+        reference,
+        provider,
+        rawMetadata: verification.data.metadata,
+        parsedMetadata: metadata
+      });
       return NextResponse.json({ error: "Ticket record is missing tier information." }, { status: 500 });
     }
 
