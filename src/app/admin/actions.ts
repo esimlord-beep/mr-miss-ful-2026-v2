@@ -191,6 +191,8 @@ export async function saveSettings(formData: FormData) {
  const awardsTitle = String(formData.get("awards_title") ?? "").trim();
  const awardsDescription = String(formData.get("awards_description") ?? "").trim();
  const paymentProvider = String(formData.get("payment_provider") ?? "").trim();
+ // Checkboxes only appear in FormData when checked, so presence = on.
+ const maintenanceMode = formData.has("maintenance_mode");
 
  if (siteTitle) updates.site_title = siteTitle;
  if (votePrice) updates.vote_price = Number(votePrice);
@@ -203,6 +205,7 @@ export async function saveSettings(formData: FormData) {
  if (awardsTitle) updates.awards_title = awardsTitle;
  if (awardsDescription) updates.awards_description = awardsDescription;
  if (paymentProvider) updates.payment_provider = paymentProvider;
+ updates.maintenance_mode = maintenanceMode;
 
  const { data: existingSettings } = await adminSupabase.from("settings").select("id, primary_logo, secondary_logo").limit(1).maybeSingle();
 
