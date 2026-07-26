@@ -223,6 +223,27 @@ export default async function AdminPage({
             <h2 className="text-lg font-black text-slate-900">Site Settings</h2>
           </div>
           <form action={saveSettings} encType="multipart/form-data" className="space-y-4">
+            <div className={`rounded-2xl p-4 border-2 ${settings.maintenance_mode ? "bg-red-50 border-red-300" : "bg-slate-50 border-slate-200"}`}>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="maintenance_mode"
+                  defaultChecked={settings.maintenance_mode === true}
+                  className="mt-0.5 w-5 h-5 rounded border-slate-300 text-red-600 focus:ring-red-500 shrink-0"
+                />
+                <span>
+                  <span className="block text-sm font-black text-slate-900">Maintenance Mode</span>
+                  <span className="block text-xs text-slate-500 mt-0.5">
+                    When ON, every visitor sees a "we&apos;ll be right back" page instead of the site. You can still log in here to turn it back off.
+                  </span>
+                  {settings.maintenance_mode && (
+                    <span className="inline-block mt-1.5 text-[10px] font-black uppercase tracking-widest text-red-600">
+                      Currently blocking the public site
+                    </span>
+                  )}
+                </span>
+              </label>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Site Title</label>
