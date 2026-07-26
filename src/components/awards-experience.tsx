@@ -105,7 +105,7 @@ export function AwardsExperience({
   };
 
   const getShareText = (nominee: any, category: any) => {
-    return `Vote for ${nominee.name} in ${category.name} — FUL Awards 2026!`;
+    return `Vote for ${nominee.name} in ${category.name} - FUL Awards 2026!`;
   };
 
   const handleShare = (platform: "whatsapp" | "twitter" | "copy", nominee: any, category: any) => {
@@ -275,7 +275,7 @@ export function AwardsExperience({
                         })()}
                         <div className="min-w-0">
                           <h3 className="font-bold text-sm leading-snug truncate" style={{ color: "#0B132B" }}>
-                            {category.category_number ? `${category.category_number}. ` : ""}{category.name}
+                            {category.name}
                           </h3>
                           <p className="text-[11px] mt-0.5" style={{ color: "#64748B" }}>
                             ₦{category.vote_price}/Vote · Min. {category.minimum_votes} Votes
@@ -306,7 +306,7 @@ export function AwardsExperience({
                         </div>
                       ) : (
                         <span className="text-[11px] font-semibold italic" style={{ color: "#94A3B8" }}>
-                          {votingClosed ? "Voting closed" : "No votes yet — be the first!"}
+                          {votingClosed ? "Voting closed" : "No votes yet - be the first!"}
                         </span>
                       )}
                     </div>
@@ -351,7 +351,7 @@ export function AwardsExperience({
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
                                 <p className="font-bold text-sm truncate" style={{ color: "#1E293B" }}>
-                                  {nominee.nominee_number ? `#${nominee.nominee_number} · ` : ""}{nominee.name}
+                                  {nominee.name}
                                 </p>
                                 <p className="text-[11px] mt-0.5" style={{ color: "#64748B" }}>{nominee.votes || 0} votes</p>
                                 {(nominee.votes || 0) >= category.minimum_votes ? (
@@ -417,7 +417,7 @@ export function AwardsExperience({
                                 cursor: votingClosed ? "not-allowed" : "pointer"
                               }}
                             >
-                              {votingClosed ? "Voting Closed" : `Vote — ₦${category.vote_price}`}
+                              {votingClosed ? "Voting Closed" : `Vote - ₦${category.vote_price}`}
                             </button>
                           </div>
                         </div>
