@@ -1,5 +1,29 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+async function isMaintenanceMode(): Promise<boolean> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return false;
+
+  try {
+    const res = await fetch(
+      `${url}/rest/v1/settings?select=maintenance_mode&limit=1`,
+      {
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
+        // Never cache this — the toggle needs to take effect immediately.
+        cache: "no-store",
+      }
+    );
+    if (!res.ok) return false;
+    const rows = await res.json();
+    return rows?.[0]?.maintenance_mode === true;
+  } catch {
+    // If the check fails for any reason, fail open (site stays up)
+    // rather than accidentally locking everyone out.
+    return false;
+  }
+}
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
@@ -36,9 +60,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Maintenance mode: block every public page, but let the maintenance
+  // page itself and static assets/API routes through so the redirect
+  // doesn't loop and payment webhooks etc. keep working.
+  if (
+    path !== "/maintenance" &&
+    !path.startsWith("/api") &&
+    !path.startsWith("/_next") &&
+    !path.startsWith("/favicon")
+  ) {
+    const maintenance = await isMaintenanceMode();
+    if (maintenance) {
+      return NextResponse.redirect(new URL("/maintenance", request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/checkin/:path*"]
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ]
 };
