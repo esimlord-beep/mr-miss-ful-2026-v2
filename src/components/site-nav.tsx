@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import Link from "next/link";
 import { X } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -130,7 +129,7 @@ export function SiteNav({
               const active = pathname === item.href;
 
               return (
-                <Link
+              <a
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
@@ -151,7 +150,7 @@ export function SiteNav({
                   >
                     →
                   </span>
-                </Link>
+                </a>
               );
             })}
           </div>
