@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Users, X } from "lucide-react";
-import Link from "next/link";
 
 const NAV_ITEMS = [
   { href: "/awards", label: "FUL Awards 2026" },
@@ -215,7 +214,7 @@ export function Hero({
         <div className="px-5 sm:px-8 pt-5 sm:pt-8 pb-8">
           <div className="max-w-7xl mx-auto flex flex-col">
             {NAV_ITEMS.map((item) => (
-              <Link
+              <a
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
@@ -227,7 +226,7 @@ export function Hero({
                 <span className="flex-shrink-0 text-[16px] sm:text-lg font-light text-[#0B132B]/40 transition-all duration-200 group-hover:text-[#D4AF37] group-hover:translate-x-1">
                   →
                 </span>
-              </Link>
+              </a>
             ))}
           </div>
         </div>
