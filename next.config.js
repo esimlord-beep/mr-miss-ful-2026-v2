@@ -1,11 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    // Vercel's Image Optimization API charges "transformations" against the
-    // free tier quota every time next/image resizes a remote image. Since all
-    // images here already live on Supabase Storage (already-hosted, static
-    // URLs), we skip Vercel's optimizer entirely and load them directly.
-    unoptimized: true,
+    // NOTE: unoptimized was previously true to avoid Vercel's image
+    // transformation quota. But that also skipped Next's cache-control
+    // headers on <Image>, so browsers/CDN re-fetched the full photo on every
+    // page view — this is what blew past the Supabase egress limit (21GB of
+    // 5.5GB). Photos are already resized+compressed at upload time (see
+    // compressImage in admin/actions.ts), so re-enabling optimization here
+    // costs very few/no extra Vercel transformations (no further resizing
+    // needed) while restoring proper caching, which is the actual fix.
     remotePatterns: [
       {
         protocol: "https",
