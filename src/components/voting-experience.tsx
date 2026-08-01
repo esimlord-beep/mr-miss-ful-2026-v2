@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useMemo, useEffect } from "react";
-import { optimizedImageUrl } from "@/lib/image-url";
+import Image from "next/image";
 import { Lock, X, Eye } from "lucide-react";
 import { Hero } from "@/components/hero";
 import { Podium } from "@/components/podium";
@@ -157,16 +157,17 @@ export function VotingExperience({
                 <div 
                   className="overflow-hidden rounded-2xl border border-[#0B132B]/[0.06] bg-white shadow-sm shadow-[#0B132B]/[0.04] transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:shadow-[#0B132B]/[0.08]"
                 >
-                  <div className="w-full bg-[#F5F3EE] relative">
+                  <div className="aspect-[4/5] w-full bg-[#F5F3EE] relative">
                     {contestant.photo_url ? (
-                      <img
-                        src={optimizedImageUrl(contestant.photo_url, { width: 500 })}
+                      <Image
+                        src={contestant.photo_url}
                         alt={contestant.full_name || contestant.name || "Contestant Image"}
-                        loading="lazy"
-                        className="block w-full h-auto"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover"
                       />
                     ) : (
-                      <div className="aspect-[4/5] flex h-full w-full items-center justify-center text-[#0B132B]/40 font-medium">
+                      <div className="flex h-full w-full items-center justify-center text-[#0B132B]/40 font-medium">
                         No Image Available
                       </div>
                     )}
