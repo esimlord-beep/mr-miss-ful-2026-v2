@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useMemo, useEffect } from "react";
-import Image from "next/image";
+import { optimizedImageUrl } from "@/lib/image-url";
 import { Lock, X, Eye } from "lucide-react";
 import { Hero } from "@/components/hero";
 import { Podium } from "@/components/podium";
@@ -159,12 +159,11 @@ export function VotingExperience({
                 >
                   <div className="aspect-[4/5] w-full bg-[#F5F3EE] relative">
                     {contestant.photo_url ? (
-                      <Image
-                        src={contestant.photo_url}
+                      <img
+                        src={optimizedImageUrl(contestant.photo_url, { width: 500 })}
                         alt={contestant.full_name || contestant.name || "Contestant Image"}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover"
+                        loading="lazy"
+                        className="absolute inset-0 h-full w-full object-cover"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-[#0B132B]/40 font-medium">
