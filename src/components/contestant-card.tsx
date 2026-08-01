@@ -1,6 +1,6 @@
+import Image from "next/image";
 import { Eye, Vote } from "lucide-react";
 import type { Contestant } from "@/types";
-import { optimizedImageUrl } from "@/lib/image-url";
 
 export function ContestantCard({
   contestant,
@@ -21,12 +21,14 @@ export function ContestantCard({
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-premium">
-      <div className="relative w-full overflow-hidden bg-slate-100">
-        <img
-          src={optimizedImageUrl(imageUrl, { width: 600 })}
+      <div className="relative aspect-[3/2] w-full overflow-hidden bg-slate-100">
+        <Image
+          src={imageUrl}
           alt={contestant.name}
-          loading="lazy"
-          className="block w-full h-auto transition duration-500 group-hover:scale-105"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover transition duration-500 group-hover:scale-105"
+          priority={false}
         />
       </div>
       <div className="p-4">
