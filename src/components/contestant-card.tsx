@@ -21,12 +21,12 @@ export function ContestantCard({
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-premium">
-      <div className="relative aspect-[3/2] w-full overflow-hidden bg-slate-100">
+      <div className="relative w-full overflow-hidden bg-slate-100">
         <img
           src={optimizedImageUrl(imageUrl, { width: 600 })}
           alt={contestant.name}
           loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          className="block w-full h-auto transition duration-500 group-hover:scale-105"
         />
       </div>
       <div className="p-4">
