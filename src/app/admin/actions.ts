@@ -43,14 +43,7 @@ async function uploadPhoto(photo: File, name: string): Promise<string> {
 
  const { error: uploadError } = await adminSupabase.storage
    .from(BUCKET)
-   .upload(path, buffer, {
-     contentType,
-     upsert: false,
-     // Cache aggressively: filenames are timestamped and never reused, so a
-     // year-long cache is safe and stops repeat visitors re-downloading the
-     // same photo on every page view (this is what was driving egress up).
-     cacheControl: "31536000",
-   });
+   .upload(path, buffer, { contentType, upsert: false });
 
  if (uploadError) throw new Error(`Photo upload failed: ${uploadError.message}`);
 
