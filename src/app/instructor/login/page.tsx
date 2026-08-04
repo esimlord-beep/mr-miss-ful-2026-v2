@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ClipboardList } from "lucide-react";
 
 export default function InstructorLoginPage() {
   const [password, setPassword] = useState("");
@@ -10,7 +9,8 @@ export default function InstructorLoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  async function handleLogin() {
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
     if (!password.trim()) return;
     setLoading(true);
     setError("");
@@ -31,40 +31,45 @@ export default function InstructorLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B132B] flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <ClipboardList className="mx-auto text-[#D4AF37] mb-3" size={40} />
-          <h1 className="text-2xl font-black text-white">Instructor Login</h1>
-          <p className="text-white/50 text-sm mt-1">Mr & Miss FUL Night 2026</p>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+        <div className="text-center">
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Instructor Portal</h2>
+          <p className="mt-2 text-sm text-slate-500 font-medium">Log in to manage attendance, tasks, and notes</p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           {error && (
-            <p className="text-rose-400 text-sm font-semibold text-center">{error}</p>
+            <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-semibold rounded-lg text-center">
+              {error}
+            </div>
           )}
-          <div>
-            <label className="block text-xs font-black uppercase tracking-widest text-white/40 mb-1.5">
-              Instructor Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleLogin()}
-              placeholder="Enter password"
-              autoFocus
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 font-semibold text-white outline-none focus:border-[#D4AF37] placeholder:text-white/30"
-            />
+
+          <div className="space-y-4 rounded-md shadow-sm">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Password</label>
+              <input
+                type="password"
+                required
+                autoFocus
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="appearance-none rounded-xl relative block w-full px-3 py-3 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent text-sm font-medium"
+                placeholder="••••••••"
+              />
+            </div>
           </div>
-          <button
-            onClick={handleLogin}
-            disabled={loading}
-            className="w-full rounded-xl bg-[#D4AF37] py-3 text-sm font-black text-[#0B132B] transition disabled:opacity-60"
-          >
-            {loading ? "Checking..." : "Log In"}
-          </button>
-        </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors disabled:opacity-50"
+            >
+              {loading ? "Checking..." : "Log In"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
