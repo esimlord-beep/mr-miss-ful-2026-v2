@@ -41,10 +41,10 @@ export function InstructorDashboard({
   const notesFor = (contestantId: string) => notes.filter(n => n.contestant_id === contestantId);
 
   return (
-    <div className="min-h-screen bg-[#F5F3EE] pb-20">
+    <div className="min-h-screen bg-[#F5F3EE] text-[#0B132B] pb-20">
       <div className="bg-[#0B132B] px-4 py-5 sticky top-0 z-10">
-        <h1 className="text-xl font-black text-white">Instructor Dashboard</h1>
-        <p className="text-white/50 text-xs mt-0.5">Mr & Miss FUL Night 2026</p>
+        <h1 className="font-rounded text-xl font-black text-white">Instructor Dashboard</h1>
+        <p className="text-white/50 text-xs mt-0.5 font-medium">Mr & Miss FUL Night 2026</p>
 
         <div className="flex gap-2 mt-4">
           {(["attendance", "tasks", "notes"] as const).map(tab => (
@@ -65,7 +65,7 @@ export function InstructorDashboard({
         {activeTab === "attendance" && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-[#0B132B]">Rehearsal Sessions</h2>
+              <h2 className="font-rounded font-bold text-[#0B132B]">Rehearsal Sessions</h2>
               <button
                 onClick={() => setShowAddSession(v => !v)}
                 className="flex items-center gap-1 text-xs font-bold text-[#B8901F]"
@@ -82,35 +82,35 @@ export function InstructorDashboard({
                     setShowAddSession(false);
                   });
                 }}
-                className="bg-white rounded-xl p-4 mb-4 space-y-2 border border-[#0B132B]/10"
+                className="bg-white rounded-2xl p-4 mb-4 space-y-2 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]"
               >
                 <input
                   name="label"
                   required
                   placeholder="e.g. Rehearsal 3"
-                  className="w-full rounded-lg border border-[#0B132B]/15 px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-[#0B132B]/15 px-3 py-2 text-sm text-[#0B132B] outline-none focus:border-[#D4AF37] transition-colors"
                 />
                 <input
                   name="session_date"
                   type="date"
-                  className="w-full rounded-lg border border-[#0B132B]/15 px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-[#0B132B]/15 px-3 py-2 text-sm text-[#0B132B] outline-none focus:border-[#D4AF37] transition-colors"
                 />
-                <button type="submit" disabled={isPending} className="w-full rounded-lg bg-[#D4AF37] py-2 text-sm font-bold text-[#0B132B]">
+                <button type="submit" disabled={isPending} className="w-full rounded-full bg-[#D4AF37] py-2.5 text-sm font-black text-[#0B132B] transition disabled:opacity-60">
                   Add Session
                 </button>
               </form>
             )}
 
             {sessions.length === 0 ? (
-              <p className="text-sm text-[#0B132B]/50">No rehearsal sessions created yet.</p>
+              <p className="text-sm text-[#0B132B]/50 font-medium">No rehearsal sessions created yet.</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm bg-white rounded-xl overflow-hidden border border-[#0B132B]/10">
+              <div className="overflow-x-auto rounded-2xl border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]">
+                <table className="w-full text-sm bg-white overflow-hidden">
                   <thead>
                     <tr className="bg-[#0B132B]/[0.03]">
-                      <th className="text-left px-3 py-2 font-bold text-[#0B132B] sticky left-0 bg-[#F8F7F4]">Contestant</th>
+                      <th className="text-left px-3 py-2.5 font-bold text-[#0B132B] sticky left-0 bg-[#F8F7F4]">Contestant</th>
                       {sessions.map(s => (
-                        <th key={s.id} className="px-3 py-2 font-bold text-[#0B132B] whitespace-nowrap text-xs">{s.label}</th>
+                        <th key={s.id} className="px-3 py-2.5 font-bold text-[#0B132B] whitespace-nowrap text-xs">{s.label}</th>
                       ))}
                     </tr>
                   </thead>
@@ -130,10 +130,10 @@ export function InstructorDashboard({
                                 }
                                 disabled={isPending}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto transition ${
-                                  present ? "bg-emerald-500 text-white" : "bg-[#0B132B]/10 text-[#0B132B]/30"
+                                  present ? "bg-[#D4AF37] text-[#0B132B]" : "bg-[#0B132B]/10 text-[#0B132B]/30"
                                 }`}
                               >
-                                {present ? <Check size={16} /> : <X size={14} />}
+                                {present ? <Check size={16} strokeWidth={2.5} /> : <X size={14} />}
                               </button>
                             </td>
                           );
@@ -150,7 +150,7 @@ export function InstructorDashboard({
         {activeTab === "tasks" && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-[#0B132B]">Tasks</h2>
+              <h2 className="font-rounded font-bold text-[#0B132B]">Tasks</h2>
               <button
                 onClick={() => setShowAddTask(v => !v)}
                 className="flex items-center gap-1 text-xs font-bold text-[#B8901F]"
@@ -167,35 +167,35 @@ export function InstructorDashboard({
                     setShowAddTask(false);
                   });
                 }}
-                className="bg-white rounded-xl p-4 mb-4 space-y-2 border border-[#0B132B]/10"
+                className="bg-white rounded-2xl p-4 mb-4 space-y-2 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]"
               >
                 <input
                   name="label"
                   required
                   placeholder="e.g. Social media post"
-                  className="w-full rounded-lg border border-[#0B132B]/15 px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-[#0B132B]/15 px-3 py-2 text-sm text-[#0B132B] outline-none focus:border-[#D4AF37] transition-colors"
                 />
                 <input
                   name="task_date"
                   type="date"
-                  className="w-full rounded-lg border border-[#0B132B]/15 px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-[#0B132B]/15 px-3 py-2 text-sm text-[#0B132B] outline-none focus:border-[#D4AF37] transition-colors"
                 />
-                <button type="submit" disabled={isPending} className="w-full rounded-lg bg-[#D4AF37] py-2 text-sm font-bold text-[#0B132B]">
+                <button type="submit" disabled={isPending} className="w-full rounded-full bg-[#D4AF37] py-2.5 text-sm font-black text-[#0B132B] transition disabled:opacity-60">
                   Add Task
                 </button>
               </form>
             )}
 
             {tasks.length === 0 ? (
-              <p className="text-sm text-[#0B132B]/50">No tasks created yet.</p>
+              <p className="text-sm text-[#0B132B]/50 font-medium">No tasks created yet.</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm bg-white rounded-xl overflow-hidden border border-[#0B132B]/10">
+              <div className="overflow-x-auto rounded-2xl border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]">
+                <table className="w-full text-sm bg-white overflow-hidden">
                   <thead>
                     <tr className="bg-[#0B132B]/[0.03]">
-                      <th className="text-left px-3 py-2 font-bold text-[#0B132B] sticky left-0 bg-[#F8F7F4]">Contestant</th>
+                      <th className="text-left px-3 py-2.5 font-bold text-[#0B132B] sticky left-0 bg-[#F8F7F4]">Contestant</th>
                       {tasks.map(t => (
-                        <th key={t.id} className="px-3 py-2 font-bold text-[#0B132B] whitespace-nowrap text-xs">{t.label}</th>
+                        <th key={t.id} className="px-3 py-2.5 font-bold text-[#0B132B] whitespace-nowrap text-xs">{t.label}</th>
                       ))}
                     </tr>
                   </thead>
@@ -215,10 +215,10 @@ export function InstructorDashboard({
                                 }
                                 disabled={isPending}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto transition ${
-                                  completed ? "bg-emerald-500 text-white" : "bg-[#0B132B]/10 text-[#0B132B]/30"
+                                  completed ? "bg-[#D4AF37] text-[#0B132B]" : "bg-[#0B132B]/10 text-[#0B132B]/30"
                                 }`}
                               >
-                                {completed ? <Check size={16} /> : <X size={14} />}
+                                {completed ? <Check size={16} strokeWidth={2.5} /> : <X size={14} />}
                               </button>
                             </td>
                           );
@@ -234,11 +234,11 @@ export function InstructorDashboard({
 
         {activeTab === "notes" && (
           <div className="space-y-3">
-            <h2 className="font-bold text-[#0B132B] mb-2">Contestant Notes</h2>
+            <h2 className="font-rounded font-bold text-[#0B132B] mb-2">Contestant Notes</h2>
             {contestants.map(c => (
-              <div key={c.id} className="bg-white rounded-xl p-4 border border-[#0B132B]/10">
+              <div key={c.id} className="bg-white rounded-2xl p-4 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]">
                 <div className="flex items-center justify-between">
-                  <p className="font-semibold text-[#0B132B] text-sm">#{c.contestant_number} {c.name}</p>
+                  <p className="font-rounded font-bold text-[#0B132B] text-sm">#{c.contestant_number} {c.name}</p>
                   <button
                     onClick={() => setNoteContestantId(noteContestantId === c.id ? null : c.id)}
                     className="flex items-center gap-1 text-xs font-bold text-[#B8901F]"
@@ -263,9 +263,9 @@ export function InstructorDashboard({
                       required
                       rows={2}
                       placeholder="Write a note..."
-                      className="w-full rounded-lg border border-[#0B132B]/15 px-3 py-2 text-sm"
+                      className="w-full rounded-xl border border-[#0B132B]/15 px-3 py-2 text-sm text-[#0B132B] outline-none focus:border-[#D4AF37] transition-colors"
                     />
-                    <button type="submit" disabled={isPending} className="rounded-lg bg-[#D4AF37] px-4 py-1.5 text-xs font-bold text-[#0B132B]">
+                    <button type="submit" disabled={isPending} className="rounded-full bg-[#D4AF37] px-4 py-1.5 text-xs font-black text-[#0B132B]">
                       Save Note
                     </button>
                   </form>
@@ -274,7 +274,7 @@ export function InstructorDashboard({
                 {notesFor(c.id).length > 0 && (
                   <ul className="mt-3 space-y-1.5">
                     {notesFor(c.id).map(n => (
-                      <li key={n.id} className="text-xs text-[#0B132B]/60 border-l-2 border-[#D4AF37]/40 pl-2">
+                      <li key={n.id} className="text-xs text-[#0B132B]/55 border-l-2 border-[#D4AF37]/40 pl-2 font-medium">
                         {n.note}
                       </li>
                     ))}
