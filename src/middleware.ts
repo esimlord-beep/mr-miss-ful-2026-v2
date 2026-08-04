@@ -37,6 +37,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow instructor login page through
+  if (path.startsWith("/instructor/login")) {
+    return NextResponse.next();
+  }
+
+  // Protect /instructor routes
+  if (path.startsWith("/instructor")) {
+    const auth = request.cookies.get("instructor_auth")?.value;
+    if (auth !== "true") {
+      return NextResponse.redirect(new URL("/instructor/login", request.url));
+    }
+    return NextResponse.next();
+  }
+
   // Protect /checkin routes
   if (path.startsWith("/checkin")) {
     const auth = request.cookies.get("checkin_auth")?.value;
