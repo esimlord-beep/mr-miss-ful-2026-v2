@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { createRehearsalSession, createTask, toggleAttendance, toggleTask, addNote } from "./actions";
-import { Check, X, Plus, MessageSquarePlus } from "lucide-react";
+import { Plus, MessageSquarePlus } from "lucide-react";
 
 type Contestant = { id: string; contestant_number: string; name: string; department: string };
 type Session = { id: string; label: string; session_date: string | null };
@@ -31,6 +31,8 @@ export function InstructorDashboard({
   const [noteContestantId, setNoteContestantId] = useState<string | null>(null);
   const [showAddSession, setShowAddSession] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [selectedSessionId, setSelectedSessionId] = useState<string>(sessions[0]?.id ?? "");
+  const [selectedTaskId, setSelectedTaskId] = useState<string>(tasks[0]?.id ?? "");
 
   const isPresent = (contestantId: string, sessionId: string) =>
     attendance.find(a => a.contestant_id === contestantId && a.session_id === sessionId)?.present ?? false;
@@ -104,45 +106,51 @@ export function InstructorDashboard({
             {sessions.length === 0 ? (
               <p className="text-sm text-[#0B132B]/50 font-medium">No rehearsal sessions created yet.</p>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]">
-                <table className="w-full text-sm bg-white overflow-hidden">
-                  <thead>
-                    <tr className="bg-[#0B132B]/[0.03]">
-                      <th className="text-left px-3 py-2.5 font-bold text-[#0B132B] sticky left-0 bg-[#F8F7F4]">Contestant</th>
-                      {sessions.map(s => (
-                        <th key={s.id} className="px-3 py-2.5 font-bold text-[#0B132B] whitespace-nowrap text-xs">{s.label}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {contestants.map(c => (
-                      <tr key={c.id} className="border-t border-[#0B132B]/[0.06]">
-                        <td className="px-3 py-2 font-semibold text-[#0B132B] sticky left-0 bg-white whitespace-nowrap">
-                          #{c.contestant_number} {c.name}
-                        </td>
-                        {sessions.map(s => {
-                          const present = isPresent(c.id, s.id);
-                          return (
-                            <td key={s.id} className="px-3 py-2 text-center">
-                              <button
-                                onClick={() =>
-                                  startTransition(() => toggleAttendance(c.id, s.id, !present))
-                                }
-                                disabled={isPending}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto transition ${
-                                  present ? "bg-[#D4AF37] text-[#0B132B]" : "bg-[#0B132B]/10 text-[#0B132B]/30"
-                                }`}
-                              >
-                                {present ? <Check size={16} strokeWidth={2.5} /> : <X size={14} />}
-                              </button>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                <select
+                  value={selectedSessionId}
+                  onChange={e => setSelectedSessionId(e.target.value)}
+                  className="w-full rounded-xl border border-[#0B132B]/15 bg-white px-3 py-3 text-sm font-bold text-[#0B132B] outline-none focus:border-[#D4AF37] mb-4"
+                >
+                  {sessions.map(s => (
+                    <option key={s.id} value={s.id}>{s.label}{s.session_date ? ` — ${s.session_date}` : ""}</option>
+                  ))}
+                </select>
+
+                <div className="space-y-2">
+                  {contestants.map(c => {
+                    const present = isPresent(c.id, selectedSessionId);
+                    return (
+                      <div
+                        key={c.id}
+                        className="flex items-center justify-between bg-white rounded-2xl p-3 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]"
+                      >
+                        <p className="font-semibold text-[#0B132B] text-sm">#{c.contestant_number} {c.name}</p>
+                        <div className="flex gap-1.5 shrink-0">
+                          <button
+                            onClick={() => startTransition(() => toggleAttendance(c.id, selectedSessionId, true))}
+                            disabled={isPending}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold transition ${
+                              present ? "bg-[#D4AF37] text-[#0B132B]" : "bg-[#0B132B]/[0.05] text-[#0B132B]/40"
+                            }`}
+                          >
+                            Present
+                          </button>
+                          <button
+                            onClick={() => startTransition(() => toggleAttendance(c.id, selectedSessionId, false))}
+                            disabled={isPending}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold transition ${
+                              !present ? "bg-[#0B132B] text-white" : "bg-[#0B132B]/[0.05] text-[#0B132B]/40"
+                            }`}
+                          >
+                            Absent
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
         )}
@@ -189,45 +197,51 @@ export function InstructorDashboard({
             {tasks.length === 0 ? (
               <p className="text-sm text-[#0B132B]/50 font-medium">No tasks created yet.</p>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]">
-                <table className="w-full text-sm bg-white overflow-hidden">
-                  <thead>
-                    <tr className="bg-[#0B132B]/[0.03]">
-                      <th className="text-left px-3 py-2.5 font-bold text-[#0B132B] sticky left-0 bg-[#F8F7F4]">Contestant</th>
-                      {tasks.map(t => (
-                        <th key={t.id} className="px-3 py-2.5 font-bold text-[#0B132B] whitespace-nowrap text-xs">{t.label}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {contestants.map(c => (
-                      <tr key={c.id} className="border-t border-[#0B132B]/[0.06]">
-                        <td className="px-3 py-2 font-semibold text-[#0B132B] sticky left-0 bg-white whitespace-nowrap">
-                          #{c.contestant_number} {c.name}
-                        </td>
-                        {tasks.map(t => {
-                          const completed = isCompleted(c.id, t.id);
-                          return (
-                            <td key={t.id} className="px-3 py-2 text-center">
-                              <button
-                                onClick={() =>
-                                  startTransition(() => toggleTask(c.id, t.id, !completed))
-                                }
-                                disabled={isPending}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto transition ${
-                                  completed ? "bg-[#D4AF37] text-[#0B132B]" : "bg-[#0B132B]/10 text-[#0B132B]/30"
-                                }`}
-                              >
-                                {completed ? <Check size={16} strokeWidth={2.5} /> : <X size={14} />}
-                              </button>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                <select
+                  value={selectedTaskId}
+                  onChange={e => setSelectedTaskId(e.target.value)}
+                  className="w-full rounded-xl border border-[#0B132B]/15 bg-white px-3 py-3 text-sm font-bold text-[#0B132B] outline-none focus:border-[#D4AF37] mb-4"
+                >
+                  {tasks.map(t => (
+                    <option key={t.id} value={t.id}>{t.label}{t.task_date ? ` — ${t.task_date}` : ""}</option>
+                  ))}
+                </select>
+
+                <div className="space-y-2">
+                  {contestants.map(c => {
+                    const completed = isCompleted(c.id, selectedTaskId);
+                    return (
+                      <div
+                        key={c.id}
+                        className="flex items-center justify-between bg-white rounded-2xl p-3 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]"
+                      >
+                        <p className="font-semibold text-[#0B132B] text-sm">#{c.contestant_number} {c.name}</p>
+                        <div className="flex gap-1.5 shrink-0">
+                          <button
+                            onClick={() => startTransition(() => toggleTask(c.id, selectedTaskId, true))}
+                            disabled={isPending}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold transition ${
+                              completed ? "bg-[#D4AF37] text-[#0B132B]" : "bg-[#0B132B]/[0.05] text-[#0B132B]/40"
+                            }`}
+                          >
+                            Done
+                          </button>
+                          <button
+                            onClick={() => startTransition(() => toggleTask(c.id, selectedTaskId, false))}
+                            disabled={isPending}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold transition ${
+                              !completed ? "bg-[#0B132B] text-white" : "bg-[#0B132B]/[0.05] text-[#0B132B]/40"
+                            }`}
+                          >
+                            Not Done
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
         )}
