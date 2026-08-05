@@ -1,5 +1,5 @@
 import { AwardsExperience } from "@/components/awards-experience";
-import { browserSupabase } from "@/lib/supabase";
+import { browserSupabase } from "@/lib/supabase-browser";
 
 async function getAwardsData() {
   if (!browserSupabase) {
