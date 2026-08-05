@@ -4,7 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { browserSupabase } from "@/lib/supabase-browser";
 import { FlaskConical, Radio, Info } from "lucide-react";
 
-type Contestant = { id: string; contestant_number: string; name: string; department: string };
+type Contestant = { id: string; contestant_number: string; name: string; department: string; category?: string };
+type WinnerDeclaration = {
+  category_label: string;
+  declared_winner_id: string | null;
+  confirmed_at: string | null;
+};
 
 const CRITERIA = [
   { key: "around_the_world", label: "Around the World in Style" },
@@ -31,6 +36,10 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [loadingScores, setLoadingScores] = useState(false);
+  const [totalSubmittedByMe, setTotalSubmittedByMe] = useState<number | null>(null);
+  const [declarations, setDeclarations] = useState<WinnerDeclaration[]>([]);
+  const [allContestantsForReveal, setAllContestantsForReveal] = useState<Contestant[]>([]);
+  const [finalScores, setFinalScores] = useState<Record<string, number>>({});
 
   useEffect(() => {
     async function loadJudge() {
@@ -78,6 +87,65 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
   useEffect(() => {
     loadLockedScores();
   }, [loadLockedScores]);
+
+  const checkCompletion = useCallback(async () => {
+    if (!judgeId || mode !== "live" || contestants.length === 0) return;
+
+    const { count } = await browserSupabase
+      .from("judge_scores")
+      .select("id", { count: "exact", head: true })
+      .eq("judge_id", judgeId);
+
+    setTotalSubmittedByMe(count ?? 0);
+  }, [judgeId, mode, contestants.length]);
+
+  useEffect(() => {
+    checkCompletion();
+  }, [checkCompletion, lockedScores]);
+
+  const isJudgeDone = totalSubmittedByMe !== null && contestants.length > 0
+    && totalSubmittedByMe >= contestants.length * CRITERIA.length;
+
+  useEffect(() => {
+    if (!isJudgeDone) return;
+
+    let cancelled = false;
+
+    async function poll() {
+      const { data: declData } = await browserSupabase
+        .from("winner_declarations")
+        .select("category_label, declared_winner_id, confirmed_at")
+        .not("confirmed_at", "is", null);
+
+      if (cancelled) return;
+      setDeclarations(declData ?? []);
+
+      if ((declData ?? []).length > 0) {
+        const { data: allC } = await browserSupabase
+          .from("contestants")
+          .select("id, contestant_number, name, department, category");
+        const { data: scoresData } = await browserSupabase
+          .from("contestant_final_scores")
+          .select("contestant_id, final_score");
+
+        if (!cancelled) {
+          setAllContestantsForReveal(allC ?? []);
+          const scoreMap: Record<string, number> = {};
+          (scoresData ?? []).forEach(s => {
+            scoreMap[s.contestant_id] = Number(s.final_score);
+          });
+          setFinalScores(scoreMap);
+        }
+      }
+    }
+
+    poll();
+    const interval = setInterval(poll, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [isJudgeDone]);
 
   function currentScoreFor(criterion: string): number {
     if (mode === "test") return practiceScores[criterion] ?? 5;
@@ -134,6 +202,63 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
   const activeContestant = mode === "test"
     ? DEMO_CONTESTANT
     : contestants.find(c => c.id === selectedContestantId);
+
+  const bothConfirmed = declarations.length >= 2 &&
+    declarations.every(d => d.confirmed_at);
+
+  if (mode === "live" && isJudgeDone) {
+    if (bothConfirmed) {
+      return (
+        <div className="min-h-screen bg-[#0B132B] text-white flex items-center justify-center px-4 py-12">
+          <div className="max-w-md w-full text-center">
+            <p className="text-xs font-black uppercase tracking-widest text-[#D4AF37] mb-2">
+              Mr & Miss FUL Night 2026 — Results
+            </p>
+            <h1 className="font-rounded text-2xl font-black mb-8">The Winners Are In!</h1>
+
+            <div className="space-y-6">
+              {declarations.map(decl => {
+                const winner = allContestantsForReveal.find(c => c.id === decl.declared_winner_id);
+                const pct = decl.declared_winner_id ? finalScores[decl.declared_winner_id] : undefined;
+                return (
+                  <div key={decl.category_label} className="bg-white/5 rounded-2xl p-5 border border-white/10">
+                    <p className="text-xs font-bold uppercase tracking-wider text-white/50 mb-1">
+                      {decl.category_label}
+                    </p>
+                    <p className="font-rounded text-xl font-black text-[#D4AF37]">
+                      {winner ? `#${winner.contestant_number} ${winner.name}` : "—"}
+                    </p>
+                    {pct !== undefined && (
+                      <p className="text-sm font-bold text-white/70 mt-1">{pct.toFixed(1)}%</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-[#0B132B] text-white flex items-center justify-center px-4 py-12">
+        <div className="max-w-sm w-full text-center">
+          <p className="text-xs font-black uppercase tracking-widest text-[#D4AF37] mb-2">
+            Mr & Miss FUL Night 2026
+          </p>
+          <h1 className="font-rounded text-xl font-black mb-4">
+            Thank you for participating as a judge!
+          </h1>
+          <p className="text-sm text-white/60 font-medium leading-relaxed">
+            Please wait a few minutes while we compile the results.
+          </p>
+          <div className="mt-8 flex justify-center">
+            <div className="w-8 h-8 border-2 border-[#D4AF37]/30 border-t-[#D4AF37] rounded-full animate-spin" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F3EE] text-[#0B132B] pb-20">
