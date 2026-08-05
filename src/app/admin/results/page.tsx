@@ -151,7 +151,7 @@ export default async function AdminResultsPage() {
                             </p>
                             <p className="text-xs text-slate-500 font-medium">
                               Voting: {r.voting_score} · Attendance: {r.attendance_score} · Tasks: {r.task_score} ·
-                              Stage: {r.stage_performance_score} · Q&A: {r.qa_score} · Outfit: {r.outfit_score} · Body: {r.body_language_score}
+                              World: {r.around_the_world_score} · Alter Ego: {r.alter_ego_score} · Roots: {r.roots_and_royalty_score} · Evening: {r.evening_dress_score}
                             </p>
                           </div>
                         </div>
