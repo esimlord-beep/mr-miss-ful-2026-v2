@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { browserSupabase } from "@/lib/supabase";
+import { browserSupabase } from "@/lib/supabase-browser";
 import { FlaskConical, Radio, Info } from "lucide-react";
 
 type Contestant = { id: string; contestant_number: string; name: string; department: string };
