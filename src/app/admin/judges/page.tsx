@@ -3,10 +3,10 @@ import { revalidatePath } from "next/cache";
 import { Gavel, Pencil, Trash2, X, CheckCircle2 } from "lucide-react";
 
 const CRITERIA = [
-  { key: "stage_performance", label: "Stage Performance" },
-  { key: "qa", label: "Q&A" },
-  { key: "outfit", label: "Outfit" },
-  { key: "body_language", label: "Body Language" }
+  { key: "around_the_world", label: "Around the World in Style" },
+  { key: "alter_ego", label: "Alter Ego" },
+  { key: "roots_and_royalty", label: "Roots and Royalty" },
+  { key: "evening_dress", label: "Evening Dress/Suit" }
 ] as const;
 
 type Judge = { id: string; name: string; email: string };
@@ -138,7 +138,7 @@ export default async function AdminJudgesPage({
             <Gavel className="text-blue-700" size={28} /> Judge Scores
           </h1>
           <p className="text-sm text-slate-500 font-medium mt-1">
-            View every judge's raw scores per contestant and criterion. You can override or clear
+            View every judge's raw scores per contestant and round. You can override or clear
             any score here — this bypasses the lock judges see on their own dashboard.
           </p>
         </div>
@@ -148,7 +148,7 @@ export default async function AdminJudgesPage({
             { label: "Judges", value: judges.length.toString() },
             { label: "Contestants", value: contestants.length.toString() },
             { label: "Scores Submitted", value: `${totalFilledCells}/${totalPossibleCells}` },
-            { label: "Criteria", value: CRITERIA.length.toString() }
+            { label: "Rounds", value: CRITERIA.length.toString() }
           ].map(({ label, value }) => (
             <article key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-xs font-bold text-slate-500">{label}</p>
