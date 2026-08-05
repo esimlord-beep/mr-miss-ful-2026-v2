@@ -100,6 +100,14 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
   async function handleSubmit(criterion: string) {
     if (mode === "test") return;
     if (!judgeId || !selectedContestantId) return;
+
+    // Guard against a stale/re-enabled slider trying to resubmit a
+    // criterion that's already locked in this session.
+    if (lockedScores[criterion] !== undefined) {
+      setError("You've already submitted a score for this criterion.");
+      return;
+    }
+
     setSaving(true);
     setError("");
 
@@ -113,7 +121,15 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
     });
 
     if (insertError) {
-      setError(`Could not submit score: ${insertError.message}`);
+      // Postgres unique_violation — this criterion was already scored
+      // (e.g. submitted from another tab/device). Treat it as locked
+      // rather than showing a raw database error.
+      if (insertError.code === "23505") {
+        setError("This score was already submitted — refreshing your locked scores.");
+        await loadLockedScores();
+      } else {
+        setError(`Could not submit score: ${insertError.message}`);
+      }
     } else {
       setLockedScores(prev => ({ ...prev, [criterion]: value }));
     }
