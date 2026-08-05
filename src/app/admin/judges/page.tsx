@@ -47,8 +47,6 @@ async function overrideScores(formData: FormData) {
   for (const { key } of CRITERIA) {
     const raw = formData.get(key);
 
-    // Always clear the existing row for this criterion first — avoids
-    // relying on a unique constraint that may or may not exist in the DB.
     await adminSupabase
       .from("judge_scores")
       .delete()
@@ -204,7 +202,7 @@ export default async function AdminJudgesPage({
                 >
                   Save Override
                 </button>
-                
+                <a
                   href="/admin/judges"
                   className="rounded-full border border-slate-200 px-6 py-3 text-sm font-black text-slate-600 hover:bg-slate-100"
                 >
@@ -297,7 +295,7 @@ export default async function AdminJudgesPage({
                               {complete ? totalFor(judge.id, contestant.id).toFixed(1) : "—"}
                             </td>
                             <td className="px-4 py-2.5 text-right">
-                              
+                              <a
                                 href={`/admin/judges?edit=${judge.id}__${contestant.id}`}
                                 className="inline-flex items-center gap-1 text-xs font-black text-blue-700 hover:underline"
                               >
