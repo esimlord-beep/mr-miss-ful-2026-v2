@@ -46,35 +46,35 @@ export default async function AdminPage({
               <h1 className="mt-1 text-2xl font-black text-slate-900">Mr & Miss FUL 2026</h1>
 
               <div className="flex flex-wrap gap-2 mt-2">
-                <a
+                
                   href="/admin/awards"
                   className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-black text-white hover:bg-amber-600"
                 >
                   🏆 Manage Awards
                 </a>
 
-                <a
+                
                   href="/admin/nominations"
                   className="inline-flex items-center gap-2 rounded-full bg-purple-600 px-4 py-1.5 text-xs font-black text-white hover:bg-purple-700"
                 >
                   📝 Review Nominations
                 </a>
 
-                <a
+                
                   href="/admin/support"
                   className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-4 py-1.5 text-xs font-black text-white hover:bg-blue-900"
                 >
                   📨 Support Inbox
                 </a>
 
-                <a
+                
                   href="/admin/tickets"
                   className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-black text-white hover:bg-emerald-700"
                 >
                   🎟️ Manage Tickets
                 </a>
 
-                <a
+                
                   href="/admin/judges"
                   className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1.5 text-xs font-black text-white hover:bg-slate-700"
                 >
@@ -160,6 +160,13 @@ export default async function AdminPage({
                 <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Full Name</label>
                 <input name="name" required defaultValue={editContestantData?.name ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. Amaka Nwosu" />
               </div>
+              {editContestantData && (
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Contestant Number</label>
+                  <input name="contestant_number" defaultValue={editContestantData?.contestant_number ?? ""} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500" placeholder="e.g. 001" />
+                  <p className="mt-1 text-xs text-slate-400 font-medium">Use this to fix duplicate or out-of-order numbers.</p>
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-black uppercase tracking-[0.14em] text-slate-400 mb-1">Category</label>
                 <select name="category" required defaultValue={editContestantData?.category ?? "Miss FUL"} className="w-full rounded-xl border border-slate-200 px-3 py-2.5 font-semibold outline-none focus:border-blue-500">
@@ -342,5 +349,3 @@ export default async function AdminPage({
     </main>
   );
 }
-
-      
