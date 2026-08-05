@@ -46,7 +46,7 @@ export default async function AdminPage({
               <h1 className="mt-1 text-2xl font-black text-slate-900">Mr & Miss FUL 2026</h1>
 
               <div className="flex flex-wrap gap-2 mt-2">
-                
+                <a
                   href="/admin/awards"
                   className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-black text-white hover:bg-amber-600"
                 >
