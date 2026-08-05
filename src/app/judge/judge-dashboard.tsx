@@ -7,10 +7,10 @@ import { FlaskConical, Radio, Info } from "lucide-react";
 type Contestant = { id: string; contestant_number: string; name: string; department: string };
 
 const CRITERIA = [
-  { key: "stage_performance", label: "Stage Performance" },
-  { key: "qa", label: "Q&A" },
-  { key: "outfit", label: "Outfit" },
-  { key: "body_language", label: "Body Language" }
+  { key: "around_the_world", label: "Around the World in Style" },
+  { key: "alter_ego", label: "Alter Ego" },
+  { key: "roots_and_royalty", label: "Roots and Royalty" },
+  { key: "evening_dress", label: "Evening Dress/Suit" }
 ] as const;
 
 const DEMO_CONTESTANT: Contestant = {
@@ -101,10 +101,8 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
     if (mode === "test") return;
     if (!judgeId || !selectedContestantId) return;
 
-    // Guard against a stale/re-enabled slider trying to resubmit a
-    // criterion that's already locked in this session.
     if (lockedScores[criterion] !== undefined) {
-      setError("You've already submitted a score for this criterion.");
+      setError("You've already submitted a score for this round.");
       return;
     }
 
@@ -121,9 +119,6 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
     });
 
     if (insertError) {
-      // Postgres unique_violation — this criterion was already scored
-      // (e.g. submitted from another tab/device). Treat it as locked
-      // rather than showing a raw database error.
       if (insertError.code === "23505") {
         setError("This score was already submitted — refreshing your locked scores.");
         await loadLockedScores();
@@ -175,9 +170,9 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
             <p className="text-sm font-bold text-[#0B132B] mb-1">How scoring works</p>
             <p className="text-xs text-[#0B132B]/60 font-medium leading-relaxed">
               Public voting is 40% of the final result. Instructor attendance and tasks are 20%.
-              Your judging tonight is 40%, split evenly across 4 criteria (10% each): Stage Performance,
-              Q&A, Outfit, and Body Language. Once you submit a score for a contestant on a criterion in
-              Live Mode, it locks permanently and cannot be changed.
+              Your judging tonight is 40%, split evenly across 4 rounds (10% each): Around the World
+              in Style, Alter Ego, Roots and Royalty, and Evening Dress/Suit. Once you submit a score
+              for a contestant in a round in Live Mode, it locks permanently and cannot be changed.
             </p>
           </div>
         </div>
