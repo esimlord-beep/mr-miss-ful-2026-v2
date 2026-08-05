@@ -73,6 +73,13 @@ export default async function AdminPage({
                 >
                   🎟️ Manage Tickets
                 </a>
+
+                <a
+                  href="/admin/judges"
+                  className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1.5 text-xs font-black text-white hover:bg-slate-700"
+                >
+                  ⚖️ Manage Judges
+                </a>
               </div>
             </div>
 
@@ -335,3 +342,5 @@ export default async function AdminPage({
     </main>
   );
 }
+
+      
