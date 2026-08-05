@@ -1,4 +1,4 @@
-import { browserSupabase } from "@/lib/supabase";
+import { browserSupabase } from "@/lib/supabase-browser";
 import { submitNomination } from "@/app/nominate/actions";
 import { SubmitButton } from "./submit-button";
 import { CheckCircle2, Trophy } from "lucide-react";
