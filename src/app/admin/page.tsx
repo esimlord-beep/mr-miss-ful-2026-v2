@@ -60,7 +60,7 @@ export default async function AdminPage({
                   📝 Review Nominations
                 </a>
 
-                
+                <a
                   href="/admin/support"
                   className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-4 py-1.5 text-xs font-black text-white hover:bg-blue-900"
                 >
