@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { browserSupabase } from "@/lib/supabase";
+import { browserSupabase } from "@/lib/supabase-browser";
 
 export default function JudgeLoginPage() {
   const [email, setEmail] = useState("");
