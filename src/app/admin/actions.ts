@@ -88,8 +88,17 @@ export async function addContestant(formData: FormData) {
 
  const photoUrl = await uploadPhoto(photo, name);
 
- const { count } = await adminSupabase.from("contestants").select("id", { count: "exact", head: true });
- const nextNumber = String((count ?? 0) + 1).padStart(3, "0");
+ // Base the next number on the highest contestant_number that has ever been
+ // used, not on how many rows currently exist. Using a plain row count meant
+ // that deleting a contestant (e.g. #1) would shrink the count, and the next
+ // add would then reuse a number still in use by an existing contestant
+ // (e.g. #16 gets created a second time) instead of continuing the sequence.
+ const { data: existingNumbers } = await adminSupabase.from("contestants").select("contestant_number");
+ const highest = (existingNumbers ?? []).reduce((max, row) => {
+   const parsed = parseInt(row.contestant_number, 10);
+   return Number.isFinite(parsed) && parsed > max ? parsed : max;
+ }, 0);
+ const nextNumber = String(highest + 1).padStart(3, "0");
 
  const { error } = await adminSupabase.from("contestants").insert({
    contestant_number: nextNumber,
@@ -118,6 +127,7 @@ export async function editContestant(formData: FormData) {
  const department = String(formData.get("department") ?? "").trim();
  const faculty = String(formData.get("faculty") ?? "").trim();
  const bio = String(formData.get("bio") ?? "").trim();
+ const contestantNumber = String(formData.get("contestant_number") ?? "").trim();
  const photo = formData.get("photo") as File | null;
 
  if (!id || !name || !category || !department || !faculty) {
@@ -125,6 +135,10 @@ export async function editContestant(formData: FormData) {
  }
 
  const updates: Record<string, string> = { name, category, department, faculty, bio: bio || "—" };
+
+ if (contestantNumber) {
+   updates.contestant_number = contestantNumber.padStart(3, "0");
+ }
 
  if (photo && photo.size > 0) {
    const { data: existingContestant } = await adminSupabase
