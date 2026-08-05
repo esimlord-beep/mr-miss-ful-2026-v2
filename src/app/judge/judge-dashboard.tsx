@@ -226,7 +226,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
                       {decl.category_label}
                     </p>
                     <p className="font-rounded text-xl font-black text-[#D4AF37]">
-                      {winner ? `#${winner.contestant_number} ${winner.name}` : "—"}
+                      {winner ? `${winner.contestant_number} ${winner.name}` : "—"}
                     </p>
                     {pct !== undefined && (
                       <p className="text-sm font-bold text-white/70 mt-1">{pct.toFixed(1)}%</p>
@@ -321,7 +321,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
               className="w-full rounded-xl border border-[#0B132B]/15 bg-white px-3 py-3 text-sm font-bold text-[#0B132B] outline-none focus:border-[#D4AF37] mb-4"
             >
               {contestants.map(c => (
-                <option key={c.id} value={c.id}>#{c.contestant_number} {c.name}</option>
+                <option key={c.id} value={c.id}>{c.contestant_number} {c.name}</option>
               ))}
             </select>
           </div>
@@ -336,7 +336,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
         {activeContestant && (
           <div className="bg-white rounded-2xl p-4 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]">
             <p className="font-rounded font-bold text-[#0B132B] mb-4">
-              #{activeContestant.contestant_number} {activeContestant.name}
+              {activeContestant.contestant_number} {activeContestant.name}
             </p>
 
             <div className="space-y-5">
