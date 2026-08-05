@@ -1,5 +1,5 @@
 import { fallbackContestants } from "@/lib/sample-data";
-import { browserSupabase } from "@/lib/supabase";
+import { browserSupabase } from "@/lib/supabase-browser";
 import type { Contestant } from "@/types";
 
 export async function getContestants(): Promise<Contestant[]> {
