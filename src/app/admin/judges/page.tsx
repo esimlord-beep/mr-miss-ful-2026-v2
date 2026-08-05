@@ -89,6 +89,31 @@ async function clearScores(formData: FormData) {
   revalidatePath("/admin/results");
 }
 
+async function addJudge(formData: FormData) {
+  "use server";
+  if (!adminSupabase) return;
+
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!name || !email) return;
+
+  await adminSupabase.from("judges").insert({ name, email });
+
+  revalidatePath("/admin/judges");
+}
+
+async function deleteJudge(formData: FormData) {
+  "use server";
+  if (!adminSupabase) return;
+
+  const judgeId = String(formData.get("judge_id") ?? "").trim();
+  if (!judgeId) return;
+
+  await adminSupabase.from("judges").delete().eq("id", judgeId);
+
+  revalidatePath("/admin/judges");
+}
+
 export default async function AdminJudgesPage({
   searchParams
 }: {
@@ -154,6 +179,72 @@ export default async function AdminJudgesPage({
             </article>
           ))}
         </div>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm mb-8">
+          <h2 className="text-lg font-black text-slate-900 mb-1">Add a Judge</h2>
+          <p className="text-xs text-slate-500 font-medium mb-4">
+            Add their name and email here first — they'll then be able to create their own account
+            at <span className="font-bold">/judge/signup</span> using that exact email.
+          </p>
+
+          <form action={addJudge} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-500 mb-1">
+                Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                required
+                placeholder="Judge's full name"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-blue-500"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-500 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder="judge@example.com"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-blue-500"
+              />
+            </div>
+            <button
+              type="submit"
+              className="rounded-full bg-blue-700 px-6 py-3 text-sm font-black text-white hover:bg-blue-900 whitespace-nowrap"
+            >
+              Add Judge
+            </button>
+          </form>
+
+          {judges.length > 0 && (
+            <div className="mt-5 border-t border-slate-100 pt-4 space-y-2">
+              {judges.map(judge => (
+                <div
+                  key={judge.id}
+                  className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-2.5"
+                >
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">{judge.name}</p>
+                    <p className="text-xs text-slate-400">{judge.email}</p>
+                  </div>
+                  <form action={deleteJudge}>
+                    <input type="hidden" name="judge_id" value={judge.id} />
+                    <button
+                      type="submit"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 hover:underline"
+                    >
+                      <Trash2 size={12} /> Remove
+                    </button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {editJudge && editContestant && editEntry && (
           <section className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-5 shadow-sm mb-8">
