@@ -125,7 +125,7 @@ export function InstructorDashboard({
                         key={c.id}
                         className="flex items-center justify-between bg-white rounded-2xl p-3 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]"
                       >
-                        <p className="font-semibold text-[#0B132B] text-sm">#{c.contestant_number} {c.name}</p>
+                        <p className="font-semibold text-[#0B132B] text-sm">{c.contestant_number} {c.name}</p>
                         <div className="flex gap-1.5 shrink-0">
                           <button
                             onClick={() => startTransition(() => toggleAttendance(c.id, selectedSessionId, true))}
@@ -216,7 +216,7 @@ export function InstructorDashboard({
                         key={c.id}
                         className="flex items-center justify-between bg-white rounded-2xl p-3 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]"
                       >
-                        <p className="font-semibold text-[#0B132B] text-sm">#{c.contestant_number} {c.name}</p>
+                        <p className="font-semibold text-[#0B132B] text-sm">{c.contestant_number} {c.name}</p>
                         <div className="flex gap-1.5 shrink-0">
                           <button
                             onClick={() => startTransition(() => toggleTask(c.id, selectedTaskId, true))}
@@ -252,7 +252,7 @@ export function InstructorDashboard({
             {contestants.map(c => (
               <div key={c.id} className="bg-white rounded-2xl p-4 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]">
                 <div className="flex items-center justify-between">
-                  <p className="font-rounded font-bold text-[#0B132B] text-sm">#{c.contestant_number} {c.name}</p>
+                  <p className="font-rounded font-bold text-[#0B132B] text-sm">{c.contestant_number} {c.name}</p>
                   <button
                     onClick={() => setNoteContestantId(noteContestantId === c.id ? null : c.id)}
                     className="flex items-center gap-1 text-xs font-bold text-[#B8901F]"
