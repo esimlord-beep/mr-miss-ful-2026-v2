@@ -251,7 +251,7 @@ export default async function AdminJudgesPage({
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-lg font-black text-slate-900">
-                  Override — {editJudge.name} × #{editContestant.contestant_number} {editContestant.name}
+                  Override — {editJudge.name} × {editContestant.contestant_number} {editContestant.name}
                 </h2>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
                   Leave a field blank to remove that score entirely (unlocks it for the judge to resubmit).
@@ -293,7 +293,7 @@ export default async function AdminJudgesPage({
                 >
                   Save Override
                 </button>
-                <a
+                
                   href="/admin/judges"
                   className="rounded-full border border-slate-200 px-6 py-3 text-sm font-black text-slate-600 hover:bg-slate-100"
                 >
@@ -337,7 +337,7 @@ export default async function AdminJudgesPage({
                 <summary className="cursor-pointer list-none px-5 py-4 flex items-center justify-between hover:bg-slate-50">
                   <div>
                     <p className="text-xs font-black text-blue-700">
-                      #{contestant.contestant_number} · {contestant.category}
+                      {contestant.contestant_number} · {contestant.category}
                     </p>
                     <p className="font-black text-slate-900">{contestant.name}</p>
                     <p className="text-xs font-semibold text-slate-500">{contestant.department}</p>
@@ -386,7 +386,7 @@ export default async function AdminJudgesPage({
                               {complete ? totalFor(judge.id, contestant.id).toFixed(1) : "—"}
                             </td>
                             <td className="px-4 py-2.5 text-right">
-                              <a
+                              
                                 href={`/admin/judges?edit=${judge.id}__${contestant.id}`}
                                 className="inline-flex items-center gap-1 text-xs font-black text-blue-700 hover:underline"
                               >
