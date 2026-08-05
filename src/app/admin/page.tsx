@@ -53,7 +53,7 @@ export default async function AdminPage({
                   🏆 Manage Awards
                 </a>
 
-                
+                <a
                   href="/admin/nominations"
                   className="inline-flex items-center gap-2 rounded-full bg-purple-600 px-4 py-1.5 text-xs font-black text-white hover:bg-purple-700"
                 >
@@ -67,14 +67,14 @@ export default async function AdminPage({
                   📨 Support Inbox
                 </a>
 
-                
+                <a
                   href="/admin/tickets"
                   className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-black text-white hover:bg-emerald-700"
                 >
                   🎟️ Manage Tickets
                 </a>
 
-                
+                <a
                   href="/admin/judges"
                   className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1.5 text-xs font-black text-white hover:bg-slate-700"
                 >
