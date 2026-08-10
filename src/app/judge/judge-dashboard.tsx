@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { browserSupabase } from "@/lib/supabase-browser";
-import { FlaskConical, Radio, Info } from "lucide-react";
+import { FlaskConical, Radio, Info, ChevronDown, Check } from "lucide-react";
 
 type Contestant = { id: string; contestant_number: string; name: string; department: string; category?: string };
 type WinnerDeclaration = {
@@ -62,10 +62,17 @@ const ALL_CRITERIA = ROUNDS.flatMap(round =>
   }))
 );
 
+const ROUND_LABEL_PATTERN = /^Round (\d+):\s*(.+)$/;
+
+function splitRoundLabel(label: string): { number: string; name: string } {
+  const match = label.match(ROUND_LABEL_PATTERN);
+  return match ? { number: match[1], name: match[2] } : { number: "", name: label };
+}
+
 const DEMO_CONTESTANT: Contestant = {
   id: "demo",
   contestant_number: "000",
-  name: "Demo Contestant (Practice Only)",
+  name: "Demo Contestant",
   department: "N/A"
 };
 
@@ -84,6 +91,12 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
   const [declarations, setDeclarations] = useState<WinnerDeclaration[]>([]);
   const [allContestantsForReveal, setAllContestantsForReveal] = useState<Contestant[]>([]);
   const [finalScores, setFinalScores] = useState<Record<string, number>>({});
+
+  // Presentational-only UI state: which round/review screen is showing, and
+  // whether the "how scoring works" note is expanded. Neither affects scores,
+  // submission, or any backend call.
+  const [viewIndex, setViewIndex] = useState(0);
+  const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
     async function loadJudge() {
@@ -109,6 +122,10 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
       setSelectedContestantId(contestants[0].id);
     }
   }, [mode, contestants, selectedContestantId]);
+
+  useEffect(() => {
+    setViewIndex(0);
+  }, [mode, selectedContestantId]);
 
   const loadLockedScores = useCallback(async () => {
     if (!judgeId || !selectedContestantId || mode !== "live") return;
@@ -304,66 +321,106 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#F5F3EE] text-[#0B132B] pb-20">
-      <div className="bg-[#0B132B] px-4 py-5 sticky top-0 z-10">
-        <h1 className="font-rounded text-xl font-black text-white">Judge Dashboard</h1>
-        <p className="text-white/50 text-xs mt-0.5 font-medium">
-          {judgeName ? `Welcome, ${judgeName}` : "Mr & Miss FUL Night 2026"}
-        </p>
+  const currentRound = viewIndex < ROUNDS.length ? ROUNDS[viewIndex] : null;
+  const currentRoundInfo = currentRound ? splitRoundLabel(currentRound.label) : null;
 
-        <div className="mt-4 flex items-center gap-2 bg-white/10 rounded-full p-1">
+  const roundTotals = ROUNDS.map(round => {
+    const info = splitRoundLabel(round.label);
+    const total = round.subcriteria.reduce(
+      (sum, sub) => sum + currentScoreFor(`${round.key}__${sub.key}`),
+      0
+    );
+    return { key: round.key, number: info.number, name: info.name, total };
+  });
+  const grandTotal = roundTotals.reduce((sum, r) => sum + r.total, 0);
+  const maxTotal = ROUNDS.length * 10;
+
+  const allLockedForContestant = mode === "live" &&
+    ALL_CRITERIA.every(c => lockedScores[c.key] !== undefined);
+
+  return (
+    <div className="min-h-screen bg-[#F5F3EE] text-[#0B132B]">
+      <div className="bg-[#0B132B] px-4 pt-4 pb-3.5 sticky top-0 z-20">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D4AF37]">
+              Mr & Miss FUL Night 2026
+            </p>
+            <h1 className="font-rounded text-[19px] font-black text-white leading-tight mt-0.5">
+              Judge Dashboard
+            </h1>
+          </div>
+          {judgeName && (
+            <p className="text-[11px] font-semibold text-white/40 shrink-0 mt-1 truncate max-w-[35%]">
+              {judgeName}
+            </p>
+          )}
+        </div>
+
+        <div className="mt-3 flex items-center gap-1 bg-white/10 rounded-full p-1">
           <button
             onClick={() => setMode("test")}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-black transition ${
-              mode === "test" ? "bg-slate-500 text-white" : "text-white/50"
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-[11px] font-black transition ${
+              mode === "test" ? "bg-white text-[#0B132B]" : "text-white/50"
             }`}
           >
-            <FlaskConical size={13} /> Test Mode
+            <FlaskConical size={12} /> Test
           </button>
           <button
             onClick={() => setMode("live")}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-black transition ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-[11px] font-black transition ${
               mode === "live" ? "bg-[#D4AF37] text-[#0B132B]" : "text-white/50"
             }`}
           >
-            <Radio size={13} /> Live Mode
+            <Radio size={12} /> Live
           </button>
         </div>
       </div>
 
-      <div className="px-4 py-6">
-        <div className="bg-white rounded-2xl p-4 mb-5 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04] flex gap-3">
-          <Info size={18} className="text-[#B8901F] shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-bold text-[#0B132B] mb-1">How scoring works</p>
-            <p className="text-xs text-[#0B132B]/60 font-medium leading-relaxed">
+      <div className="px-4 pt-3 pb-28">
+        {mode === "test" && (
+          <div className="flex items-center gap-1.5 rounded-lg bg-[#0B132B]/[0.04] border border-[#0B132B]/10 px-3 py-2 mb-3">
+            <span className="text-sm leading-none">🧪</span>
+            <p className="text-[11px] font-bold text-[#0B132B]/60">
+              Practice Mode · Scores won&apos;t be saved
+            </p>
+          </div>
+        )}
+
+        <div className="bg-white rounded-xl border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.03] mb-3 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowInfo(v => !v)}
+            className="w-full flex items-center justify-between gap-2 px-3.5 py-2.5"
+          >
+            <span className="flex items-center gap-1.5 text-xs font-bold text-[#0B132B]">
+              <Info size={13} className="text-[#B8901F]" /> How scoring works
+            </span>
+            <ChevronDown
+              size={14}
+              className={`text-[#0B132B]/40 transition-transform ${showInfo ? "rotate-180" : ""}`}
+            />
+          </button>
+          {showInfo && (
+            <p className="px-3.5 pb-3 text-[11px] text-[#0B132B]/60 font-medium leading-relaxed">
               Public voting is 40% of the final result. Instructor attendance and tasks are 20%.
               Your judging tonight is 40%, split across 4 rounds worth 10 marks each: Around the World
               in Style, Alter Ego, Roots and Royalty, and Evening Dress & Suit. Each round has 4
               criteria worth 2.5 marks each. Once you submit a score for a criterion in Live Mode,
               it locks permanently and cannot be changed.
             </p>
-          </div>
+          )}
         </div>
 
-        {mode === "test" && (
-          <div className="bg-slate-100 border border-slate-300 rounded-2xl p-3 mb-4 text-center">
-            <p className="text-xs font-black text-slate-600 uppercase tracking-wider">
-              Practice Mode — nothing here is saved or counted
-            </p>
-          </div>
-        )}
-
         {mode === "live" && (
-          <div>
-            <label className="block text-xs font-black uppercase tracking-widest text-[#0B132B]/40 mb-1.5">
-              Select Contestant
+          <div className="mb-3">
+            <label className="block text-[10px] font-black uppercase tracking-widest text-[#0B132B]/40 mb-1">
+              Contestant
             </label>
             <select
               value={selectedContestantId}
               onChange={e => setSelectedContestantId(e.target.value)}
-              className="w-full rounded-xl border border-[#0B132B]/15 bg-white px-3 py-3 text-sm font-bold text-[#0B132B] outline-none focus:border-[#D4AF37] mb-4"
+              className="w-full rounded-xl border border-[#0B132B]/15 bg-white px-3 py-2.5 text-sm font-bold text-[#0B132B] outline-none focus:border-[#D4AF37]"
             >
               {contestants.map(c => (
                 <option key={c.id} value={c.id}>{c.contestant_number} {c.name}</option>
@@ -373,77 +430,208 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
         )}
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs font-semibold rounded-lg text-center mb-4">
+          <div className="px-3 py-2 bg-red-50 border border-red-100 text-red-600 text-[11px] font-bold rounded-lg text-center mb-3">
             {error}
           </div>
         )}
 
         {activeContestant && (
-          <div className="bg-white rounded-2xl p-4 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04]">
-            <p className="font-rounded font-bold text-[#0B132B] mb-4">
-              {activeContestant.contestant_number} {activeContestant.name}
+          <>
+            <div className="bg-white rounded-2xl px-4 py-3 mb-3 border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04] flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#B8901F]">
+                  Contestant #{activeContestant.contestant_number}
+                </p>
+                <p className="font-rounded text-base font-black text-[#0B132B] truncate">
+                  {activeContestant.name}
+                </p>
+              </div>
+              {mode === "test" && (
+                <span className="shrink-0 text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-1 rounded-full">
+                  Practice
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center justify-center gap-1.5 mb-1.5">
+              {ROUNDS.map((_, i) => (
+                <span
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === viewIndex ? "w-5 bg-[#D4AF37]" : "w-1.5 bg-[#0B132B]/15"
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="text-center text-[11px] font-bold text-[#0B132B]/40 mb-3">
+              {currentRound
+                ? `Round ${viewIndex + 1} of ${ROUNDS.length}`
+                : "Final Score Review"}
             </p>
 
-            <div className="space-y-6">
-              {ROUNDS.map(round => {
-                const roundTotal = round.subcriteria.reduce((sum, sub) => {
-                  const criterionKey = `${round.key}__${sub.key}`;
-                  return sum + currentScoreFor(criterionKey);
-                }, 0);
-
-                return (
-                  <div key={round.key} className="border-t border-[#0B132B]/[0.06] pt-5 first:border-t-0 first:pt-0">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-sm font-black text-[#0B132B]">{round.label}</p>
-                      <p className="text-sm font-black text-[#B8901F]">{roundTotal.toFixed(1)} / 10</p>
-                    </div>
-
-                    <div className="space-y-4">
-                      {round.subcriteria.map(sub => {
-                        const criterionKey = `${round.key}__${sub.key}`;
-                        const locked = isLocked(criterionKey);
-                        const value = currentScoreFor(criterionKey);
-
-                        return (
-                          <div key={criterionKey}>
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="text-xs font-bold text-[#0B132B]/70">{sub.label}</p>
-                              <p className="text-xs font-black text-[#B8901F]">{value.toFixed(2)} / 2.5</p>
-                            </div>
-                            <input
-                              type="range"
-                              min={0}
-                              max={2.5}
-                              step={0.25}
-                              value={value}
-                              disabled={locked || loadingScores}
-                              onChange={e => handleSliderChange(criterionKey, Number(e.target.value))}
-                              className="w-full accent-[#D4AF37] disabled:opacity-40"
-                            />
-                            {mode === "live" && (
-                              locked ? (
-                                <p className="text-[11px] font-bold text-emerald-700 mt-0.5">✓ Submitted and locked</p>
-                              ) : (
-                                <button
-                                  onClick={() => handleSubmit(criterionKey)}
-                                  disabled={saving}
-                                  className="mt-1.5 w-full rounded-full bg-[#0B132B] py-1.5 text-[11px] font-black text-white disabled:opacity-50"
-                                >
-                                  {saving ? "Submitting..." : "Submit (cannot be changed after)"}
-                                </button>
-                              )
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+            {currentRound && currentRoundInfo && (
+              <div className="bg-white rounded-2xl border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04] overflow-hidden mb-3">
+                <div className="px-4 pt-3.5 pb-3 border-b border-[#0B132B]/[0.06] flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-[#0B132B]/40">
+                      Round {currentRoundInfo.number}
+                    </p>
+                    <p className="font-rounded text-sm font-black text-[#0B132B] leading-snug">
+                      {currentRoundInfo.name}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                  <p className="shrink-0 text-base font-black text-[#B8901F] font-rounded">
+                    {roundTotals[viewIndex].total.toFixed(2)}
+                    <span className="text-[#0B132B]/30 text-xs font-bold"> / 10</span>
+                  </p>
+                </div>
+
+                <div className="px-4 py-1 divide-y divide-[#0B132B]/[0.05]">
+                  {currentRound.subcriteria.map(sub => {
+                    const criterionKey = `${currentRound.key}__${sub.key}`;
+                    const locked = isLocked(criterionKey);
+                    const value = currentScoreFor(criterionKey);
+                    const fillPct = (value / 2.5) * 100;
+
+                    return (
+                      <div key={criterionKey} className="py-2.5">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <p className="text-[13px] font-bold text-[#0B132B]/75">{sub.label}</p>
+                          <p className="text-[13px] font-black text-[#B8901F]">
+                            {value.toFixed(2)}
+                            <span className="text-[#0B132B]/30 font-bold"> / 2.50</span>
+                          </p>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={2.5}
+                          step={0.25}
+                          value={value}
+                          disabled={locked || loadingScores}
+                          onChange={e => handleSliderChange(criterionKey, Number(e.target.value))}
+                          style={{ "--slider-fill": `${fillPct}%` } as React.CSSProperties}
+                          className="judge-slider w-full"
+                        />
+                        {mode === "live" && (
+                          locked ? (
+                            <p className="text-[10px] font-bold text-emerald-700 mt-1 flex items-center gap-1">
+                              <Check size={11} strokeWidth={3} /> Submitted and locked
+                            </p>
+                          ) : (
+                            <button
+                              onClick={() => handleSubmit(criterionKey)}
+                              disabled={saving}
+                              className="mt-1.5 w-full rounded-lg bg-[#0B132B] py-1.5 text-[11px] font-black text-white disabled:opacity-50 active:scale-[0.98] transition"
+                            >
+                              {saving ? "Submitting..." : "Submit (cannot be changed after)"}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {!currentRound && (
+              <div className="bg-white rounded-2xl border border-[#0B132B]/[0.06] shadow-sm shadow-[#0B132B]/[0.04] overflow-hidden mb-3">
+                <div className="px-4 pt-3.5 pb-3 border-b border-[#0B132B]/[0.06]">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[#0B132B]/40">
+                    Final Score
+                  </p>
+                  <p className="font-rounded text-sm font-black text-[#0B132B]">
+                    {activeContestant.contestant_number} {activeContestant.name}
+                  </p>
+                </div>
+
+                <div className="px-4 py-1 divide-y divide-[#0B132B]/[0.05]">
+                  {roundTotals.map((r, i) => (
+                    <div key={r.key} className="flex items-center justify-between py-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setViewIndex(i)}
+                        className="text-[13px] font-bold text-[#0B132B]/75 text-left"
+                      >
+                        Round {r.number} · {r.name}
+                      </button>
+                      <p className="text-[13px] font-black text-[#0B132B]">
+                        {r.total.toFixed(2)}
+                        <span className="text-[#0B132B]/30 font-bold"> / 10</span>
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="px-4 py-3 border-t border-[#0B132B]/[0.06] flex items-center justify-between">
+                  <p className="text-sm font-black text-[#0B132B]">TOTAL</p>
+                  <p className="text-lg font-black text-[#B8901F] font-rounded">
+                    {grandTotal.toFixed(2)}
+                    <span className="text-[#0B132B]/30 text-xs font-bold"> / {maxTotal}</span>
+                  </p>
+                </div>
+
+                {mode === "live" && (
+                  <div className="px-4 pb-4">
+                    {allLockedForContestant ? (
+                      <div className="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-100 py-2.5">
+                        <Check size={13} className="text-emerald-700" strokeWidth={3} />
+                        <p className="text-[11px] font-black text-emerald-700">
+                          All scores submitted and locked
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="rounded-lg bg-amber-50 border border-amber-100 py-2.5 px-3 text-center">
+                        <p className="text-[11px] font-bold text-amber-700">
+                          Some scores aren&apos;t submitted yet — tap a round above to submit them.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {mode === "test" && (
+                  <div className="px-4 pb-4">
+                    <p className="text-center text-[11px] font-bold text-[#0B132B]/40">
+                      Practice scores aren&apos;t saved.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      {activeContestant && (
+        <div
+          className="fixed bottom-0 inset-x-0 z-20 bg-white/95 backdrop-blur border-t border-[#0B132B]/[0.08] px-4 py-3 flex items-center gap-2"
+          style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+        >
+          <button
+            onClick={() => setViewIndex(v => Math.max(0, v - 1))}
+            disabled={viewIndex === 0}
+            className="flex-1 rounded-xl border border-[#0B132B]/15 py-2.5 text-xs font-black text-[#0B132B] disabled:opacity-30"
+          >
+            ← Previous
+          </button>
+          {currentRound ? (
+            <button
+              onClick={() => setViewIndex(v => Math.min(ROUNDS.length, v + 1))}
+              className="flex-1 rounded-xl bg-[#0B132B] py-2.5 text-xs font-black text-white"
+            >
+              {viewIndex === ROUNDS.length - 1 ? "Review Scores →" : "Next Round →"}
+            </button>
+          ) : (
+            <button
+              onClick={() => setViewIndex(ROUNDS.length - 1)}
+              className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-black text-[#0B132B]"
+            >
+              ← Back to Rounds
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
