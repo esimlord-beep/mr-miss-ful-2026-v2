@@ -213,20 +213,28 @@ export function AwardsExperience({
       </div>
 
       {!votingClosed && timeLeft && (
-        <div className="border-b py-3 px-4 text-center" style={{ backgroundColor: "#0B132B", borderColor: "#0B132B" }}>
-          <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "#D4AF37" }}>
-            Voting closes in
+        <div className="py-6 px-4 text-center" style={{ backgroundColor: "#0B132B" }}>
+          <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: "#D4AF37" }}>
+            ⏰ Voting Closes In
           </p>
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
             {[
-              { value: timeLeft.days, label: "days" },
-              { value: timeLeft.hours, label: "hrs" },
-              { value: timeLeft.minutes, label: "min" },
-              { value: timeLeft.seconds, label: "sec" }
+              { value: timeLeft.days, label: "Days" },
+              { value: timeLeft.hours, label: "Hrs" },
+              { value: timeLeft.minutes, label: "Min" },
+              { value: timeLeft.seconds, label: "Sec" }
             ].map(({ value, label }) => (
-              <div key={label} className="text-center">
-                <p className="font-rounded text-lg font-black text-white tabular-nums">{String(value).padStart(2, "0")}</p>
-                <p className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>{label}</p>
+              <div
+                key={label}
+                className="flex flex-col items-center justify-center rounded-2xl px-3 py-2.5 sm:px-5 sm:py-3.5 min-w-[68px] sm:min-w-[84px]"
+                style={{ backgroundColor: "rgba(212,175,55,0.12)", border: "1.5px solid rgba(212,175,55,0.35)" }}
+              >
+                <p className="font-rounded text-3xl sm:text-4xl font-black tabular-nums leading-none" style={{ color: "#D4AF37" }}>
+                  {String(value).padStart(2, "0")}
+                </p>
+                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider mt-1.5 text-white/70">
+                  {label}
+                </p>
               </div>
             ))}
           </div>
