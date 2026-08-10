@@ -11,12 +11,56 @@ type WinnerDeclaration = {
   confirmed_at: string | null;
 };
 
-const CRITERIA = [
-  { key: "around_the_world", label: "Around the World in Style" },
-  { key: "alter_ego", label: "Alter Ego" },
-  { key: "roots_and_royalty", label: "Roots and Royalty" },
-  { key: "evening_dress", label: "Evening Dress/Suit" }
+const ROUNDS = [
+  {
+    key: "around_the_world",
+    label: "Round 1: Around the World in Style",
+    subcriteria: [
+      { key: "catwalk", label: "Catwalk" },
+      { key: "charisma", label: "Charisma" },
+      { key: "outfit_style", label: "Outfit/Style" },
+      { key: "question", label: "Question" }
+    ]
+  },
+  {
+    key: "alter_ego",
+    label: "Round 2: Alter Ego",
+    subcriteria: [
+      { key: "confidence", label: "Confidence" },
+      { key: "creativity", label: "Creativity" },
+      { key: "transformation", label: "Transformation" },
+      { key: "question", label: "Question" }
+    ]
+  },
+  {
+    key: "roots_and_royalty",
+    label: "Round 3: Roots and Royalty",
+    subcriteria: [
+      { key: "aura", label: "Aura" },
+      { key: "stage_management", label: "Stage Management" },
+      { key: "innovation_style", label: "Innovation & Style" },
+      { key: "question", label: "Question" }
+    ]
+  },
+  {
+    key: "evening_dress",
+    label: "Round 4: Evening Dress & Suit",
+    subcriteria: [
+      { key: "catwalk", label: "Catwalk" },
+      { key: "charisma", label: "Charisma" },
+      { key: "stage_presence", label: "Stage Presence" },
+      { key: "question", label: "Question" }
+    ]
+  }
 ] as const;
+
+const ALL_CRITERIA = ROUNDS.flatMap(round =>
+  round.subcriteria.map(sub => ({
+    key: `${round.key}__${sub.key}`,
+    roundLabel: round.label,
+    subLabel: sub.label
+  }))
+);
 
 const DEMO_CONTESTANT: Contestant = {
   id: "demo",
@@ -104,7 +148,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
   }, [checkCompletion, lockedScores]);
 
   const isJudgeDone = totalSubmittedByMe !== null && contestants.length > 0
-    && totalSubmittedByMe >= contestants.length * CRITERIA.length;
+    && totalSubmittedByMe >= contestants.length * ALL_CRITERIA.length;
 
   useEffect(() => {
     if (!isJudgeDone) return;
@@ -148,9 +192,9 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
   }, [isJudgeDone]);
 
   function currentScoreFor(criterion: string): number {
-    if (mode === "test") return practiceScores[criterion] ?? 5;
+    if (mode === "test") return practiceScores[criterion] ?? 1.25;
     if (lockedScores[criterion] !== undefined) return lockedScores[criterion];
-    return scores[criterion] ?? 5;
+    return scores[criterion] ?? 1.25;
   }
 
   function isLocked(criterion: string): boolean {
@@ -177,7 +221,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
     setSaving(true);
     setError("");
 
-    const value = scores[criterion] ?? 5;
+    const value = scores[criterion] ?? 1.25;
 
     const { error: insertError } = await browserSupabase.from("judge_scores").insert({
       judge_id: judgeId,
@@ -295,9 +339,10 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
             <p className="text-sm font-bold text-[#0B132B] mb-1">How scoring works</p>
             <p className="text-xs text-[#0B132B]/60 font-medium leading-relaxed">
               Public voting is 40% of the final result. Instructor attendance and tasks are 20%.
-              Your judging tonight is 40%, split evenly across 4 rounds (10% each): Around the World
-              in Style, Alter Ego, Roots and Royalty, and Evening Dress/Suit. Once you submit a score
-              for a contestant in a round in Live Mode, it locks permanently and cannot be changed.
+              Your judging tonight is 40%, split across 4 rounds worth 10 marks each: Around the World
+              in Style, Alter Ego, Roots and Royalty, and Evening Dress & Suit. Each round has 4
+              criteria worth 2.5 marks each. Once you submit a score for a criterion in Live Mode,
+              it locks permanently and cannot be changed.
             </p>
           </div>
         </div>
@@ -339,40 +384,59 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
               {activeContestant.contestant_number} {activeContestant.name}
             </p>
 
-            <div className="space-y-5">
-              {CRITERIA.map(({ key, label }) => {
-                const locked = isLocked(key);
-                const value = currentScoreFor(key);
+            <div className="space-y-6">
+              {ROUNDS.map(round => {
+                const roundTotal = round.subcriteria.reduce((sum, sub) => {
+                  const criterionKey = `${round.key}__${sub.key}`;
+                  return sum + currentScoreFor(criterionKey);
+                }, 0);
 
                 return (
-                  <div key={key}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-sm font-bold text-[#0B132B]">{label}</p>
-                      <p className="text-sm font-black text-[#B8901F]">{value.toFixed(1)} / 10</p>
+                  <div key={round.key} className="border-t border-[#0B132B]/[0.06] pt-5 first:border-t-0 first:pt-0">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-black text-[#0B132B]">{round.label}</p>
+                      <p className="text-sm font-black text-[#B8901F]">{roundTotal.toFixed(1)} / 10</p>
                     </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={10}
-                      step={0.5}
-                      value={value}
-                      disabled={locked || loadingScores}
-                      onChange={e => handleSliderChange(key, Number(e.target.value))}
-                      className="w-full accent-[#D4AF37] disabled:opacity-40"
-                    />
-                    {mode === "live" && (
-                      locked ? (
-                        <p className="text-xs font-bold text-emerald-700 mt-1">✓ Submitted and locked</p>
-                      ) : (
-                        <button
-                          onClick={() => handleSubmit(key)}
-                          disabled={saving}
-                          className="mt-2 w-full rounded-full bg-[#0B132B] py-2 text-xs font-black text-white disabled:opacity-50"
-                        >
-                          {saving ? "Submitting..." : "Submit Score (cannot be changed after)"}
-                        </button>
-                      )
-                    )}
+
+                    <div className="space-y-4">
+                      {round.subcriteria.map(sub => {
+                        const criterionKey = `${round.key}__${sub.key}`;
+                        const locked = isLocked(criterionKey);
+                        const value = currentScoreFor(criterionKey);
+
+                        return (
+                          <div key={criterionKey}>
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="text-xs font-bold text-[#0B132B]/70">{sub.label}</p>
+                              <p className="text-xs font-black text-[#B8901F]">{value.toFixed(2)} / 2.5</p>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={2.5}
+                              step={0.25}
+                              value={value}
+                              disabled={locked || loadingScores}
+                              onChange={e => handleSliderChange(criterionKey, Number(e.target.value))}
+                              className="w-full accent-[#D4AF37] disabled:opacity-40"
+                            />
+                            {mode === "live" && (
+                              locked ? (
+                                <p className="text-[11px] font-bold text-emerald-700 mt-0.5">✓ Submitted and locked</p>
+                              ) : (
+                                <button
+                                  onClick={() => handleSubmit(criterionKey)}
+                                  disabled={saving}
+                                  className="mt-1.5 w-full rounded-full bg-[#0B132B] py-1.5 text-[11px] font-black text-white disabled:opacity-50"
+                                >
+                                  {saving ? "Submitting..." : "Submit (cannot be changed after)"}
+                                </button>
+                              )
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}
