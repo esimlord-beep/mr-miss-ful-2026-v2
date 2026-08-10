@@ -8,7 +8,7 @@ async function getAwardsData() {
 
   const { data: settingsData } = await browserSupabase
     .from("settings")
-    .select("awards_title, awards_description, voting_status")
+    .select("awards_title, awards_description, voting_status, awards_voting_status, voting_end_date")
     .maybeSingle();
 
   const { data: cats } = await browserSupabase
