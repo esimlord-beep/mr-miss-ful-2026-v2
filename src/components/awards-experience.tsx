@@ -52,6 +52,7 @@ export function AwardsExperience({
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
 
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
@@ -78,7 +79,34 @@ export function AwardsExperience({
     };
   }, [siteKey]);
 
-  const votingClosed = settings?.voting_status === "closed";
+  const votingEndDate = settings?.voting_end_date ? new Date(settings.voting_end_date) : null;
+  const pastDeadline = votingEndDate ? new Date() >= votingEndDate : false;
+  const votingClosed = settings?.awards_voting_status === "closed" || pastDeadline;
+
+  useEffect(() => {
+    if (!votingEndDate || pastDeadline) {
+      setTimeLeft(null);
+      return;
+    }
+
+    function tick() {
+      const diff = votingEndDate!.getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft(null);
+        return;
+      }
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((diff / (1000 * 60)) % 60),
+        seconds: Math.floor((diff / 1000) % 60)
+      });
+    }
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [votingEndDate?.getTime(), pastDeadline]);
 
   const filteredCategories = categories.filter((category) =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -183,6 +211,27 @@ export function AwardsExperience({
           </a>
         </div>
       </div>
+
+      {!votingClosed && timeLeft && (
+        <div className="border-b py-3 px-4 text-center" style={{ backgroundColor: "#0B132B", borderColor: "#0B132B" }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "#D4AF37" }}>
+            Voting closes in
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            {[
+              { value: timeLeft.days, label: "days" },
+              { value: timeLeft.hours, label: "hrs" },
+              { value: timeLeft.minutes, label: "min" },
+              { value: timeLeft.seconds, label: "sec" }
+            ].map(({ value, label }) => (
+              <div key={label} className="text-center">
+                <p className="font-rounded text-lg font-black text-white tabular-nums">{String(value).padStart(2, "0")}</p>
+                <p className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#94A3B8" }}>{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {votingClosed && (
         <div className="border-b py-3 text-center flex items-center justify-center gap-1.5" style={{ backgroundColor: "#FEF3C7", borderColor: "#FDE68A" }}>
