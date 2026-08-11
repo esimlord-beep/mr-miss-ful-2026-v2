@@ -150,7 +150,7 @@ export default async function AdminResultsPage() {
                               #{i + 1} — {r.name} <span className="text-slate-400 font-medium">(#{r.contestant_number})</span>
                             </p>
                             <p className="text-xs text-slate-500 font-medium">
-                              Voting: {r.voting_score} · Attendance: {r.attendance_score} · Tasks: {r.task_score} ·
+                              Voting: {r.voting_score} · Attendance: {r.attendance_score} · Remarks: {r.remarks_score} · Tasks: {r.task_score} ·
                               World: {r.around_the_world_score} · Alter Ego: {r.alter_ego_score} · Roots: {r.roots_and_royalty_score} · Evening: {r.evening_dress_score}
                             </p>
                           </div>
