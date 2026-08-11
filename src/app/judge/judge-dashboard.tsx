@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { browserSupabase } from "@/lib/supabase-browser";
-import { FlaskConical, Radio, Info, ChevronDown, Check } from "lucide-react";
+import { Info, ChevronDown, Check } from "lucide-react";
 
 type Contestant = { id: string; contestant_number: string; name: string; department: string; category?: string };
 type WinnerDeclaration = {
@@ -357,23 +357,25 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
           )}
         </div>
 
-        <div className="mt-3 flex items-center gap-1 bg-white/10 rounded-full p-1">
+        <div className="mt-3 flex items-center gap-2.5">
           <button
-            onClick={() => setMode("test")}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-[11px] font-black transition ${
-              mode === "test" ? "bg-white text-[#0B132B]" : "text-white/50"
+            type="button"
+            role="switch"
+            aria-checked={mode === "live"}
+            onClick={() => setMode(mode === "live" ? "test" : "live")}
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+              mode === "live" ? "bg-emerald-500" : "bg-white/20"
             }`}
           >
-            <FlaskConical size={12} /> Test
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${
+                mode === "live" ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
           </button>
-          <button
-            onClick={() => setMode("live")}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-[11px] font-black transition ${
-              mode === "live" ? "bg-[#D4AF37] text-[#0B132B]" : "text-white/50"
-            }`}
-          >
-            <Radio size={12} /> Live
-          </button>
+          <span className={`text-xs font-black ${mode === "live" ? "text-emerald-400" : "text-white/50"}`}>
+            {mode === "live" ? "Live" : "Test"}
+          </span>
         </div>
       </div>
 
