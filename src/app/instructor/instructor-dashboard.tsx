@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { createRehearsalSession, createTask, toggleAttendance, toggleTask, addNote } from "./actions";
-import { Plus, MessageSquarePlus } from "lucide-react";
+import { Plus, MessageSquarePlus, Check, X } from "lucide-react";
 
 type Contestant = { id: string; contestant_number: string; name: string; department: string };
 type Session = { id: string; label: string; session_date: string | null };
@@ -145,28 +145,43 @@ export function InstructorDashboard({
                     return (
                       <div
                         key={c.id}
-                        className="flex items-center justify-between gap-2 bg-white rounded-xl px-3 py-2 border border-[#0B132B]/[0.06]"
+                        className="flex items-center justify-between gap-3 bg-white rounded-xl px-3 py-2 border border-[#0B132B]/[0.06]"
                       >
-                        <p className="font-semibold text-[#0B132B] text-xs leading-snug min-w-0">
+                        <p className="font-semibold text-[#0B132B] text-xs leading-snug min-w-0 break-words">
                           <span className="text-[#0B132B]/40 font-bold">{c.contestant_number}</span> {c.name}
                         </p>
-                        <div className="flex gap-1 shrink-0">
+
+                        <div
+                          role="group"
+                          aria-label={`Attendance for ${c.name}`}
+                          className="flex shrink-0 rounded-full border border-[#0B132B]/10 bg-[#0B132B]/[0.03] p-0.5"
+                        >
                           <button
+                            type="button"
+                            aria-pressed={present}
                             onClick={() => startTransition(() => toggleAttendance(c.id, selectedSessionId, true))}
                             disabled={isPending}
-                            className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition ${
-                              present ? "bg-[#D4AF37] text-[#0B132B]" : "bg-[#0B132B]/[0.04] text-[#0B132B]/35"
+                            className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold transition-all duration-150 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#D4AF37] ${
+                              present
+                                ? "bg-[#D4AF37] text-[#0B132B] shadow-sm"
+                                : "text-[#0B132B]/40 hover:text-[#0B132B]/60"
                             }`}
                           >
+                            {present && <Check size={12} strokeWidth={3} />}
                             Present
                           </button>
                           <button
+                            type="button"
+                            aria-pressed={!present}
                             onClick={() => startTransition(() => toggleAttendance(c.id, selectedSessionId, false))}
                             disabled={isPending}
-                            className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition ${
-                              !present ? "bg-[#0B132B] text-white" : "bg-[#0B132B]/[0.04] text-[#0B132B]/35"
+                            className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold transition-all duration-150 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#0B132B] ${
+                              !present
+                                ? "bg-[#0B132B] text-white shadow-sm"
+                                : "text-[#0B132B]/40 hover:text-[#0B132B]/60"
                             }`}
                           >
+                            {!present && <X size={12} strokeWidth={3} />}
                             Absent
                           </button>
                         </div>
