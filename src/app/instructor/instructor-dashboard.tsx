@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createRehearsalSession, createTask, toggleAttendance, toggleTask, addNote } from "./actions";
+import { createRehearsalSession, createTask, toggleAttendance, toggleTask, addNote, setRemarksScore } from "./actions";
 import { Plus, MessageSquarePlus, Check, X } from "lucide-react";
 
 type Contestant = { id: string; contestant_number: string; name: string; department: string };
@@ -10,6 +10,7 @@ type Task = { id: string; label: string; task_date: string | null };
 type AttendanceRecord = { contestant_id: string; session_id: string; present: boolean };
 type TaskRecord = { contestant_id: string; task_id: string; completed: boolean };
 type Note = { id: string; contestant_id: string; note: string; created_at: string };
+type RemarksScore = { contestant_id: string; score: number };
 
 export function InstructorDashboard({
   contestants,
@@ -17,7 +18,8 @@ export function InstructorDashboard({
   tasks,
   attendance,
   taskRecords,
-  notes
+  notes,
+  remarksScores
 }: {
   contestants: Contestant[];
   sessions: Session[];
@@ -25,14 +27,21 @@ export function InstructorDashboard({
   attendance: AttendanceRecord[];
   taskRecords: TaskRecord[];
   notes: Note[];
+  remarksScores: RemarksScore[];
 }) {
   const [isPending, startTransition] = useTransition();
-  const [activeTab, setActiveTab] = useState<"attendance" | "tasks" | "notes">("attendance");
+  const [activeTab, setActiveTab] = useState<"attendance" | "tasks" | "remarks" | "notes">("attendance");
   const [noteContestantId, setNoteContestantId] = useState<string | null>(null);
   const [showAddSession, setShowAddSession] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
   const [selectedSessionId, setSelectedSessionId] = useState<string>(sessions[0]?.id ?? "");
   const [selectedTaskId, setSelectedTaskId] = useState<string>(tasks[0]?.id ?? "");
+  const [remarksDraft, setRemarksDraft] = useState<Record<string, number>>(
+    Object.fromEntries(remarksScores.map(r => [r.contestant_id, r.score]))
+  );
+  const [savedContestantId, setSavedContestantId] = useState<string | null>(null);
+
+  const remarksFor = (contestantId: string) => remarksDraft[contestantId] ?? 0;
 
   const isPresent = (contestantId: string, sessionId: string) =>
     attendance.find(a => a.contestant_id === contestantId && a.session_id === sessionId)?.present ?? false;
@@ -50,7 +59,7 @@ export function InstructorDashboard({
         <p className="text-white/45 text-[11px] font-medium mt-0.5">Mr & Miss FUL Night 2026</p>
 
         <div className="flex items-center bg-white/10 rounded-full p-0.5 mt-3">
-          {(["attendance", "tasks", "notes"] as const).map(tab => (
+          {(["attendance", "tasks", "remarks", "notes"] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -305,6 +314,70 @@ export function InstructorDashboard({
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {activeTab === "remarks" && (
+          <div>
+            <div className="mb-3">
+              <h2 className="font-rounded text-sm font-black text-[#0B132B]">Instructor Remarks Score</h2>
+              <p className="text-[11px] text-[#0B132B]/45 font-medium">Rate each contestant out of 5</p>
+            </div>
+
+            <div className="space-y-1.5">
+              {contestants.map(c => {
+                const value = remarksFor(c.id);
+                const saved = remarksScores.find(r => r.contestant_id === c.id)?.score ?? 0;
+                const isDirty = value !== saved;
+                return (
+                  <div
+                    key={c.id}
+                    className="bg-white rounded-xl px-3 py-2.5 border border-[#0B132B]/[0.06]"
+                  >
+                    <div className="flex items-center justify-between gap-3 mb-1.5">
+                      <p className="font-semibold text-[#0B132B] text-xs leading-snug min-w-0 break-words">
+                        <span className="text-[#0B132B]/40 font-bold">{c.contestant_number}</span> {c.name}
+                      </p>
+                      <p className="shrink-0 text-sm font-black text-[#B8901F]">
+                        {value.toFixed(1)}<span className="text-[#0B132B]/30 font-bold text-xs"> / 5</span>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min={0}
+                        max={5}
+                        step={0.5}
+                        value={value}
+                        onChange={e =>
+                          setRemarksDraft(prev => ({ ...prev, [c.id]: Number(e.target.value) }))
+                        }
+                        className="judge-slider flex-1"
+                        style={{ "--slider-fill": `${(value / 5) * 100}%` } as React.CSSProperties}
+                      />
+                      <button
+                        type="button"
+                        disabled={!isDirty || isPending}
+                        onClick={() => {
+                          startTransition(async () => {
+                            await setRemarksScore(c.id, value);
+                            setSavedContestantId(c.id);
+                            setTimeout(() => setSavedContestantId(id => (id === c.id ? null : id)), 1500);
+                          });
+                        }}
+                        className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-black transition ${
+                          isDirty
+                            ? "bg-[#D4AF37] text-[#0B132B]"
+                            : "bg-[#0B132B]/[0.04] text-[#0B132B]/30"
+                        }`}
+                      >
+                        {savedContestantId === c.id ? <Check size={12} /> : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
