@@ -92,21 +92,15 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
   const [allContestantsForReveal, setAllContestantsForReveal] = useState<Contestant[]>([]);
   const [finalScores, setFinalScores] = useState<Record<string, number>>({});
 
-  // Presentational-only UI state: which round/review screen is showing, and
-  // whether the "how scoring works" note is expanded. Neither affects scores,
-  // submission, or any backend call.
   const [viewIndex, setViewIndex] = useState(0);
   const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
-    async function loadJudge() {
-      const { data: { user } } = await browserSupabase.auth.getUser();
-      if (!user?.email) return;
-
+    async function loadJudgeFromEmail(email: string) {
       const { data } = await browserSupabase
         .from("judges")
         .select("id, name")
-        .eq("email", user.email)
+        .eq("email", email)
         .maybeSingle();
 
       if (data) {
@@ -114,7 +108,22 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
         setJudgeName(data.name);
       }
     }
-    loadJudge();
+
+    browserSupabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) {
+        loadJudgeFromEmail(session.user.email);
+      }
+    });
+
+    const { data: authListener } = browserSupabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user?.email) {
+        loadJudgeFromEmail(session.user.email);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
