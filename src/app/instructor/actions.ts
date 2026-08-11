@@ -86,3 +86,20 @@ export async function addNote(formData: FormData) {
 
   revalidatePath("/instructor");
 }
+
+export async function setRemarksScore(contestantId: string, score: number) {
+  if (!adminSupabase) throw new Error("Supabase service role key is not configured.");
+
+  if (score < 0 || score > 5) throw new Error("Remarks score must be between 0 and 5.");
+
+  const { error } = await adminSupabase
+    .from("instructor_remarks_scores")
+    .upsert(
+      { contestant_id: contestantId, score, updated_at: new Date().toISOString() },
+      { onConflict: "contestant_id" }
+    );
+
+  if (error) throw new Error(`Could not save remarks score: ${error.message}`);
+
+  revalidatePath("/instructor");
+}
