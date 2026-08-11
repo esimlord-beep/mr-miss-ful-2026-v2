@@ -405,11 +405,12 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
           </button>
           {showInfo && (
             <p className="px-3.5 pb-3 text-[11px] text-[#0B132B]/60 font-medium leading-relaxed">
-              Public voting is 40% of the final result. Instructor attendance and tasks are 20%.
-              Your judging tonight is 40%, split across 4 rounds worth 10 marks each: Around the World
-              in Style, Alter Ego, Roots and Royalty, and Evening Dress & Suit. Each round has 4
-              criteria worth 2.5 marks each. Once you submit a score for a criterion in Live Mode,
-              it locks permanently and cannot be changed.
+              Public voting is 35% of the final result. Camp score — attendance, instructor
+              remarks, and tasks — makes up 25%. Your judging tonight is 40%, split across 4
+              rounds worth 10 marks each: Around the World in Style, Alter Ego, Roots and
+              Royalty, and Evening Dress & Suit. Each round has 4 criteria worth 2.5 marks each.
+              Once you submit a score for a criterion in Live Mode, it locks permanently and
+              cannot be changed.
             </p>
           )}
         </div>
