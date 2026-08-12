@@ -94,7 +94,7 @@ export default async function AdminResultsPage() {
           const declaration = declarationFor(categoryLabel);
           const isConfirmed = !!declaration?.confirmed_at;
 
-          const categoryKey = categoryLabel.startsWith("Mr") ? "Mr" : "Miss";
+          const categoryKey = categoryLabel.startsWith("Mr") ? "Mr FUL" : "Miss FUL";
           const ranked = scores
             .filter(s => s.category === categoryKey)
             .sort((a, b) => b.final_score - a.final_score);
