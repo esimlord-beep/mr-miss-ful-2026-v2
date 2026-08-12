@@ -80,6 +80,13 @@ export default async function AdminPage({
                 >
                   ⚖️ Manage Judges
                 </a>
+
+                <a
+                  href="/admin/results"
+                  className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-4 py-1.5 text-xs font-black text-white hover:bg-rose-700"
+                >
+                  🏅 Results & Winners
+                </a>
               </div>
             </div>
 
