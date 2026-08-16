@@ -6,14 +6,15 @@ async function getFinalScores() {
   if (!adminSupabase) return [];
   const [{ data: scores }, { data: contestants }] = await Promise.all([
     adminSupabase.from("contestant_final_scores").select("*"),
-    adminSupabase.from("contestants").select("id, category")
+    adminSupabase.from("contestants").select("id, category, votes")
   ]);
 
-  const categoryById = new Map((contestants ?? []).map(c => [c.id, c.category]));
+  const contestantById = new Map((contestants ?? []).map(c => [c.id, c]));
 
   return (scores ?? []).map(s => ({
     ...s,
-    category: categoryById.get(s.contestant_id) ?? "Unknown"
+    category: contestantById.get(s.contestant_id)?.category ?? "Unknown",
+    votes: contestantById.get(s.contestant_id)?.votes ?? 0
   }));
 }
 
@@ -36,10 +37,55 @@ async function confirmWinner(formData: FormData) {
 
   if (!categoryLabel || !winnerId) return;
 
+  const categoryKey = categoryLabel.startsWith("Mr") ? "Mr FUL" : "Miss FUL";
+
+  const { data: contestants } = await adminSupabase
+    .from("contestants")
+    .select("id, votes")
+    .eq("category", categoryKey);
+
+  const { data: scores } = await adminSupabase
+    .from("contestant_final_scores")
+    .select("contestant_id, final_score");
+
+  const scoreMap = new Map((scores ?? []).map(s => [s.contestant_id, Number(s.final_score)]));
+  const categoryContestantIds = new Set((contestants ?? []).map(c => c.id));
+
+  const ranked = [...categoryContestantIds]
+    .map(id => ({ id, final_score: scoreMap.get(id) ?? 0 }))
+    .sort((a, b) => b.final_score - a.final_score);
+
+  const runnerUp1 = ranked.find(r => r.id !== winnerId) ?? null;
+  const runnerUp2 = ranked.find(r => r.id !== winnerId && r.id !== runnerUp1?.id) ?? null;
+  const runnerUp3 = ranked.find(r => r.id !== winnerId && r.id !== runnerUp1?.id && r.id !== runnerUp2?.id) ?? null;
+
+  // Vote-swap check: does the chosen winner actually hold the highest
+  // public vote count in their category? If not, record a display-only
+  // swap with whoever the real vote leader is — contestants.votes itself
+  // is never modified, this only affects what the admin page shows.
+  const voteLeader = [...(contestants ?? [])].sort((a, b) => b.votes - a.votes)[0];
+  const winnerContestant = (contestants ?? []).find(c => c.id === winnerId);
+
+  let voteSwapWithId: string | null = null;
+  let winnerDisplayVotes: number | null = null;
+  let voteSwapWithDisplayVotes: number | null = null;
+
+  if (voteLeader && winnerContestant && voteLeader.id !== winnerId) {
+    voteSwapWithId = voteLeader.id;
+    winnerDisplayVotes = voteLeader.votes;
+    voteSwapWithDisplayVotes = winnerContestant.votes;
+  }
+
   const { error } = await adminSupabase.from("winner_declarations").upsert(
     {
       category_label: categoryLabel,
       declared_winner_id: winnerId,
+      runner_up_1_id: runnerUp1?.id ?? null,
+      runner_up_2_id: runnerUp2?.id ?? null,
+      runner_up_3_id: runnerUp3?.id ?? null,
+      vote_swap_with_id: voteSwapWithId,
+      winner_display_votes: winnerDisplayVotes,
+      vote_swap_with_display_votes: voteSwapWithDisplayVotes,
       is_override: isOverride,
       override_reason: overrideReason || null,
       confirmed_by: "admin",
@@ -77,6 +123,7 @@ export default async function AdminResultsPage() {
   const categories = ["Mr FUL 2026", "Miss FUL 2026"];
 
   const declarationFor = (label: string) => declarations.find(d => d.category_label === label);
+  const contestantById = (id: string | null) => scores.find(s => s.contestant_id === id);
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8">
@@ -112,14 +159,34 @@ export default async function AdminResultsPage() {
 
               {isConfirmed ? (
                 <div>
-                  <p className="text-sm text-slate-600 font-medium mb-3">
-                    Winner: <span className="font-black text-slate-900">
-                      {ranked.find(r => r.contestant_id === declaration.declared_winner_id)?.name ?? "Unknown"}
-                    </span>
-                    {declaration.is_override && (
-                      <span className="ml-2 text-xs font-bold text-amber-600">(Admin Override)</span>
-                    )}
-                  </p>
+                  <div className="space-y-2 mb-3">
+                    {[
+                      { label: "Winner", id: declaration.declared_winner_id },
+                      { label: "1st Runner-Up", id: declaration.runner_up_1_id },
+                      { label: "2nd Runner-Up", id: declaration.runner_up_2_id },
+                      { label: "3rd Runner-Up", id: declaration.runner_up_3_id }
+                    ].map(({ label, id }) => {
+                      const c = contestantById(id);
+                      if (!c) return null;
+                      return (
+                        <div key={label} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                          <p className="text-xs font-bold text-slate-500">{label}</p>
+                          <p className="text-sm font-black text-slate-900">
+                            #{c.contestant_number} {c.name}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {declaration.is_override && (
+                    <span className="inline-block text-xs font-bold text-amber-600 mb-2">(Admin Override)</span>
+                  )}
+                  {declaration.vote_swap_with_id && (
+                    <p className="text-xs text-slate-500 font-medium mb-2">
+                      Vote display swap applied with {contestantById(declaration.vote_swap_with_id)?.name ?? "another contestant"} — admin view only, public vote counts unchanged.
+                    </p>
+                  )}
                   {declaration.override_reason && (
                     <p className="text-xs text-slate-500 italic mb-3">Reason: {declaration.override_reason}</p>
                   )}
@@ -150,7 +217,7 @@ export default async function AdminResultsPage() {
                               #{i + 1} — {r.name} <span className="text-slate-400 font-medium">(#{r.contestant_number})</span>
                             </p>
                             <p className="text-xs text-slate-500 font-medium">
-                              Voting: {r.voting_score} · Attendance: {r.attendance_score} · Remarks: {r.remarks_score} · Tasks: {r.task_score} ·
+                              Votes: {r.votes} · Voting: {r.voting_score} · Attendance: {r.attendance_score} · Remarks: {r.remarks_score} · Tasks: {r.task_score} ·
                               World: {r.around_the_world_score} · Alter Ego: {r.alter_ego_score} · Roots: {r.roots_and_royalty_score} · Evening: {r.evening_dress_score}
                             </p>
                           </div>
@@ -174,10 +241,13 @@ export default async function AdminResultsPage() {
                       >
                         {ranked.map(r => (
                           <option key={r.contestant_id} value={r.contestant_id}>
-                            #{r.contestant_number} {r.name} — {r.final_score} pts
+                            #{r.contestant_number} {r.name} — {r.final_score} pts · {r.votes} votes
                           </option>
                         ))}
                       </select>
+                      <p className="text-[11px] text-slate-400 font-medium mt-1">
+                        If you pick someone who isn&apos;t the vote leader, their vote count and the vote leader&apos;s will swap on this admin view only — the public site&apos;s vote counts are never changed.
+                      </p>
                     </div>
 
                     <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
