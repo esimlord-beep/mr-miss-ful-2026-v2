@@ -1,5 +1,63 @@
 import { adminSupabase } from "@/lib/supabase";
 
+export async function sendAllJudgesDoneEmail({ to }: { to: string }) {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    console.error("RESEND_API_KEY is missing — email not sent.");
+    return;
+  }
+
+  const now = new Date();
+  const dateTime = now.toLocaleString("en-GB", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: "Africa/Lagos"
+  });
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: "FUL SUG Night <noreply@fulsugnight.online>",
+      reply_to: "support@fulsugnight.online",
+      to: [to],
+      subject: "All judges have finished scoring — review results now",
+      html: `
+        <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:520px;margin:0 auto;background:#FAF9F6;">
+          <div style="background:#0B132B;padding:28px 24px;text-align:center;">
+            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#D4AF37;margin:0;">
+              Mr & Miss FUL Night 2026
+            </p>
+          </div>
+          <div style="padding:28px 24px;">
+            <h1 style="font-size:20px;font-weight:800;margin:0 0 16px;color:#0B132B;">
+              Every judge has submitted all their scores
+            </h1>
+            <p style="margin:0 0 16px;color:#334155;font-size:14px;line-height:1.6;">
+              All judges have finished scoring every contestant across every round as of ${dateTime}.
+              You can now review the ranked results and confirm the winners.
+            </p>
+            <a href="https://fulsugnight.online/admin/results" style="display:inline-block;background:#D4AF37;color:#0B132B;font-weight:800;font-size:14px;padding:12px 24px;border-radius:999px;text-decoration:none;">
+              Review Results
+            </a>
+          </div>
+        </div>
+      `
+    })
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    console.error("Resend API error:", response.status, errorBody);
+  } else {
+    console.log("All-judges-done notification sent to:", to);
+  }
+}
+
 export async function sendVoteConfirmationEmail({
   to,
   payerName,
