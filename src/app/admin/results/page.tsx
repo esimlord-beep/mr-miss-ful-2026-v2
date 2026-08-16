@@ -1,6 +1,29 @@
 import { adminSupabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
-import { Trophy, Crown, Lock } from "lucide-react";
+import { Trophy, Crown, Lock, CheckCircle2 } from "lucide-react";
+
+const CRITERIA_PER_CONTESTANT = 16; // 4 rounds × 4 sub-criteria each
+
+async function getAllJudgesDone(): Promise<boolean> {
+  if (!adminSupabase) return false;
+  const [{ data: judges }, { data: contestants }, { data: scores }] = await Promise.all([
+    adminSupabase.from("judges").select("id"),
+    adminSupabase.from("contestants").select("id"),
+    adminSupabase.from("judge_scores").select("judge_id")
+  ]);
+
+  const judgeList = judges ?? [];
+  const contestantCount = (contestants ?? []).length;
+  if (judgeList.length === 0 || contestantCount === 0) return false;
+
+  const countByJudge = new Map<string, number>();
+  (scores ?? []).forEach(s => {
+    countByJudge.set(s.judge_id, (countByJudge.get(s.judge_id) ?? 0) + 1);
+  });
+
+  const requiredPerJudge = contestantCount * CRITERIA_PER_CONTESTANT;
+  return judgeList.every(j => (countByJudge.get(j.id) ?? 0) >= requiredPerJudge);
+}
 
 async function getFinalScores() {
   if (!adminSupabase) return [];
@@ -133,6 +156,7 @@ async function unlockDeclaration(formData: FormData) {
 export default async function AdminResultsPage() {
   const scores = await getFinalScores();
   const declarations = await getDeclarations();
+  const allJudgesDone = await getAllJudgesDone();
 
   const categories = ["Mr FUL 2026", "Miss FUL 2026"];
 
@@ -150,6 +174,15 @@ export default async function AdminResultsPage() {
             Private — only visible to admin. Nothing here is shown to judges or the public until confirmed.
           </p>
         </div>
+
+        {allJudgesDone && (
+          <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 mb-6">
+            <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+            <p className="text-sm font-bold text-emerald-800">
+              All judges have finished scoring — ready for you to review and confirm winners below.
+            </p>
+          </div>
+        )}
 
         {categories.map(categoryLabel => {
           const declaration = declarationFor(categoryLabel);
