@@ -8,6 +8,9 @@ type Contestant = { id: string; contestant_number: string; name: string; departm
 type WinnerDeclaration = {
   category_label: string;
   declared_winner_id: string | null;
+  runner_up_1_id: string | null;
+  runner_up_2_id: string | null;
+  runner_up_3_id: string | null;
   confirmed_at: string | null;
   final_score_override: number | null;
 };
@@ -185,7 +188,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
     async function poll() {
       const { data: declData } = await browserSupabase
         .from("winner_declarations")
-        .select("category_label, declared_winner_id, confirmed_at, final_score_override")
+        .select("category_label, declared_winner_id, runner_up_1_id, runner_up_2_id, runner_up_3_id, confirmed_at, final_score_override")
         .not("confirmed_at", "is", null);
 
       if (cancelled) return;
@@ -293,6 +296,12 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
                 const pct = decl.final_score_override !== null && decl.final_score_override !== undefined
                   ? decl.final_score_override
                   : decl.declared_winner_id ? finalScores[decl.declared_winner_id] : undefined;
+                const runnerUps = [decl.runner_up_1_id, decl.runner_up_2_id, decl.runner_up_3_id]
+                  .map((id, i) => ({
+                    label: `${["1st", "2nd", "3rd"][i]} Runner-up`,
+                    contestant: id ? allContestantsForReveal.find(c => c.id === id) : undefined
+                  }))
+                  .filter(r => r.contestant);
                 return (
                   <div key={decl.category_label} className="bg-white/5 rounded-2xl p-5 border border-white/10">
                     <p className="text-xs font-bold uppercase tracking-wider text-white/50 mb-1">
@@ -303,6 +312,18 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
                     </p>
                     {pct !== undefined && (
                       <p className="text-sm font-bold text-white/70 mt-1">{pct.toFixed(1)}%</p>
+                    )}
+                    {runnerUps.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-white/10 space-y-1.5">
+                        {runnerUps.map(r => (
+                          <p key={r.label} className="text-xs text-white/60 font-medium">
+                            <span className="text-white/40">{r.label}:</span>{" "}
+                            <span className="font-bold text-white/80">
+                              {r.contestant!.contestant_number} {r.contestant!.name}
+                            </span>
+                          </p>
+                        ))}
+                      </div>
                     )}
                   </div>
                 );
