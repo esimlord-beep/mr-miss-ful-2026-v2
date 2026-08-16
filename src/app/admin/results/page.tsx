@@ -34,6 +34,7 @@ async function confirmWinner(formData: FormData) {
   const winnerId = String(formData.get("winner_id") ?? "").trim();
   const isOverride = formData.get("is_override") === "true";
   const overrideReason = String(formData.get("override_reason") ?? "").trim();
+  const finalScoreOverrideRaw = String(formData.get("final_score_override") ?? "").trim();
 
   if (!categoryLabel || !winnerId) return;
 
@@ -76,10 +77,23 @@ async function confirmWinner(formData: FormData) {
     voteSwapWithDisplayVotes = winnerContestant.votes;
   }
 
+  // Final score display override — same idea as the vote swap above, but
+  // for the percentage judges see on their reveal screen. This ONLY changes
+  // what winner_declarations.final_score_override stores; contestant_final_scores
+  // and every judge_scores row stay exactly as submitted.
+  let finalScoreOverride: number | null = null;
+  if (isOverride && finalScoreOverrideRaw !== "") {
+    const parsed = Number(finalScoreOverrideRaw);
+    if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 100) {
+      finalScoreOverride = parsed;
+    }
+  }
+
   const { error } = await adminSupabase.from("winner_declarations").upsert(
     {
       category_label: categoryLabel,
       declared_winner_id: winnerId,
+      final_score_override: finalScoreOverride,
       runner_up_1_id: runnerUp1?.id ?? null,
       runner_up_2_id: runnerUp2?.id ?? null,
       runner_up_3_id: runnerUp3?.id ?? null,
@@ -187,6 +201,11 @@ export default async function AdminResultsPage() {
                       Vote display swap applied with {contestantById(declaration.vote_swap_with_id)?.name ?? "another contestant"} — admin view only, public vote counts unchanged.
                     </p>
                   )}
+                  {declaration.final_score_override !== null && declaration.final_score_override !== undefined && (
+                    <p className="text-xs text-slate-500 font-medium mb-2">
+                      Score display override active — judges/public will see <span className="font-black text-slate-700">{declaration.final_score_override}%</span> for the winner instead of the real computed score. Judge scoring data is unchanged.
+                    </p>
+                  )}
                   {declaration.override_reason && (
                     <p className="text-xs text-slate-500 italic mb-3">Reason: {declaration.override_reason}</p>
                   )}
@@ -254,6 +273,26 @@ export default async function AdminResultsPage() {
                       <input type="checkbox" name="is_override" value="true" className="rounded" />
                       This is an override (I'm not picking the top-scoring contestant)
                     </label>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        Score shown to judges/public (0–100, optional)
+                      </label>
+                      <input
+                        name="final_score_override"
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.01}
+                        placeholder="Leave blank to use the real computed score"
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                      />
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        Only applies when "This is an override" is checked. This changes what judges see on
+                        their reveal screen for the winner's percentage — it never touches judge_scores or
+                        contestant_final_scores; the real data stays exactly as submitted.
+                      </p>
+                    </div>
 
                     <input
                       name="override_reason"
