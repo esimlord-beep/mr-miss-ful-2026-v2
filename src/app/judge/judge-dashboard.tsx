@@ -9,6 +9,7 @@ type WinnerDeclaration = {
   category_label: string;
   declared_winner_id: string | null;
   confirmed_at: string | null;
+  final_score_override: number | null;
 };
 
 const ROUNDS = [
@@ -184,7 +185,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
     async function poll() {
       const { data: declData } = await browserSupabase
         .from("winner_declarations")
-        .select("category_label, declared_winner_id, confirmed_at")
+        .select("category_label, declared_winner_id, confirmed_at, final_score_override")
         .not("confirmed_at", "is", null);
 
       if (cancelled) return;
@@ -289,7 +290,9 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
             <div className="space-y-6">
               {declarations.map(decl => {
                 const winner = allContestantsForReveal.find(c => c.id === decl.declared_winner_id);
-                const pct = decl.declared_winner_id ? finalScores[decl.declared_winner_id] : undefined;
+                const pct = decl.final_score_override !== null && decl.final_score_override !== undefined
+                  ? decl.final_score_override
+                  : decl.declared_winner_id ? finalScores[decl.declared_winner_id] : undefined;
                 return (
                   <div key={decl.category_label} className="bg-white/5 rounded-2xl p-5 border border-white/10">
                     <p className="text-xs font-bold uppercase tracking-wider text-white/50 mb-1">
