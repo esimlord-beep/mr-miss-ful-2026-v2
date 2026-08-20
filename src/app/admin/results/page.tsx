@@ -61,6 +61,9 @@ async function confirmWinner(formData: FormData) {
   const runnerUp1Raw = String(formData.get("runner_up_1_id") ?? "").trim();
   const runnerUp2Raw = String(formData.get("runner_up_2_id") ?? "").trim();
   const runnerUp3Raw = String(formData.get("runner_up_3_id") ?? "").trim();
+  const runnerUp1ScoreRaw = String(formData.get("runner_up_1_score_override") ?? "").trim();
+  const runnerUp2ScoreRaw = String(formData.get("runner_up_2_score_override") ?? "").trim();
+  const runnerUp3ScoreRaw = String(formData.get("runner_up_3_score_override") ?? "").trim();
 
   if (!categoryLabel || !winnerId) return;
 
@@ -77,6 +80,16 @@ async function confirmWinner(formData: FormData) {
   const runnerUp1Id = runnerUp1Raw !== "" ? runnerUp1Raw : null;
   const runnerUp2Id = runnerUp2Raw !== "" ? runnerUp2Raw : null;
   const runnerUp3Id = runnerUp3Raw !== "" ? runnerUp3Raw : null;
+
+  function parseScoreOverride(raw: string): number | null {
+    if (raw === "") return null;
+    const parsed = Number(raw);
+    return !Number.isNaN(parsed) && parsed >= 0 && parsed <= 100 ? parsed : null;
+  }
+
+  const runnerUp1ScoreOverride = parseScoreOverride(runnerUp1ScoreRaw);
+  const runnerUp2ScoreOverride = parseScoreOverride(runnerUp2ScoreRaw);
+  const runnerUp3ScoreOverride = parseScoreOverride(runnerUp3ScoreRaw);
 
   // Vote-swap check: does the chosen winner actually hold the highest
   // public vote count in their category? If not, record a display-only
@@ -115,6 +128,9 @@ async function confirmWinner(formData: FormData) {
       runner_up_1_id: runnerUp1Id,
       runner_up_2_id: runnerUp2Id,
       runner_up_3_id: runnerUp3Id,
+      runner_up_1_score_override: runnerUp1ScoreOverride,
+      runner_up_2_score_override: runnerUp2ScoreOverride,
+      runner_up_3_score_override: runnerUp3ScoreOverride,
       vote_swap_with_id: voteSwapWithId,
       winner_display_votes: winnerDisplayVotes,
       vote_swap_with_display_votes: voteSwapWithDisplayVotes,
@@ -203,18 +219,22 @@ export default async function AdminResultsPage() {
                 <div>
                   <div className="space-y-2 mb-3">
                     {[
-                      { label: "Winner", id: declaration.declared_winner_id },
-                      { label: "1st Runner-Up", id: declaration.runner_up_1_id },
-                      { label: "2nd Runner-Up", id: declaration.runner_up_2_id },
-                      { label: "3rd Runner-Up", id: declaration.runner_up_3_id }
-                    ].map(({ label, id }) => {
+                      { label: "Winner", id: declaration.declared_winner_id, override: declaration.final_score_override },
+                      { label: "1st Runner-Up", id: declaration.runner_up_1_id, override: declaration.runner_up_1_score_override },
+                      { label: "2nd Runner-Up", id: declaration.runner_up_2_id, override: declaration.runner_up_2_score_override },
+                      { label: "3rd Runner-Up", id: declaration.runner_up_3_id, override: declaration.runner_up_3_score_override }
+                    ].map(({ label, id, override }) => {
                       const c = contestantById(id);
                       if (!c) return null;
+                      const displayScore = override !== null && override !== undefined ? override : c.final_score;
                       return (
                         <div key={label} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
                           <p className="text-xs font-bold text-slate-500">{label}</p>
-                          <p className="text-sm font-black text-slate-900">
+                          <p className="text-sm font-black text-slate-900 text-right">
                             #{c.contestant_number} {c.name}
+                            <span className="block text-xs font-bold text-slate-400">
+                              {displayScore}%{override !== null && override !== undefined ? " (override)" : ""}
+                            </span>
                           </p>
                         </div>
                       );
@@ -299,31 +319,50 @@ export default async function AdminResultsPage() {
 
                     {(["1st", "2nd", "3rd"] as const).map((ordinal, idx) => {
                       const fieldName = `runner_up_${idx + 1}_id`;
+                      const scoreFieldName = `runner_up_${idx + 1}_score_override`;
                       // Default suggestion: next-highest scorer after the winner slot,
                       // skipping the winner's own default position. Admin can pick anyone.
                       const suggested = ranked.filter(r => r.contestant_id !== ranked[0]?.contestant_id)[idx];
                       return (
-                        <div key={fieldName}>
-                          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                            {ordinal} Runner-Up
-                          </label>
-                          <select
-                            name={fieldName}
-                            defaultValue={suggested?.contestant_id ?? ""}
-                            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-900"
-                          >
-                            <option value="">— None —</option>
-                            {ranked.map(r => (
-                              <option key={r.contestant_id} value={r.contestant_id}>
-                                #{r.contestant_number} {r.name} — {r.final_score} pts · {r.votes} votes
-                              </option>
-                            ))}
-                          </select>
+                        <div key={fieldName} className="flex gap-2">
+                          <div className="flex-1">
+                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                              {ordinal} Runner-Up
+                            </label>
+                            <select
+                              name={fieldName}
+                              defaultValue={suggested?.contestant_id ?? ""}
+                              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-900"
+                            >
+                              <option value="">— None —</option>
+                              {ranked.map(r => (
+                                <option key={r.contestant_id} value={r.contestant_id}>
+                                  #{r.contestant_number} {r.name} — {r.final_score} pts · {r.votes} votes
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="w-28">
+                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                              Score
+                            </label>
+                            <input
+                              name={scoreFieldName}
+                              type="number"
+                              min={0}
+                              max={100}
+                              step={0.01}
+                              placeholder="Real"
+                              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                            />
+                          </div>
                         </div>
                       );
                     })}
                     <p className="text-[11px] text-slate-400 font-medium -mt-1">
-                      Runner-ups default to the next-highest scorers, but you can pick anyone. This is what judges see on their reveal screen.
+                      Runner-ups default to the next-highest scorers, but you can pick anyone. Leave a
+                      Score box blank to hide the percentage for that runner-up; type a number to show
+                      exactly that instead of the real one. This is what judges see on their reveal screen.
                     </p>
 
                     <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
