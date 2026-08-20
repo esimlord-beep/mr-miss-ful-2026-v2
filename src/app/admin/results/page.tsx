@@ -58,6 +58,9 @@ async function confirmWinner(formData: FormData) {
   const isOverride = formData.get("is_override") === "true";
   const overrideReason = String(formData.get("override_reason") ?? "").trim();
   const finalScoreOverrideRaw = String(formData.get("final_score_override") ?? "").trim();
+  const runnerUp1Raw = String(formData.get("runner_up_1_id") ?? "").trim();
+  const runnerUp2Raw = String(formData.get("runner_up_2_id") ?? "").trim();
+  const runnerUp3Raw = String(formData.get("runner_up_3_id") ?? "").trim();
 
   if (!categoryLabel || !winnerId) return;
 
@@ -68,20 +71,12 @@ async function confirmWinner(formData: FormData) {
     .select("id, votes")
     .eq("category", categoryKey);
 
-  const { data: scores } = await adminSupabase
-    .from("contestant_final_scores")
-    .select("contestant_id, final_score");
-
-  const scoreMap = new Map((scores ?? []).map(s => [s.contestant_id, Number(s.final_score)]));
-  const categoryContestantIds = new Set((contestants ?? []).map(c => c.id));
-
-  const ranked = [...categoryContestantIds]
-    .map(id => ({ id, final_score: scoreMap.get(id) ?? 0 }))
-    .sort((a, b) => b.final_score - a.final_score);
-
-  const runnerUp1 = ranked.find(r => r.id !== winnerId) ?? null;
-  const runnerUp2 = ranked.find(r => r.id !== winnerId && r.id !== runnerUp1?.id) ?? null;
-  const runnerUp3 = ranked.find(r => r.id !== winnerId && r.id !== runnerUp1?.id && r.id !== runnerUp2?.id) ?? null;
+  // The form's defaultValue already carries the auto-suggested pick for each
+  // slot, so if this arrives empty it means the admin explicitly chose "None" —
+  // respect that rather than silently forcing a computed pick back in.
+  const runnerUp1Id = runnerUp1Raw !== "" ? runnerUp1Raw : null;
+  const runnerUp2Id = runnerUp2Raw !== "" ? runnerUp2Raw : null;
+  const runnerUp3Id = runnerUp3Raw !== "" ? runnerUp3Raw : null;
 
   // Vote-swap check: does the chosen winner actually hold the highest
   // public vote count in their category? If not, record a display-only
@@ -117,9 +112,9 @@ async function confirmWinner(formData: FormData) {
       category_label: categoryLabel,
       declared_winner_id: winnerId,
       final_score_override: finalScoreOverride,
-      runner_up_1_id: runnerUp1?.id ?? null,
-      runner_up_2_id: runnerUp2?.id ?? null,
-      runner_up_3_id: runnerUp3?.id ?? null,
+      runner_up_1_id: runnerUp1Id,
+      runner_up_2_id: runnerUp2Id,
+      runner_up_3_id: runnerUp3Id,
       vote_swap_with_id: voteSwapWithId,
       winner_display_votes: winnerDisplayVotes,
       vote_swap_with_display_votes: voteSwapWithDisplayVotes,
@@ -301,6 +296,35 @@ export default async function AdminResultsPage() {
                         If you pick someone who isn&apos;t the vote leader, their vote count and the vote leader&apos;s will swap on this admin view only — the public site&apos;s vote counts are never changed.
                       </p>
                     </div>
+
+                    {(["1st", "2nd", "3rd"] as const).map((ordinal, idx) => {
+                      const fieldName = `runner_up_${idx + 1}_id`;
+                      // Default suggestion: next-highest scorer after the winner slot,
+                      // skipping the winner's own default position. Admin can pick anyone.
+                      const suggested = ranked.filter(r => r.contestant_id !== ranked[0]?.contestant_id)[idx];
+                      return (
+                        <div key={fieldName}>
+                          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                            {ordinal} Runner-Up
+                          </label>
+                          <select
+                            name={fieldName}
+                            defaultValue={suggested?.contestant_id ?? ""}
+                            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-900"
+                          >
+                            <option value="">— None —</option>
+                            {ranked.map(r => (
+                              <option key={r.contestant_id} value={r.contestant_id}>
+                                #{r.contestant_number} {r.name} — {r.final_score} pts · {r.votes} votes
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    })}
+                    <p className="text-[11px] text-slate-400 font-medium -mt-1">
+                      Runner-ups default to the next-highest scorers, but you can pick anyone. This is what judges see on their reveal screen.
+                    </p>
 
                     <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
                       <input type="checkbox" name="is_override" value="true" className="rounded" />
