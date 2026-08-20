@@ -11,6 +11,9 @@ type WinnerDeclaration = {
   runner_up_1_id: string | null;
   runner_up_2_id: string | null;
   runner_up_3_id: string | null;
+  runner_up_1_score_override: number | null;
+  runner_up_2_score_override: number | null;
+  runner_up_3_score_override: number | null;
   confirmed_at: string | null;
   final_score_override: number | null;
 };
@@ -195,7 +198,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
     async function poll() {
       const { data: declData } = await browserSupabase
         .from("winner_declarations")
-        .select("category_label, declared_winner_id, runner_up_1_id, runner_up_2_id, runner_up_3_id, confirmed_at, final_score_override")
+        .select("category_label, declared_winner_id, runner_up_1_id, runner_up_2_id, runner_up_3_id, runner_up_1_score_override, runner_up_2_score_override, runner_up_3_score_override, confirmed_at, final_score_override")
         .not("confirmed_at", "is", null);
 
       if (cancelled) return;
@@ -303,10 +306,15 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
                 const pct = decl.final_score_override !== null && decl.final_score_override !== undefined
                   ? decl.final_score_override
                   : decl.declared_winner_id ? finalScores[decl.declared_winner_id] : undefined;
-                const runnerUps = [decl.runner_up_1_id, decl.runner_up_2_id, decl.runner_up_3_id]
-                  .map((id, i) => ({
+                const runnerUps = [
+                  { id: decl.runner_up_1_id, override: decl.runner_up_1_score_override },
+                  { id: decl.runner_up_2_id, override: decl.runner_up_2_score_override },
+                  { id: decl.runner_up_3_id, override: decl.runner_up_3_score_override }
+                ]
+                  .map(({ id, override }, i) => ({
                     label: `${["1st", "2nd", "3rd"][i]} Runner-up`,
-                    contestant: id ? allContestantsForReveal.find(c => c.id === id) : undefined
+                    contestant: id ? allContestantsForReveal.find(c => c.id === id) : undefined,
+                    score: override !== null && override !== undefined ? override : (id ? finalScores[id] : undefined)
                   }))
                   .filter(r => r.contestant);
                 return (
@@ -323,11 +331,16 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
                     {runnerUps.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-white/10 space-y-1.5">
                         {runnerUps.map(r => (
-                          <p key={r.label} className="text-xs text-white/60 font-medium">
-                            <span className="text-white/40">{r.label}:</span>{" "}
-                            <span className="font-bold text-white/80">
-                              {r.contestant!.contestant_number} {r.contestant!.name}
+                          <p key={r.label} className="text-xs text-white/60 font-medium flex items-center justify-between">
+                            <span>
+                              <span className="text-white/40">{r.label}:</span>{" "}
+                              <span className="font-bold text-white/80">
+                                {r.contestant!.contestant_number} {r.contestant!.name}
+                              </span>
                             </span>
+                            {r.score !== undefined && (
+                              <span className="font-bold text-white/50 shrink-0 ml-2">{r.score.toFixed(1)}%</span>
+                            )}
                           </p>
                         ))}
                       </div>
@@ -601,7 +614,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
                       </button>
                       <p className="text-[13px] font-black text-[#0B132B]">
                         {r.total.toFixed(2)}
-                        <span className="text-[#0B132B]/30 text-xs font-bold"> / 10</span>
+                        <span className="text-[#0B132B]/30 font-bold"> / 10</span>
                       </p>
                     </div>
                   ))}
