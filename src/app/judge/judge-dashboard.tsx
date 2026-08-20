@@ -182,6 +182,13 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
 
   useEffect(() => {
     if (!isJudgeDone) return;
+    // Fire-and-forget: server figures out if EVERY judge is done and emails
+    // admin at most once. Safe to call every time any judge finishes.
+    fetch("/api/judge/notify-if-all-done", { method: "POST" }).catch(() => {});
+  }, [isJudgeDone]);
+
+  useEffect(() => {
+    if (!isJudgeDone) return;
 
     let cancelled = false;
 
@@ -594,7 +601,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
                       </button>
                       <p className="text-[13px] font-black text-[#0B132B]">
                         {r.total.toFixed(2)}
-                        <span className="text-[#0B132B]/30 font-bold"> / 10</span>
+                        <span className="text-[#0B132B]/30 text-xs font-bold"> / 10</span>
                       </p>
                     </div>
                   ))}
