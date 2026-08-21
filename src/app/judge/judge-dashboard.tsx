@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { browserSupabase } from "@/lib/supabase-browser";
 import { Info, ChevronDown, Check } from "lucide-react";
 
-type Contestant = { id: string; contestant_number: string; name: string; department: string; category?: string };
+type Contestant = { id: string; contestant_number: string; name: string; department: string; category?: string; photo_url?: string | null };
 type WinnerDeclaration = {
   category_label: string;
   declared_winner_id: string | null;
@@ -207,7 +207,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
       if ((declData ?? []).length > 0) {
         const { data: allC } = await browserSupabase
           .from("contestants")
-          .select("id, contestant_number, name, department, category");
+          .select("id, contestant_number, name, department, category, photo_url");
         const { data: scoresData } = await browserSupabase
           .from("contestant_final_scores")
           .select("contestant_id, final_score");
@@ -293,77 +293,111 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
   if (mode === "live" && isJudgeDone) {
     if (bothConfirmed) {
       return (
-        <div className="min-h-screen bg-[#0B132B] text-white flex items-center justify-center px-4 py-12">
-          <div className="max-w-md w-full text-center">
-            <p className="text-xs font-black uppercase tracking-widest text-[#D4AF37] mb-2">
-              Mr & Miss FUL Night 2026 — Results
-            </p>
-            <h1 className="font-rounded text-2xl font-black mb-8">The Winners Are In!</h1>
+        <div className="min-h-screen bg-[#1C1710] text-[#FAF3E3] px-4 py-14 sm:py-16">
+          <p className="text-center text-xs font-bold uppercase tracking-[0.25em] text-[#D4AF37] mb-2">
+            Mr & Miss FUL Night 2026 — Results
+          </p>
+          <h1 className="text-center font-serif text-2xl sm:text-3xl font-bold mb-2">The Winners Are In!</h1>
+          <div className="w-12 h-px bg-[#D4AF37]/40 mx-auto mb-12" />
 
-            <div className="space-y-6">
-              {declarations.map(decl => {
-                const winner = allContestantsForReveal.find(c => c.id === decl.declared_winner_id);
-                const pct = decl.final_score_override !== null && decl.final_score_override !== undefined
-                  ? decl.final_score_override
-                  : decl.declared_winner_id ? finalScores[decl.declared_winner_id] : undefined;
-                const runnerUps = [
-                  { id: decl.runner_up_1_id, override: decl.runner_up_1_score_override },
-                  { id: decl.runner_up_2_id, override: decl.runner_up_2_score_override },
-                  { id: decl.runner_up_3_id, override: decl.runner_up_3_score_override }
-                ]
-                  .map(({ id, override }, i) => ({
-                    label: `${["1st", "2nd", "3rd"][i]} Runner-up`,
-                    contestant: id ? allContestantsForReveal.find(c => c.id === id) : undefined,
-                    score: override !== null && override !== undefined ? override : (id ? finalScores[id] : undefined)
-                  }))
-                  .filter(r => r.contestant);
-                return (
-                  <div key={decl.category_label} className="bg-white/5 rounded-2xl p-5 border border-white/10">
-                    <p className="text-xs font-bold uppercase tracking-wider text-white/50 mb-1">
-                      {decl.category_label}
-                    </p>
-                    <p className="font-rounded text-xl font-black text-[#D4AF37]">
-                      {winner ? `${winner.contestant_number} ${winner.name}` : "—"}
-                    </p>
-                    {pct !== undefined && (
-                      <p className="text-sm font-bold text-white/70 mt-1">{pct.toFixed(1)}%</p>
-                    )}
-                    {runnerUps.length > 0 && (
-                      <div className="mt-4 pt-4 border-t border-white/10 space-y-1.5">
-                        {runnerUps.map(r => (
-                          <p key={r.label} className="text-xs text-white/60 font-medium flex items-center justify-between">
-                            <span>
-                              <span className="text-white/40">{r.label}:</span>{" "}
-                              <span className="font-bold text-white/80">
-                                {r.contestant!.contestant_number} {r.contestant!.name}
-                              </span>
-                            </span>
-                            {r.score !== undefined && (
-                              <span className="font-bold text-white/50 shrink-0 ml-2">{r.score.toFixed(1)}%</span>
-                            )}
-                          </p>
-                        ))}
+          <div className="max-w-md mx-auto space-y-16">
+            {declarations.map(decl => {
+              const winner = allContestantsForReveal.find(c => c.id === decl.declared_winner_id);
+              const pct = decl.final_score_override !== null && decl.final_score_override !== undefined
+                ? decl.final_score_override
+                : decl.declared_winner_id ? finalScores[decl.declared_winner_id] : undefined;
+              const runnerUps = [
+                { id: decl.runner_up_1_id, override: decl.runner_up_1_score_override },
+                { id: decl.runner_up_2_id, override: decl.runner_up_2_score_override },
+                { id: decl.runner_up_3_id, override: decl.runner_up_3_score_override }
+              ]
+                .map(({ id, override }, i) => ({
+                  ordinal: i + 1,
+                  contestant: id ? allContestantsForReveal.find(c => c.id === id) : undefined,
+                  score: override !== null && override !== undefined ? override : (id ? finalScores[id] : undefined)
+                }))
+                .filter(r => r.contestant);
+
+              return (
+                <div key={decl.category_label}>
+                  <p className="text-center text-xs font-bold uppercase tracking-widest text-[#FAF3E3]/40 mb-6">
+                    {decl.category_label}
+                  </p>
+
+                  {winner && (
+                    <div className="flex flex-col items-center text-center mb-10">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">
+                        Winner
+                      </p>
+                      <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-white/5 ring-[3px] ring-[#D4AF37] ring-offset-4 ring-offset-[#1C1710]">
+                        {winner.photo_url ? (
+                          <img src={winner.photo_url} alt={winner.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[#D4AF37]/30 text-3xl font-serif">
+                            {winner.contestant_number}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                      <p className="font-serif text-xl sm:text-2xl font-bold text-[#FAF3E3] mt-4">
+                        {winner.name}
+                      </p>
+                      <p className="text-xs font-semibold text-[#FAF3E3]/40 mt-1">
+                        #{winner.contestant_number}
+                      </p>
+                      {pct !== undefined && (
+                        <p className="mt-3 inline-flex items-center rounded-full bg-[#D4AF37] px-4 py-1 text-sm font-bold text-[#1C1710]">
+                          {pct.toFixed(1)}%
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {runnerUps.length > 0 && (
+                    <div className="grid grid-cols-3 gap-4">
+                      {runnerUps.map(r => (
+                        <div key={r.ordinal} className="flex flex-col items-center text-center">
+                          <div className="relative">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-white/5 ring-2 ring-[#D4AF37]/50">
+                              {r.contestant!.photo_url ? (
+                                <img src={r.contestant!.photo_url} alt={r.contestant!.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-[#D4AF37]/30 text-sm font-serif">
+                                  {r.contestant!.contestant_number}
+                                </div>
+                              )}
+                            </div>
+                            <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#D4AF37] text-[#1C1710] text-[10px] font-bold flex items-center justify-center ring-2 ring-[#1C1710]">
+                              {r.ordinal}
+                            </span>
+                          </div>
+                          <p className="text-[10px] font-bold text-[#FAF3E3]/85 mt-2.5 leading-snug">
+                            {r.contestant!.name}
+                          </p>
+                          {r.score !== undefined && (
+                            <p className="text-[11px] font-bold text-[#D4AF37]/80 mt-1">{r.score.toFixed(1)}%</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       );
     }
 
     return (
-      <div className="min-h-screen bg-[#0B132B] text-white flex items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-[#1C1710] text-[#FAF3E3] flex items-center justify-center px-4 py-12">
         <div className="max-w-sm w-full text-center">
-          <p className="text-xs font-black uppercase tracking-widest text-[#D4AF37] mb-2">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#D4AF37] mb-2">
             Mr & Miss FUL Night 2026
           </p>
-          <h1 className="font-rounded text-xl font-black mb-4">
+          <h1 className="font-serif text-xl font-bold mb-4">
             Thank you for participating as a judge!
           </h1>
-          <p className="text-sm text-white/60 font-medium leading-relaxed">
+          <p className="text-sm text-[#FAF3E3]/60 font-medium leading-relaxed">
             Please wait a few minutes while we compile the results.
           </p>
           <div className="mt-8 flex justify-center">
