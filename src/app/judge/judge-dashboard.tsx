@@ -427,18 +427,18 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
 
   return (
     <div className="min-h-screen bg-[#F5F3EE] text-[#0B132B]">
-      <div className="bg-[#0B132B] px-4 pt-4 pb-3.5 sticky top-0 z-20">
+      <div className="bg-[#FAF9F6] border-b border-[#0B132B]/10 px-4 pt-4 pb-3.5 sticky top-0 z-20">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#D4AF37]">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#B8901F]">
               Mr & Miss FUL Night 2026
             </p>
-            <h1 className="font-rounded text-[19px] font-black text-white leading-tight mt-0.5">
+            <h1 className="font-rounded text-[19px] font-black text-[#0B132B] leading-tight mt-0.5">
               Judge Dashboard
             </h1>
           </div>
           {judgeName && (
-            <p className="text-[11px] font-semibold text-white/40 shrink-0 mt-1 truncate max-w-[35%]">
+            <p className="text-[11px] font-semibold text-[#0B132B]/40 shrink-0 mt-1 truncate max-w-[35%]">
               {judgeName}
             </p>
           )}
@@ -451,7 +451,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
             aria-checked={mode === "live"}
             onClick={() => setMode(mode === "live" ? "test" : "live")}
             className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-              mode === "live" ? "bg-emerald-500" : "bg-white/20"
+              mode === "live" ? "bg-emerald-500" : "bg-[#0B132B]/15"
             }`}
           >
             <span
@@ -460,7 +460,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
               }`}
             />
           </button>
-          <span className={`text-xs font-black ${mode === "live" ? "text-emerald-400" : "text-white/50"}`}>
+          <span className={`text-xs font-black ${mode === "live" ? "text-emerald-600" : "text-[#0B132B]/40"}`}>
             {mode === "live" ? "Live" : "Test"}
           </span>
         </div>
@@ -612,7 +612,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
                             <button
                               onClick={() => handleSubmit(criterionKey)}
                               disabled={saving}
-                              className="mt-1.5 w-full rounded-lg bg-[#0B132B] py-1.5 text-[11px] font-black text-white disabled:opacity-50 active:scale-[0.98] transition"
+                              className="mt-1.5 w-full rounded-lg bg-[#D4AF37] py-1.5 text-[11px] font-black text-[#0B132B] disabled:opacity-50 active:scale-[0.98] transition"
                             >
                               {saving ? "Submitting..." : "Submit (cannot be changed after)"}
                             </button>
@@ -708,7 +708,7 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
           {currentRound ? (
             <button
               onClick={() => setViewIndex(v => Math.min(ROUNDS.length, v + 1))}
-              className="flex-1 rounded-xl bg-[#0B132B] py-2.5 text-xs font-black text-white"
+              className="flex-1 rounded-xl bg-[#D4AF37] py-2.5 text-xs font-black text-[#0B132B]"
             >
               {viewIndex === ROUNDS.length - 1 ? "Review Scores →" : "Next Round →"}
             </button>
