@@ -293,12 +293,12 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
   if (mode === "live" && isJudgeDone) {
     if (bothConfirmed) {
       return (
-        <div className="min-h-screen bg-[#1C1710] text-[#FAF3E3] px-4 py-14 sm:py-16">
-          <p className="text-center text-xs font-bold uppercase tracking-[0.25em] text-[#D4AF37] mb-2">
+        <div className="min-h-screen bg-[#FAF9F6] text-[#0B132B] px-4 py-14 sm:py-16">
+          <p className="text-center text-xs font-bold uppercase tracking-[0.25em] text-[#B8901F] mb-2">
             Mr & Miss FUL Night 2026 — Results
           </p>
           <h1 className="text-center font-serif text-2xl sm:text-3xl font-bold mb-2">The Winners Are In!</h1>
-          <div className="w-12 h-px bg-[#D4AF37]/40 mx-auto mb-12" />
+          <div className="w-12 h-px bg-[#D4AF37] mx-auto mb-12" />
 
           <div className="max-w-md mx-auto space-y-16">
             {declarations.map(decl => {
@@ -320,32 +320,32 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
 
               return (
                 <div key={decl.category_label}>
-                  <p className="text-center text-xs font-bold uppercase tracking-widest text-[#FAF3E3]/40 mb-6">
+                  <p className="text-center text-xs font-bold uppercase tracking-widest text-[#0B132B]/40 mb-6">
                     {decl.category_label}
                   </p>
 
                   {winner && (
                     <div className="flex flex-col items-center text-center mb-10">
-                      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#D4AF37] mb-3">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#B8901F] mb-3">
                         Winner
                       </p>
-                      <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-white/5 ring-[3px] ring-[#D4AF37] ring-offset-4 ring-offset-[#1C1710]">
+                      <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-[#0B132B]/[0.04] ring-[3px] ring-[#D4AF37] ring-offset-4 ring-offset-[#FAF9F6]">
                         {winner.photo_url ? (
                           <img src={winner.photo_url} alt={winner.name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[#D4AF37]/30 text-3xl font-serif">
+                          <div className="w-full h-full flex items-center justify-center text-[#0B132B]/25 text-3xl font-serif">
                             {winner.contestant_number}
                           </div>
                         )}
                       </div>
-                      <p className="font-serif text-xl sm:text-2xl font-bold text-[#FAF3E3] mt-4">
+                      <p className="font-serif text-xl sm:text-2xl font-bold text-[#0B132B] mt-4">
                         {winner.name}
                       </p>
-                      <p className="text-xs font-semibold text-[#FAF3E3]/40 mt-1">
+                      <p className="text-xs font-semibold text-[#0B132B]/40 mt-1">
                         #{winner.contestant_number}
                       </p>
                       {pct !== undefined && (
-                        <p className="mt-3 inline-flex items-center rounded-full bg-[#D4AF37] px-4 py-1 text-sm font-bold text-[#1C1710]">
+                        <p className="mt-3 inline-flex items-center rounded-full bg-[#D4AF37] px-4 py-1 text-sm font-bold text-[#0B132B]">
                           {pct.toFixed(1)}%
                         </p>
                       )}
@@ -357,24 +357,24 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
                       {runnerUps.map(r => (
                         <div key={r.ordinal} className="flex flex-col items-center text-center">
                           <div className="relative">
-                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-white/5 ring-2 ring-[#D4AF37]/50">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-[#0B132B]/[0.04] ring-2 ring-[#D4AF37]/60">
                               {r.contestant!.photo_url ? (
                                 <img src={r.contestant!.photo_url} alt={r.contestant!.name} className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-[#D4AF37]/30 text-sm font-serif">
+                                <div className="w-full h-full flex items-center justify-center text-[#0B132B]/25 text-sm font-serif">
                                   {r.contestant!.contestant_number}
                                 </div>
                               )}
                             </div>
-                            <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#D4AF37] text-[#1C1710] text-[10px] font-bold flex items-center justify-center ring-2 ring-[#1C1710]">
+                            <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#0B132B] text-[#D4AF37] text-[10px] font-bold flex items-center justify-center ring-2 ring-[#FAF9F6]">
                               {r.ordinal}
                             </span>
                           </div>
-                          <p className="text-[10px] font-bold text-[#FAF3E3]/85 mt-2.5 leading-snug">
+                          <p className="text-[10px] font-bold text-[#0B132B]/80 mt-2.5 leading-snug">
                             {r.contestant!.name}
                           </p>
                           {r.score !== undefined && (
-                            <p className="text-[11px] font-bold text-[#D4AF37]/80 mt-1">{r.score.toFixed(1)}%</p>
+                            <p className="text-[11px] font-bold text-[#B8901F] mt-1">{r.score.toFixed(1)}%</p>
                           )}
                         </div>
                       ))}
@@ -389,15 +389,15 @@ export function JudgeDashboard({ contestants }: { contestants: Contestant[] }) {
     }
 
     return (
-      <div className="min-h-screen bg-[#1C1710] text-[#FAF3E3] flex items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-[#FAF9F6] text-[#0B132B] flex items-center justify-center px-4 py-12">
         <div className="max-w-sm w-full text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#D4AF37] mb-2">
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#B8901F] mb-2">
             Mr & Miss FUL Night 2026
           </p>
           <h1 className="font-serif text-xl font-bold mb-4">
             Thank you for participating as a judge!
           </h1>
-          <p className="text-sm text-[#FAF3E3]/60 font-medium leading-relaxed">
+          <p className="text-sm text-[#0B132B]/60 font-medium leading-relaxed">
             Please wait a few minutes while we compile the results.
           </p>
           <div className="mt-8 flex justify-center">
